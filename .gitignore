@@ -1,0 +1,44 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Raw and derived data artifacts
+data/raw/
+data/staging/
+data/derived/
+data/catalog/neo4j/exports/
+data/catalog/neo4j-import/
+
+# Preserve directory structure if desired, but ignore generated crawl output
+data/catalog/fred/crawls/active/
+data/catalog/fred/crawls/*/raw/
+
+# Neo4j runtime state
+neo4j/data/
+neo4j/logs/
+neo4j/plugins/
+
+# MATLAB local/autosave artifacts
+*.asv
+*.autosave
+*.m~
+*.mlx~
+slprj/
+codegen/
+work/
+tmp/
+temp/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*~
+.vscode/
+.idea/
