@@ -1,0 +1,14 @@
+{
+  "provider_id": "fred",
+  "dataset_id": "fred_public_datalist_banks_weekly",
+  "source_url": "https://fredaccount.stlouisfed.org/public/datalist/10578",
+  "notes": "Published FRED data-list download. Raw ZIP retained unchanged. Downloaded manually from a FRED public data-list page. Initial broad banking/financial-system candidate dataset.",
+  "registered_at_utc": "02-Sep-2026 18:38:22",
+  "original_file_name": "banks_weekly.zip",
+  "raw_file_name": "2026-09-02T183822Z_fred_public_datalist_banks_weekly_banks_weekly.zip",
+  "raw_file_path": "/home/radar-41-0/Documents/Data_Retrival/data/raw/fred/2026-09-02T183822Z_fred_public_datalist_banks_weekly_banks_weekly.zip",
+  "raw_file_bytes": 2.589365E+6,
+  "raw_file_sha256": "bfaf15972702b2853d7a8d36ead6c00ae96f5262a5d3a18c7ba175db5ce8d7fb",
+  "copy_into_project": true,
+  "ingestion_status": "registered"
+}

@@ -42,3 +42,9 @@ Thumbs.db
 *~
 .vscode/
 .idea/
+
+# Neo4j runtime/import data; version scripts and declarative config separately.
+neo4j/import/
+
+# Neo4j runtime/import data; version scripts and declarative config separately.
+neo4j/import/

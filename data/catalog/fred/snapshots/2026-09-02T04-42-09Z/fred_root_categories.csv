@@ -1,0 +1,9 @@
+provider_id,category_id,name,parent_id
+fred,32991,"Money, Banking, & Finance",0
+fred,10,"Population, Employment, & Labor Markets",0
+fred,32992,"National Accounts",0
+fred,1,"Production & Business Activity",0
+fred,32455,"Prices",0
+fred,32263,"International Data",0
+fred,3008,"U.S. Regional Data",0
+fred,33060,"Academic Data",0

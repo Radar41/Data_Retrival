@@ -1,0 +1,328 @@
+
+🏛️ 1. Money, Banking Structure, & Interbank Liquidity
+This layer monitors the absolute plumbing of the fiat credit system, balance sheet mechanics of commercial institutions, regulatory guardrails, and central bank asset positioning.
+
+    Monetary Aggregates & Velocity:
+        M1SL: M1 Money Supply (Highly liquid cash, physical currency, demand deposits).
+        M2SL: M2 Money Supply (M1 + savings deposits, small-time deposits, retail money market funds).
+        M2V: Velocity of M2 Money Stock (The frequency with which a dollar is spent on newly produced goods/services).
+        CURRCIR: Currency in Circulation (Physical notes and coins circulating in the wild outside depository vaults).
+    Federal Reserve System Balance Sheet:
+        WALCL: Federal Reserve Total Assets (The primary engine of Quantitative Easing / Quantitative Tightening).
+        WREBAL: Reserve Balances with Federal Reserve Banks (Total commercial bank cash held on deposit at the Fed).
+        WLRRAL: Reverse Repurchase Agreements (RRP) Held by the Fed (Systemic excess liquidity parked overnight by money funds).
+        TREAST: U.S. Treasury Securities Held by the Federal Reserve (Direct monetization track of national debt).
+        WSHOMCB: Mortgage-Backed Securities (MBS) Held by the Federal Reserve (Real estate systemic asset support).
+        RESPPLLD: Primary Credit Outstanding (Discount Window borrowing; direct indicator of acute bank liquidity emergencies).
+    Commercial Bank Asset Allocations:
+        TOTLL: Total Loans and Leases, All Commercial Banks (Primary aggregate metric for credit expansion).
+        BUSLOANS: Commercial and Industrial (C&I) Loans, All Commercial Banks (Direct credit flow into real business operations).
+        REALL: Real Estate Loans, All Commercial Banks (Aggregate real estate debt allocation).
+        CONSUMER: Consumer Loans, All Commercial Banks (Auto, credit card, and traditional retail bank lines).
+        INVEST: Securities in Bank Credit, All Commercial Banks (Treasuries, agencies, and sovereign bonds held inside bank capital reserves).
+        CASHE: Cash Assets, All Commercial Banks (Vault cash and deposits held at other banks / the Fed).
+    Deposits & Capital Liabilities:
+        DPSACBM027SBOG: Deposits, All Commercial Banks (The deposit base funding bank loan assets).
+        DEMDEPSL: Demand Deposits (Non-interest checking assets; fast-moving retail capital).
+        SAVINGS: Savings Deposits (Slower velocity retail deposits).
+        STLDEPSL: Small-Time Deposits at Commercial Banks (Retail CDs and structured high-yield cash vehicles).
+        LGTDEPSL: Large-Time Deposits at Commercial Banks (Institutional scale cash deposits subject to flight risks).
+    Structural Bank Reserves & Leverage Base:
+        TOTRESNS: Total Reserves of Depository Institutions (The total cash baseline backing commercial credit systems).
+        H6STRESNS: Required Reserves of Depository Institutions (The legal structural lock up for commercial banking institutions).
+        EXCSRESNS: Excess Reserves of Depository Institutions (The structural hoard available for unexpected liquidity crises).
+        BOGASSETS: Total Assets of Commercial Banks in the United States (The comprehensive macro ledger of the banking industry).
+
+⚠️ 2. Debt Architecture, Strain, & Financial System Distress
+This matrix monitors systemic degradation across personal, corporate, and sovereign balance sheets. It tracks the precise tipping points where cash flow converts into compounding debt stress.
+
+    Household & Personal Debt Burdens:
+        TOTALSL: Total Consumer Credit Outstanding (Aggregated non-mortgage debt).
+        REVOLSL: Total Revolving Consumer Credit Outstanding (Primary metric tracking compounding credit card balances).
+        NONREVOLSL: Total Nonrevolving Consumer Credit Outstanding (Fixed asset financing: auto loans, student debt).
+        CMDEBT: Households and Nonprofit Organizations Debt Outstanding (Total combined consumer balance sheet liability).
+        TERMCBCCINTNS: Commercial Bank Credit Card Interest Rates (The exact regulatory baseline for retail credit APR friction).
+        TERMCB48NS: Finance Rate on Consumer Loans at Commercial Banks (48-Month New Car Loans; transportation cost friction).
+    Consumer Service & Systemic Stress Metrics:
+        TDS: Household Debt Service Ratio (Mandatory principal and interest payment obligation as a % of disposable income).
+        FORCBANKS: Financial Obligations Ratio (Broader service metrics tracking auto leases, rent, and home insurance).
+        CDSP: Consumer Debt Service Ratio (Debt service strictly isolating non-mortgage consumer lines).
+        MDSP: Mortgage Debt Service Ratio (Debt service strictly isolating single-family home obligations).
+    Delinquency, Default, & Capital Destruction Velocities:
+        DRCCLACBS: Delinquency Rate on Credit Card Loans, All Commercial Banks (Leading indicator of retail wallet failure).
+        DRCLACBS: Delinquency Rate on Commercial and Industrial Loans (Early warning indicator of corporate insolvencies).
+        DRSFRMACBS: Delinquency Rate on Single-Family Residential Mortgages (Structural stability index of consumer real estate).
+        DRALACBS: Delinquency Rate on All Loans, All Commercial Banks (Comprehensive structural credit system failure index).
+        CORRCLACBS: Charge-Off Rate on Credit Card Loans (Actual realized credit card losses written off by banks).
+        CORRCLBS: Charge-Off Rate on Commercial and Industrial Loans (Realized default write-offs across the business landscape).
+    Systemic Risk, Yield Spreads, & Liquidity Stress:
+        STLFSI4: St. Louis Fed Financial Stress Index (Aggregated daily stress score across 18 market data series).
+        BAMLH0A0HYM2: ICE BofA US High Yield Index Option-Adjusted Spread (The junk bond spread tracking corporate debt insolvency premium).
+        TEDRATE: TED Spread (Difference between interbank lending rates and the short term risk-free Treasury yield).
+        BAMLC0A4CBBB: ICE BofA BBB US Corporate Index Option-Adjusted Spread (Tracking marginal operational investment grade corporate risk).
+
+💡 3. Spent, Velocity, Logistics, & Travel Friction
+This segment monitors the transactional economy, tracking consumer cash outflow, infrastructure performance, and transportation costs squeezing standard operations.
+
+    Consumption & Demand Dynamics:
+        PCE: Personal Consumption Expenditures (Total generalized nominal spending on goods and services).
+        PCEND: Personal Consumption Expenditures: Non-Durable Goods (Fast consumption metrics: food, clothing, fuel).
+        PCEDG: Personal Consumption Expenditures: Durable Goods (High capital investment consumption: vehicles, appliances).
+        PCES: Personal Consumption Expenditures: Services (Intangible consumption: rent, healthcare, travel).
+        A792RC0A052NBEA: Per Capita Real Personal Consumption Expenditures (Inflation-adjusted consumption per citizen).
+    Heavy Industry Capital Commitments:
+        DGORDER: Manufacturers' New Orders: Durable Goods (Long-term corporate capital expenditure indicators).
+        NEWORDER: Manufacturers' New Orders: Nondefense Capital Goods Excluding Aircraft (Core business investment baseline).
+        RETAILMSNSA: Advance Retail Sales: Total (Excluding Food Services; physical product demand velocity).
+    Logistics, Transportation, & Physical Infrastructure Cost Mechanics:
+        CUSR0000SETG: Consumer Price Index: Motor Fuel (The daily operational cost overhead for commercial transport lines).
+        CUSR0000SETG01: Consumer Price Index: Airline Fares (Corporate business travel and tourism pricing friction).
+        VMTINDEX: Vehicle Miles Traveled (Physical highway shipping density monitoring domestic economic throughput).
+        CUSR0000SETA01: Consumer Price Index: New Vehicles (Capital procurement costs for enterprise and personal fleets).
+        CUSR0000SETA02: Consumer Price Index: Used Cars and Trucks (Secondary market value fluctuations and supply chain normalization indicators).
+
+📊 4. Macro Benchmarks, Physical Industry, & Commodity Foundations
+This structural segment tracks raw industrial output, absolute economic scope, global asset hedges, and wholesale baseline commodity pricing.
+
+    Comprehensive Economic Output:
+        GDPC1: Real Gross Domestic Product (Inflation-adjusted national economic output baseline).
+        GDP: Gross Domestic Product (Nominal aggregate dollar value of all economic activity).
+        GDI: Gross Domestic Income (The income-side tracking mechanism for total national output).
+        A939RX0Q048SBEA: Real Gross Domestic Product per Capita (The foundational standard-of-living macro indicator).
+    Core Price Indexes & Purchasing Power Destruction:
+        CPIAUCSL: Consumer Price Index for All Urban Consumers (Headline consumer pricing friction benchmark).
+        CPILFESL: Consumer Price Index: All Items Less Food and Energy (Core inflation stripping volatile segments).
+        PCEPILFE: Personal Consumption Expenditures Excluding Food and Energy (The Federal Reserve's primary targeted inflation gauge).
+        PPIACO: Producer Price Index by Commodity: All Commodities (Wholesale industrial factory-gate input cost metric).
+    Industrial Production & Manufacturing Capacities:
+        INDPRO: Industrial Production Index (Physical volume output of manufacturing, mining, and utility plants).
+        IPMAN: Industrial Production: Manufacturing (Isolates pure manufacturing factories vs. extraction and utilities).
+        CAPUTLG3111S: Capacity Utilization: Manufacturing (Reveals slack or exhaustion points inside processing factories).
+        TCU: Total Capacity Utilization (Aggregated utilization matrix across the entire real asset layout of the country).
+    Hard Commodities, Energy Baselines, & Safe Havens:
+        GOLDAMGBD228NLBM: Gold Prices: London Bullion Market (Monetary safe haven index tracking loss of institutional trust).
+        POILWTIUSDM: Crude Oil Price: West Texas Intermediate (The foundation benchmark for global energy and plastic components).
+        PCOPPUSDM: Global Price of Copper (High-grade industrial demand proxy for construction and electronics).
+        PNUTGUSDM: Global Price of Natural Energy: Natural Gas (Primary baseline for chemical industrial processing and electric grids).
+        PALLFNFINDEXM: Global Price Index of All Commodities (Aggregate industrial input raw commodity cost trajectory index).
+
+🛠️ Advanced Analytical Computations for FRED Engine Users
+To execute sophisticated macro forensics, paste these combinations directly into the "Edit Line" -> "Customize Data" section of the FRED interface:
+
+    The Corporate Funding Liquidity Gap
+        Formula Input: a - b
+        Series Mapping: a = BUSLOANS (C&I Loans) | b = DPSACBM027SBOG (Total Deposits)
+        Strategic Intent: Tracks if corporate loan drawdowns are expanding faster than commercial bank deposit collection. A sharp upward surge indicates severe commercial cash hoarding behavior preceding systemic banking stress.
+    The Total Systemic Debt Leverage Ratio
+        Formula Input: (a / b) * 100
+        Series Mapping: a = CMDEBT (Total Household Liabilities) | b = GDP (Nominal Gross Domestic Product)
+        Strategic Intent: Tracks the true macro debt-to-income expansion of the population base without inflation adjustments masking the structural leverage.
+    The Industrial Velocity Disconnect
+        Formula Input: a - b
+        Series Mapping: a = INDPRO (Physical Industrial Production) | b = M2V (Velocity of M2 Money Stock)
+        Strategic Intent: Identifies if financial paper circulation velocity is detaching dangerously from physical factory floor output.
+================================================================================================================================================================================================================================================================================
+
+🏛️ 1. Money, Banking Structure, & Interbank Liquidity (Expanded)
+
+    M1SL: M1 Money Supply
+    M2SL: M2 Money Supply
+    M2V: Velocity of M2 Money Stock
+    CURRCIR: Currency in Circulation
+    WALCL: Federal Reserve Total Assets
+    WREBAL: Reserve Balances with Federal Reserve Banks
+    WLRRAL: Reverse Repurchase Agreements (RRP) Held by the Fed
+    TREAST: U.S. Treasury Securities Held by the Fed
+    WSHOMCB: Mortgage-Backed Securities (MBS) Held by the Fed
+    RESPPLLD: Primary Credit Outstanding (Discount Window borrowing)
+    TOTLL: Total Loans and Leases, All Commercial Banks
+    BUSLOANS: Commercial and Industrial (C&I) Loans
+    REALL: Real Estate Loans, All Commercial Banks
+    CONSUMER: Consumer Loans, All Commercial Banks
+    INVEST: Securities in Bank Credit, All Commercial Banks
+    CASHE: Cash Assets, All Commercial Banks
+    DPSACBM027SBOG: Deposits, All Commercial Banks
+    DEMDEPSL: Demand Deposits
+    SAVINGS: Savings Deposits
+    STLDEPSL: Small-Time Deposits at Commercial Banks
+    LGTDEPSL: Large-Time Deposits at Commercial Banks
+    TOTRESNS: Total Reserves of Depository Institutions
+    H6STRESNS: Required Reserves of Depository Institutions
+    EXCSRESNS: Excess Reserves of Depository Institutions
+    BOGASSETS: Total Assets of Commercial Banks in the United States
+
+⚠️ 2. Debt Architecture, Strain, & Financial System Distress (Expanded)
+
+    TOTALSL: Total Consumer Credit Outstanding
+    REVOLSL: Total Revolving Consumer Credit Outstanding (Credit cards)
+    NONREVOLSL: Total Nonrevolving Consumer Credit Outstanding (Auto/Student loans)
+    CMDEBT: Households and Nonprofit Organizations Debt Outstanding
+    TERMCBCCINTNS: Commercial Bank Credit Card Interest Rates
+    TERMCB48NS: Finance Rate on Consumer Loans at Commercial Banks (48-Mo New Car)
+    TDS: Household Debt Service Ratio
+    FORCBANKS: Financial Obligations Ratio
+    CDSP: Consumer Debt Service Ratio
+    MDSP: Mortgage Debt Service Ratio
+    DRCCLACBS: Delinquency Rate on Credit Card Loans
+    DRCLACBS: Delinquency Rate on Commercial and Industrial Loans
+    DRALACBS: Delinquency Rate on All Loans, All Commercial Banks
+    CORRCLACBS: Charge-Off Rate on Credit Card Loans
+    CORRCLBS: Charge-Off Rate on Commercial and Industrial Loans
+    STLFSI4: St. Louis Fed Financial Stress Index
+    BAMLH0A0HYM2: ICE BofA US High Yield Index Option-Adjusted Spread
+    TEDRATE: TED Spread
+    BAMLC0A4CBBB: ICE BofA BBB US Corporate Index Option-Adjusted Spread
+
+💡 3. Spent, Velocity, Logistics, & Travel Friction (Expanded)
+
+    PCE: Personal Consumption Expenditures
+    PCEND: Personal Consumption Expenditures: Non-Durable Goods
+    PCEDG: Personal Consumption Expenditures: Durable Goods
+    PCES: Personal Consumption Expenditures: Services
+    A792RC0A052NBEA: Per Capita Real Personal Consumption Expenditures
+    DGORDER: Manufacturers' New Orders: Durable Goods
+    NEWORDER: Manufacturers' New Orders: Nondefense Capital Goods
+    RETAILMSNSA: Advance Retail Sales: Total
+    CUSR0000SETG: Consumer Price Index: Motor Fuel
+    CUSR0000SETG01: Consumer Price Index: Airline Fares
+    VMTINDEX: Vehicle Miles Traveled
+    CUSR0000SETA01: Consumer Price Index: New Vehicles
+    CUSR0000SETA02: Consumer Price Index: Used Cars and Trucks
+    CPIUFDNS: Consumer Price Index: Food
+
+📊 4. Macro Benchmarks, Physical Industry, & Commodity Foundations (Expanded)
+
+    GDPC1: Real Gross Domestic Product
+    GDP: Nominal Gross Domestic Product
+    GDI: Gross Domestic Income
+    A939RX0Q048SBEA: Real Gross Domestic Product per Capita
+    CPIAUCSL: Consumer Price Index for All Urban Consumers
+    CPILFESL: Consumer Price Index: All Items Less Food and Energy
+    PCEPILFE: Personal Consumption Expenditures Excluding Food and Energy
+    PPIACO: Producer Price Index by Commodity: All Commodities
+    INDPRO: Industrial Production Index
+    IPMAN: Industrial Production: Manufacturing
+    CAPUTLG3111S: Capacity Utilization: Manufacturing
+    TCU: Total Capacity Utilization
+    GOLDAMGBD228NLBM: Gold Prices: London Bullion Market
+    POILWTIUSDM: Crude Oil Price: West Texas Intermediate
+    PCOPPUSDM: Global Price of Copper
+    PNUTGUSDM: Global Price of Natural Gas
+    PALLFNFINDEXM: Global Price Index of All Commodities
+    
+🏠 5. Real Estate Defaults & Housing Supply Mechanics
+This module isolates construction pipeline health, inventory backlogs, real estate-specific defaults, and housing affordability dynamics.
+
+    Construction Pipeline & Supply Vectors:
+        HOUST: Housing Starts: Total New Privately Owned Housing Units Started (Tracks ground-breaking velocity).
+        HOUST1F: Housing Starts: One-Family Structures (Isolates suburban consumer supply).
+        HOUST5F: Housing Starts: 5 Units or More in Structure (Tracks multifamily, institutional rental developments).
+        PERMIT: New Privately Owned Housing Units Authorized by Building Permits (The primary forward indicator for future housing starts).
+        PERMIT1F: Building Permits: One-Family Structures (Forward signal for single-family residential pipelines).
+        COMPUTNSA: New Privately Owned Housing Units Completed (The ultimate metric for units actually hitting the market).
+    Inventory, Vacancy, & Market Tightness:
+        MSACSR: Monthly Supply of New Houses in the United States (Months of inventory available at current sales pace; critical liquidity signal).
+        HVSVRUSQ176N: Rental Vacancy Rate for the United States (Measures consumer rental pressure and tenant supply slack).
+        HVSHRUSQ176N: Homeowner Vacancy Rate for the United States (Measures physical structural excess in the homeownership market).
+        EOPNUMNSNSA: Total Housing Inventory (Raw aggregate unit count available across the domestic footprint).
+    Real Estate Default, Foreclosure, & Asset Distress (The Structural Decay Track):
+        DRSFRMACBS: Delinquency Rate on Single-Family Residential Mortgages, All Commercial Banks (Leading indicator of consumer housing failure).
+        DRCREACBS: Delinquency Rate on Commercial Real Estate Loans (Booked at commercial banks; tracks retail, office, and multifamily developer strain).
+        CORRSRMACBS: Charge-Off Rate on Single-Family Residential Mortgages (Actual realized residential losses written off by banking institutions).
+        CORRCREACBS: Charge-Off Rate on Commercial Real Estate Loans (Actual realized commercial real estate developer losses).
+        CBLREALLNS: Real Estate Loans: Construction and Land Development Loans (Tracks debt stress inside the raw development pipeline).
+    Affordability, Valuation, & Capital Friction:
+        CSUSHPISA: S&P CoreLogic Case-Shiller U.S. National Home Price Index (The standard benchmark for structural real estate valuations).
+        MORTGAGE30US: 30-Year Fixed Rate Mortgage Average in the United States (The absolute interest cost friction for consumer property acquisitions).
+        COMPUTSPNEW: Median Sales Price of New Houses Sold (The capital requirement baseline for newly constructed property).
+        FIXHAI: Housing Affordability Index (Fixed family income relative to the qualification requirements for a median-priced home).
+
+🛠️ Advanced Structural Property Formulas for FRED Engine Users
+Input these combinations directly into the "Edit Line" -> "Customize Data" window inside FRED:
+
+    The Property Inventory Squeeze Warning
+        Formula Input: a / b
+        Series Mapping: a = PERMIT (Building Permits) | b = MSACSR (Monthly Supply of New Houses)
+        Strategic Intent: Tracks if speculative building permits are accelerating while physical supply on the ground is stagnant or climbing. A high ratio indicates future inventory gluts and building sector distress.
+    The Developer Liquidity Gap
+        Formula Input: a - b
+        Series Mapping: a = DRCREACBS (Commercial Real Estate Delinquency) | b = DRSFRMACBS (Single-Family Mortgage Delinquency)
+        Strategic Intent: Isolates the structural divergence between commercial developer stress (office, retail apartments) and residential homeowners. If this gaps upward sharply, it points to a systemic institutional commercial property bust occurring independently of traditional residential markets.
+
+
+🌐 6. Regional Banking Stress & Sovereign Flight Vectors
+This framework monitors regional banking vulnerabilities, global exchange rate mechanics, cross-border capital insulation, and short-term sovereign risk premiums.
+
+    Regional Banking Assets & Liquidity Channels:
+        BANKCON: Consolidated Assets of Commercial Banks in the United States (Tracks the macro-scale concentration of the banking sector).
+        H8B1029NCBCAM: Real Estate Loans: Commercial Real Estate Loans, Small Domestically Chartered Commercial Banks (Critical metric isolating regional bank exposure to commercial property distress).
+        H8B1021NCBCAM: Treasury and Agency Securities, Small Domestically Chartered Commercial Banks (Tracks regional bank flight to liquid sovereign debt vs. loan deployment).
+        H8B1151NCBCAM: Cash Assets, Small Domestically Chartered Commercial Banks (Isolates raw liquid cash reserves held inside regional banking networks).
+    Sovereign Flight, Currencies, & Capital Insulation:
+        DTWEXBGS: Nominal Broad U.S. Dollar Index (Tracks the exchange value of the USD against a broad foreign currency basket; primary global dollar-shortage indicator).
+        DEXUSEU: U.S. Dollars to Euro Spot Exchange Rate (Monitors structural capital shifting between Western economic blocks).
+        DEXJPNS: Yen to U.S. Dollar Spot Exchange Rate (Key indicator tracking the health and unwinding velocities of the global Yen Carry Trade).
+    Sovereign Risk Premiums & Yield Curves:
+        T10Y2Y: 10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity (The foundational Yield Curve Inversion metric; classical recessionary time horizon predictor).
+        T10Y3M: 10-Year Treasury Constant Maturity Minus 3-Month Treasury Constant Maturity (The Federal Reserve’s preferred structural yield spread for tracking near-term inversion stress).
+        DGS10: 10-Year Treasury Constant Maturity Rate (The global benchmark risk-free rate anchoring sovereign debt valuations).
+        DGS2: 2-Year Treasury Constant Maturity Rate (Tracks short-term monetary policy expectations and near-term structural bond yields).
+
+
+🛠️ Advanced Sovereign & Regional Stress Formulas for FRED Engine Users
+Input these combinations directly into the "Edit Line" -> "Customize Data" window inside FRED to map cross-border cracks:
+
+    The Regional Bank Commercial Property Vulnerability Core Ratio
+        Formula Input: (a / b) * 100
+        Series Mapping: a = H8B1029NCBCAM (CRE Loans, Small Banks) | b = H8B1151NCBCAM (Cash Assets, Small Banks)
+        Strategic Intent: Measures regional bank commercial real estate risk exposure directly against their raw liquid cash buffers. A spiking ratio indicates diminishing liquid insulation against localized real estate defaults.
+    The International Fiat Exhaustion Premium
+        Formula Input: (a / b) * 100
+        Series Mapping: a = GOLDAMGBD228NLBM (Gold Price) | b = DTWEXBGS (Nominal Broad U.S. Dollar Index)
+        Strategic Intent: Tracks if gold prices are outstripping nominal dollar strength. When this ratio surges during a rising dollar regime, it flags systemic global capital abandoning fiat assets entirely, moving past mere currency arbitrage into physical safe havens.
+
+
+
+
+💼 7. Labor Market Breakdown & Employment Stress
+This layer isolates underlying fractures in the labor market, separating headline unemployment numbers from true structural income degradation.
+
+    Leading Indicators of Labor Demand:
+        AWHARENSA: Average Weekly Hours of All Employees: Total Private (Companies cut hours before they cut heads; a shrinking workweek signals an impending hiring freeze).
+        JTSJOL: Job Openings: Total Nonfarm (Measures gross corporate labor demand and economic cooling).
+        ICSA: Initial Claims (Weekly snapshot of absolute layoffs and immediate economic deterioration).
+        CCSA: Continued Claims (Insured Unemployment; measures the difficulty laid-off workers experience finding new employment).
+    Structural Demographics & Underemployment (The Stress Track):
+        U6RATE: Total Unemployed, Plus All Persons Marginally Attached to the Labor Force, Plus Total Employed Part Time for Economic Reasons (The "True" Unemployment Rate factoring in involuntary part-time workers).
+        LNS12032194: Employed Part-Time for Economic Reasons: Slack Work or Business Conditions (Isolates workers downshifted against their will due to dying business demand).
+        LNS13025703: Unemployed 27 Weeks and Over (Long-Term Unemployment; tracking systemic structural displacement).
+        CIVPART: Labor Force Participation Rate (Tracks structural exit from the workforce, which artificially lowers headline unemployment).
+    Wage Growth Friction & Real Purchasing Power:
+        AHETPI: Average Hourly Earnings of All Employees: Total Private (Nominal wage growth tracking inflation feedback loops).
+        LES1252881600Q: Employed Full-Time: Real Median Usual Weekly Earnings (Inflation-adjusted wage power; if this turns negative, consumer default trajectories accelerate regardless of employment status).
+
+🗂️ Unified 110-Series Core Index Summary
+
+    Money & Interbank Liquidity (1-25): Core money stock, velocity, and central bank assets (M2SL, WALCL, WREBAL, TOTRESNS).
+    Debt Architecture & Distress (26-45): Consumer revolving credit expansions and default tracking (TOTALSL, DRCCLACBS, STLFSI4).
+    Spent, Velocity, & Logistics (46-60): Physical consumption metrics and infrastructure cost friction (PCE, DGORDER, VMTINDEX).
+    Macro Benchmarks & Commodities (61-77): Real output trends and heavy industrial input anchors (GDPC1, INDPRO, GOLDAMGBD228NLBM).
+    Real Estate & Housing Supply (78-92): The physical property construction pipeline and structural CRE strains (HOUST, DRCREACBS).
+    Regional Banks & Sovereign Flight (93-100): Small bank exposure metrics and global currency arbitrage indices (DTWEXBGS, T10Y2Y).
+    Labor Market Breakdown (101-110): Real workweek hours, underemployment, and systemic wage erosion patterns (U6RATE, ICSA).
+
+🛠️ Advanced Labor-to-Debt Formulas for FRED Engine Users
+Input these custom equations directly into the "Edit Line" -> "Customize Data" window inside FRED to identify key turning points:
+
+    -The Involuntary Income Squeeze Indicator
+        Formula Input: a / b
+        Series Mapping: a = LNS12032194 (Part-time for economic reasons) | b = AHETPI (Average Hourly Earnings)
+        Strategic Intent: Tracks whether the population is being shifted to low-hour, part-time work while nominal wage metrics look stable. A spiking ratio indicates a severe erosion of household cash generation.
+        
+    -The Consumer Default Trigger Threshold
+        Formula Input: a - b
+        Series Mapping: a = CCSA (Continued Unemployment Claims) | b = DRCCLACBS (Credit Card Delinquency Rate)
+        Strategic Intent: Tracks the lag time between long-term job loss and systemic credit defaults. When continued claims rise and this gap narrows, it signals that personal savings cushions have vanished, and immediate retail credit collapse is underway.
+
+======================================================================
+remember This final expansion completes your 110-series macroeconomic diagnostic engine. It integrates a Labor Market Breakdown & Employment Stress matrix to track the structural decay of consumer income before it triggers defaults in credit and real estate lines.

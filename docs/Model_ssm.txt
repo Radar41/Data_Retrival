@@ -1,0 +1,89 @@
+In MATLAB's Econometrics Toolbox, the framework that enforces a single core system without script rewriting is built entirely around the [ssm (State-Space Model)](https://www.mathworks.com/help/econ/ssm.html) object. [1] 
+Instead of creating separate workflows for ARIMA, Exponential Smoothing, or structural models, you feed a single master configuration file (like a JSON, YAML, or Struct array) to a parameter-mapping function. This function maps those values directly into the core state matrices ($\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D}$). [1] 
+------------------------------
+## 🛠️ The Architecture: ssm Parameter Mapping
+When implementing this, you use Implicit Model Specification. Instead of hardcoding static matrices, you write a standalone function file that dictates how a single configuration vector array shapes your model tree. [2] 
+## 1. Define the Mapping Configuration File (paramMap.m)
+Create a file named paramMap.m. This function receives your active parameters (params) and maps them into the mathematical components of the forecasting model: [2] 
+
+function [A, B, C, D, Mean0, Cov0, StateType] = paramMap(params)
+    % Example: Config toggled for an ARMA(2,1) structural tree
+    % params(1) = AR1 coeff, params(2) = AR2 coeff, params(3) = MA1 coeff
+    % params(4) = state noise variance, params(5) = observation noise variance
+    
+    % State Transition Matrix (A)
+    A = [params(1), params(2); 
+         1,         0];
+         
+    % State Disturbance Loading Matrix (B)
+    B = [sqrt(params(4)); 
+         0];
+         
+    % Measurement Sensitivity Matrix (C)
+    C = [1, params(3)]; 
+    
+    % Observation Innovation Matrix (D)
+    D = sqrt(params(5));
+    
+    % Initial Conditions
+    Mean0 = [0; 0];
+    Cov0  = eye(2);
+    StateType = [0; 0]; % 0 indicates stationary statesend
+
+## 2. The Main Script Engine (Never Needs to Change)
+Your execution script stays exactly the same, whether you are running a simple random walk or a complex multi-variable trend. You only pass the function handle @paramMap to ssm: [2] 
+
+% 1. Bind your unified structure configuration
+Mdl = ssm(@paramMap); 
+% 2. Initialize starting parameter guesses 
+initialParams = [0.5, -0.2, 0.4, 0.1, 0.05]; 
+% 3. Run maximum likelihood estimation on your time series (Y)
+[EstMdl, estimatedParams] = estimate(Mdl, Y, initialParams);
+% 4. Run the forecasting loop 
+numPeriods = 12;
+[Y_forecast, Y_MSE] = forecast(EstMdl, numPeriods, Y);
+
+------------------------------
+## 🔄 The Full Matrix Config Tree
+To hit different classical models, you just change the dimensions and shapes of the matrices outputted by your configuration function:
+## Local Level / Simple Exponential Smoothing (SES)
+
+* 
+* Concept: $\mathbf{x}_t$ holds the baseline level.
+* Matrices:
+* $A = [1]$
+   * $C = [1]$
+   * $B = [\sigma_{\eta}]$, $D = [\sigma_{\varepsilon}]$
+* 
+
+## Local Linear Trend / Holt's Linear Trend
+
+* 
+* Concept: $\mathbf{x}_t$ holds two elements: $\begin{bmatrix} \text{Level} \\ \text{Trend} \end{bmatrix}$
+* Matrices:
+* $A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$
+   * $C = \begin{bmatrix} 1 & 0 \end{bmatrix}$
+   * $B = \begin{bmatrix} \sigma_{\text{level}} & 0 \\ 0 & \sigma_{\text{trend}} \end{bmatrix}$
+* 
+
+## ARIMA(2,0,1) / ARMA(2,1)
+
+* 
+* Concept: $\mathbf{x}_t$ tracks past historical signals and shock disruptions. [3] 
+* Matrices:
+* $A = \begin{bmatrix} \phi_1 & \phi_2 \\ 1 & 0 \end{bmatrix}$
+   * $C = \begin{bmatrix} 1 & \theta_1 \end{bmatrix}$
+   * $B = \begin{bmatrix} \sigma_{\eta} \\ 0 \end{bmatrix}$
+* 
+
+------------------------------
+## 📂 External Open-Source Alternative
+If you want a native, third-party repository built for MATLAB that exposes an explicit object-oriented system for swapping these trees out of the box, check out The State Space Models (SSM) Toolbox for MATLAB. It provides interactive wrappers like ssm_llm (Local Level) and ssm_arma(p,q) natively out of a singular class structure. [4, 5] 
+Would you like an example configuration file mapping format (like JSON or a MATLAB Struct) that shows how parameters route directly to dynamically resize these arrays?
+
+[1] [https://www.mathworks.com](https://www.mathworks.com/help/econ/ssm.html)
+[2] [https://www.mathworks.com](https://www.mathworks.com/help/econ/ssm.html)
+[3] [https://www.mathworks.com](https://www.mathworks.com/help/econ/explicitly-specify-an-arma-model-with-known-and-unknown-parameter-values.html)
+[4] [https://www.jstatsoft.org](https://www.jstatsoft.org/article/view/v041i06/490)
+[5] [https://ui.adsabs.harvard.edu](https://ui.adsabs.harvard.edu/abs/2007arXiv0706.3443P/abstract)
+

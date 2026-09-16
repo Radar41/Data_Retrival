@@ -1,0 +1,16 @@
+{
+  "provider_id": "fred",
+  "provider_name": "Federal Reserve Economic Data",
+  "snapshot_id": "2026-09-02T04-42-54Z",
+  "retrieved_at_utc": "2026-09-02T04:42:54Z",
+  "endpoint": "category/children",
+  "request_parameters": {
+    "category_id": 0
+  },
+  "category_count": 8,
+  "raw_response_file": "response.json",
+  "normalized_categories_file": "fred_root_categories.csv",
+  "neo4j_import_file": "/home/radar-41-0/Documents/Data_Retrival/data/catalog/neo4j-import/fred_root_categories.csv",
+  "matlab_version": "26.1.0.3276743 (R2026a) Update 3",
+  "project_root": "/home/radar-41-0/Documents/Data_Retrival"
+}
