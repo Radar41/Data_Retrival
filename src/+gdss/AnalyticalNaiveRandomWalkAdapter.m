@@ -66,7 +66,12 @@ classdef AnalyticalNaiveRandomWalkAdapter < gdss.DynamicModelAdapter
 
             fitPayload.parameter_table = table();
             fitPayload.fixed_parameter_table = table();
-            fitPayload.parameter_covariance_reference = "";
+
+            fitPayload.parameter_covariance_refefitPayload.parameter_covariance = [];
+            fitPayload.parameter_covariance_status = "NOT_AVAILABLE";
+
+            fitPayload.parameter_standard_error = NaN(0, 1);
+            fitPayload.parameter_standard_error_status = "NOT_AVAILABLE";rence = "";
             fitPayload.parameter_standard_error_reference = "";
 
             fitPayload.predictive_context_kind = ...
