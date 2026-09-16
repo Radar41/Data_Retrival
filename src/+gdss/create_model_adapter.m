@@ -26,6 +26,9 @@ switch adapterId
     case "matlab.ssm.damped_trend"
         adapter = gdss.MatlabSsmDampedTrendAdapter(modelConfig);
 
+    case "matlab.arima"
+        adapter = gdss.MatlabArimaAdapter(modelConfig);
+        
     otherwise
         error( ...
             "gdss:create_model_adapter:UnsupportedAdapterId", ...
