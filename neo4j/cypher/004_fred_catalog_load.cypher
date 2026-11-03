@@ -61,8 +61,12 @@ MERGE (r)-[:SCHEDULED_ON]->(d);
 // --- series and its three lookups ------------------------------------------
 LOAD CSV WITH HEADERS FROM "file:///fred_catalog/series.csv" AS row
 MATCH (snapshot:CatalogSnapshot {snapshot_id: $snapshot_id})
-MERGE (se:Series {series_catalog_key: "fred:" + row.series_id})
-  SET se.provider_id       = "fred",
+// MERGE on catalog_key: that is the property the datalist import
+// (cypher/import_fred_datalist_banks_weekly_catalog.cypher) keys Series on, so a
+// series reached by both paths is one node. series_catalog_key is kept as an alias.
+MERGE (se:Series {catalog_key: "fred:" + row.series_id})
+  SET se.series_catalog_key = "fred:" + row.series_id,
+      se.provider_id       = "fred",
       se.series_id         = row.series_id,
       se.title             = row.title,
       se.observation_start = CASE WHEN row.observation_start = "" THEN null ELSE date(row.observation_start) END,
