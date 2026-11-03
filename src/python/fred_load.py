@@ -11,6 +11,7 @@ Observations go to PostgreSQL only; they are never exported for the graph.
 
     export FRED_API_KEY=...
     python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
+    python fred_load.py --documents --releases 50 13 --doc-last 6     # press releases -> 005 CSVs
 
 Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
@@ -219,6 +220,108 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
     print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 003 then 004 with :param snapshot_id)")
 
 
+# --- documents: agency press releases -> Document / Chunk CSVs (005) ----------
+DOC_ROOT = pathlib.Path(os.environ.get("FRED_DOCUMENTS", "data/raw/documents"))
+# Press-release PDF location per FRED release id, from the release date.
+# Unverified patterns stay out: GDP (53) has no reliable date-based URL yet.
+DOC_URLS = {
+    50: ("U.S. Bureau of Labor Statistics", "The Employment Situation",
+         lambda d: f"https://www.bls.gov/news.release/archives/empsit_{d:%m%d%Y}.pdf"),
+    10: ("U.S. Bureau of Labor Statistics", "Consumer Price Index",
+         lambda d: f"https://www.bls.gov/news.release/archives/cpi_{d:%m%d%Y}.pdf"),
+    13: ("Board of Governors of the Federal Reserve System (US)", "G.17 Industrial Production and Capacity Utilization",
+         lambda d: f"https://www.federalreserve.gov/releases/g17/{d:%Y%m%d}/g17.pdf"),
+}
+CHUNK_CHARS = 800
+EMBED_MODEL = "sentence-transformers/all-mpnet-base-v2"   # 768 dims, matches 003
+
+
+def chunk_text(text: str, size: int = CHUNK_CHARS) -> list[str]:
+    """Greedy chunks of at most ~size characters, split on word boundaries."""
+    words, chunks, cur = text.split(), [], ""
+    for w in words:
+        if cur and len(cur) + 1 + len(w) > size:
+            chunks.append(cur); cur = w
+        else:
+            cur = f"{cur} {w}" if cur else w
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
+def fetch_document(rid: int, rdate, local_dir: pathlib.Path | None) -> tuple[pathlib.Path | None, str]:
+    """Register one press release PDF unchanged under DOC_ROOT/<rid>/<date>.pdf.
+    Never overwrites an existing file (raw artifacts are immutable)."""
+    dest = DOC_ROOT / str(rid) / f"{rdate:%Y-%m-%d}.pdf"
+    if dest.exists():
+        return dest, "already registered"
+    if local_dir is not None:
+        src = local_dir / str(rid) / dest.name
+        if src.exists():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(src.read_bytes())
+            return dest, f"copied from {src}"
+    url = DOC_URLS[rid][2](rdate)
+    ua = os.environ.get("FRED_DOC_USER_AGENT", "fred-catalog-loader/0.1")
+    r = requests.get(url, headers={"User-Agent": ua}, timeout=60)
+    if r.status_code != 200 or not r.content.startswith(b"%PDF"):
+        return None, f"HTTP {r.status_code} {r.headers.get('content-type', '')} {url}"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(r.content)
+    return dest, url
+
+
+def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | None) -> None:
+    from pypdf import PdfReader
+    from sentence_transformers import SentenceTransformer
+
+    manifest_path = DOC_ROOT / "manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    docs, chunks, failures = [], [], []
+    with psycopg.connect(PG) as conn, conn.cursor() as cur:
+        for rid in release_ids:
+            if rid not in DOC_URLS:
+                failures.append(f"release {rid}: no verified press-release URL pattern"); continue
+            cur.execute("SELECT release_date FROM release_date WHERE release_id=%s AND date_status='actual' "
+                        "ORDER BY release_date DESC LIMIT %s", (rid, last_n))
+            dates = [row[0] for row in cur.fetchall()]
+            if not dates:
+                failures.append(f"release {rid}: no actual release_date rows (run the catalog load first)")
+            for rdate in dates:
+                path, how = fetch_document(rid, rdate, local_dir)
+                if path is None:
+                    failures.append(f"release {rid} {rdate}: {how}"); continue
+                blob = path.read_bytes()
+                sha = hashlib.sha256(blob).hexdigest()
+                rel = str(path)
+                if rel in manifest and manifest[rel]["sha256"] != sha:
+                    raise RuntimeError(f"{rel} changed on disk since it was registered")
+                manifest.setdefault(rel, {"sha256": sha, "bytes": len(blob), "source": how,
+                                          "retrieved_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+                text = "\n".join((pg.extract_text() or "") for pg in PdfReader(path).pages)
+                doc_id = f"fred:release:{rid}:{rdate:%Y-%m-%d}"
+                source_name, title, _ = DOC_URLS[rid]
+                docs.append((doc_id, rid, f"{rdate:%Y-%m-%d}", "pdf", source_name, rel,
+                             f"{title}, {rdate:%B %-d, %Y}", sha))
+                for seq, piece in enumerate(chunk_text(text)):
+                    chunks.append([doc_id, seq, piece])
+                print(f"  {doc_id}: {len(text)} chars, {sum(1 for c in chunks if c[0] == doc_id)} chunks ({how})")
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=1))
+    if chunks:
+        model = SentenceTransformer(EMBED_MODEL)
+        vecs = model.encode([c[2] for c in chunks], batch_size=32, normalize_embeddings=True,
+                            show_progress_bar=False)
+        for c, v in zip(chunks, vecs):
+            c.append(json.dumps([round(float(x), 6) for x in v]))
+    write_csv("documents", ["doc_id", "release_id", "release_date", "file_type", "source_name", "path", "title", "sha256"], docs)
+    write_csv("chunks", ["doc_id", "seq", "text", "embedding"], chunks)
+    print(f"documents: {len(docs)} registered, {len(chunks)} chunks embedded with {EMBED_MODEL}")
+    for f in failures:
+        print(f"  skipped: {f}")
+    print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 005 next)")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--releases", type=int, nargs="+", default=[50, 10, 53, 13])
@@ -226,7 +329,16 @@ if __name__ == "__main__":
     ap.add_argument("--max-series", type=int, default=None,
                     help="per release, keep only the N most popular series (plus --observations series); "
                          "the raw release/series payload is still saved in full")
+    ap.add_argument("--documents", action="store_true",
+                    help="instead of the catalog load, register press-release PDFs for --releases "
+                         "and write documents.csv / chunks.csv for 005")
+    ap.add_argument("--doc-last", type=int, default=6, help="with --documents: most recent N actual release dates")
+    ap.add_argument("--doc-dir", type=pathlib.Path, default=None,
+                    help="with --documents: folder of hand-downloaded PDFs laid out as <release_id>/<YYYY-MM-DD>.pdf")
     a = ap.parse_args()
+    if a.documents:
+        documents(a.releases, a.doc_last, a.doc_dir)
+        raise SystemExit(0)
     if not KEY:
         raise SystemExit("set FRED_API_KEY")
     main(a.releases, a.observations, a.max_series)
