@@ -52,8 +52,10 @@ MERGE (r)-[:PUBLISHED_BY]->(s);
 
 LOAD CSV WITH HEADERS FROM "file:///fred_catalog/release_dates.csv" AS row
 MATCH (r:Release {release_key: "fred:release:" + row.release_id})
-MERGE (d:ReleaseDate {release_key: r.release_key, date: date(row.release_date)})
-  SET d.status = row.date_status
+MERGE (d:ReleaseDate {rd_key: r.release_key + ":" + row.release_date})
+  SET d.release_key = r.release_key,
+      d.date        = date(row.release_date),
+      d.status      = row.date_status
 MERGE (r)-[:SCHEDULED_ON]->(d);
 
 // --- series and its three lookups ------------------------------------------

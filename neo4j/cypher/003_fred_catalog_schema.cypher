@@ -17,11 +17,11 @@
 //   (:Category {provider_id, category_id})  key "fred:category:<id>" from 001
 //   (:Source   {source_key})                 "fred:source:<id>"
 //   (:Release  {release_key})                "fred:release:<id>"
-//   (:ReleaseDate {release_key, date})
+//   (:ReleaseDate {rd_key})                  "<release_key>:<date>"
 //   (:Series   {series_catalog_key})         "fred:<series_id>"
 //   (:Frequency {code}) (:Units {code}) (:SeasonalAdjustment {code})
 //   (:TagGroup {group_id})  (:Tag {tag_name})
-//   (:Document {doc_id})    (:Chunk {doc_id, seq})
+//   (:Document {doc_id})    (:Chunk {chunk_key})  "<doc_id>:<seq>"
 //   (:CatalogSnapshot {snapshot_id})                                from 002
 //
 // Relationships:
@@ -44,8 +44,10 @@ FOR (s:Source) REQUIRE s.source_key IS UNIQUE;
 CREATE CONSTRAINT release_key_unique IF NOT EXISTS
 FOR (r:Release) REQUIRE r.release_key IS UNIQUE;
 
+// Neo4j Community has no NODE KEY or composite uniqueness, so the composite
+// natural key (release_key, date) is concatenated into one property.
 CREATE CONSTRAINT release_date_key IF NOT EXISTS
-FOR (d:ReleaseDate) REQUIRE (d.release_key, d.date) IS NODE KEY;
+FOR (d:ReleaseDate) REQUIRE d.rd_key IS UNIQUE;
 
 CREATE CONSTRAINT series_catalog_key_unique IF NOT EXISTS
 FOR (s:Series) REQUIRE s.series_catalog_key IS UNIQUE;
@@ -68,15 +70,16 @@ FOR (t:Tag) REQUIRE t.tag_name IS UNIQUE;
 CREATE CONSTRAINT document_id_unique IF NOT EXISTS
 FOR (d:Document) REQUIRE d.doc_id IS UNIQUE;
 
+// Community edition: composite (doc_id, seq) concatenated, as for ReleaseDate.
 CREATE CONSTRAINT chunk_key IF NOT EXISTS
-FOR (c:Chunk) REQUIRE (c.doc_id, c.seq) IS NODE KEY;
+FOR (c:Chunk) REQUIRE c.chunk_key IS UNIQUE;
 
 // secondary indexes, mirroring fred_schema.sql
 CREATE INDEX series_last_updated IF NOT EXISTS FOR (s:Series)      ON (s.last_updated);
 CREATE INDEX series_id_lookup    IF NOT EXISTS FOR (s:Series)      ON (s.series_id);
 CREATE INDEX release_date_date   IF NOT EXISTS FOR (d:ReleaseDate) ON (d.date);
 
-// unstructured layer
+// unstructured layer (FULLTEXT and VECTOR index DDL are Neo4j-specific)
 CREATE FULLTEXT INDEX chunk_text IF NOT EXISTS
 FOR (c:Chunk) ON EACH [c.text];
 

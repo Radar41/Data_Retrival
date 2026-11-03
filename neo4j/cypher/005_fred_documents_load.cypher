@@ -27,10 +27,13 @@ MERGE (d)-[:DESCRIBES]->(r);
 
 LOAD CSV WITH HEADERS FROM "file:///fred_catalog/chunks.csv" AS row
 MATCH (d:Document {doc_id: row.doc_id})
-MERGE (c:Chunk {doc_id: row.doc_id, seq: toInteger(row.seq)})
-  SET c.text = row.text
+MERGE (c:Chunk {chunk_key: row.doc_id + ":" + row.seq})
+  SET c.doc_id = row.doc_id,
+      c.seq    = toInteger(row.seq),
+      c.text   = row.text
 MERGE (d)-[:HAS_CHUNK]->(c)
 WITH c, row
 WITH c, [x IN split(replace(replace(row.embedding, "[", ""), "]", ""), ",") | toFloat(trim(x))] AS vec
+// Neo4j-specific: db.create.setNodeVectorProperty
 CALL db.create.setNodeVectorProperty(c, "embedding", vec)
 RETURN count(c) AS chunks_loaded;

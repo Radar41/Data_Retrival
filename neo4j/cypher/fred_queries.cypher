@@ -109,6 +109,7 @@ ORDER BY se.series_id;
 //      :param revised => [{series_id:'PAYEMS', release_id:50, n_revisions:3}, {series_id:'GDPC1', release_id:53, n_revisions:2}]
 UNWIND $revised AS rv
 MATCH (se:Series {series_id: rv.series_id})-[:IN_RELEASE]->(r:Release {release_id: rv.release_id})
+// Neo4j-specific: db.index.fulltext.queryNodes
 CALL db.index.fulltext.queryNodes('chunk_text', 'revised OR revision OR revisions') YIELD node AS chunk, score
 MATCH (doc:Document)-[:HAS_CHUNK]->(chunk), (doc)-[:DESCRIBES]->(r)
 RETURN se.series_id, r.name AS release_name, rv.n_revisions,
@@ -122,6 +123,7 @@ LIMIT 20;
 //      "why were payroll figures revised down"
 MATCH (se:Series {series_id:'PAYEMS'})-[:IN_RELEASE]->(r:Release)<-[:DESCRIBES]-(doc:Document)-[:HAS_CHUNK]->(c:Chunk)
 WITH collect(c) AS candidates
+// Neo4j-specific: db.index.vector.queryNodes
 CALL db.index.vector.queryNodes('chunk_embedding', 10, $qvec) YIELD node, score
 WHERE node IN candidates
 RETURN node.doc_id, node.seq, round(score, 3) AS similarity, left(node.text, 240) AS passage
