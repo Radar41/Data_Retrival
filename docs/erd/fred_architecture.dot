@@ -1,0 +1,33 @@
+digraph ARCH {
+graph [rankdir=LR, fontname="Helvetica", fontsize=18, labelloc=t, label="FRED Metadata Catalog: Data Architecture", pad=0.4, nodesep=0.5, ranksep=0.9];
+node [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#1f3557"];
+edge [fontname="Helvetica", fontsize=10, color="#1f3557"];
+
+subgraph cluster_src { label="External sources"; style="rounded,dashed"; color="#8a1c22"; fontcolor="#8a1c22";
+  api [label="FRED / ALFRED API\n(JSON responses)"];
+  docs [label="Agency release documents\n(BLS, BEA, Census, FRB\npress-release PDFs)"];
+}
+ingest [label="Ingestion (fred_load.py / Data_Retrival MATLAB)\nraw payload kept unchanged + SHA-256 manifest\nparsed rows to SQL, compact CSVs to graph import dir", fillcolor="#f8f0dc"];
+
+subgraph cluster_pg { label="PostgreSQL: structured (fred_schema.sql)"; style="rounded"; color="#1f3557"; fontcolor="#1f3557";
+  rel [label=<Normalized relations, 3NF<BR/>SOURCE, RELEASE, RELEASE_DATE, SERIES,<BR/>CATEGORY, TAG, lookups<BR/><B>OBSERVATION (every vintage)</B><BR/>dense values live here only>, fillcolor="#e8eef7"];
+}
+subgraph cluster_neo { label="Neo4j (Data_Retrival container): catalog, provenance, documents"; style="rounded"; color="#2f7a4f"; fontcolor="#2f7a4f";
+  graphn [label=<<B>Catalog graph</B> (003, 004 via LOAD CSV)<BR/>(:Provider)-[:EXPOSED_IN]-&gt;(:CatalogSnapshot)-[:CONTAINS_SERIES]-&gt;(:Series)<BR/>(:Series)-[:IN_RELEASE]-&gt;(:Release)-[:PUBLISHED_BY]-&gt;(:Source)<BR/>(:Series)-[:TAGGED]-&gt;(:Tag)-[:IN_GROUP]-&gt;(:TagGroup)<BR/>(:Series)-[:IN_CATEGORY]-&gt;(:Category)-[:CHILD_OF*]-&gt;(:Category)<BR/>keys fred:&lt;series_id&gt;, fred:category:&lt;id&gt;>, fillcolor="#e3f2e9"];
+  docn [label=<<B>Documents</B> (005)<BR/>(:Document {doc_id, release_key, path, sha256})<BR/>-[:HAS_CHUNK]-&gt;(:Chunk {text, embedding})<BR/>(:Document)-[:DESCRIBES]-&gt;(:Release)<BR/>full-text index + vector index>, fillcolor="#fbefdc"];
+}
+store [label="data/raw/documents/<release_id>/<date>.pdf\n(immutable originals, SHA-256 registered)", shape=folder, fillcolor="#fbefdc"];
+q [label=<<B>Retrieval layer (Python)</B><BR/>SQL for relational queries<BR/>Cypher for traversal and search<BR/>joined on series_id, release_id>, fillcolor="#f8f0dc"];
+iq [label=<Integrated question<BR/><I>Which series were revised most this year,<BR/>and what do the release documents<BR/>say caused the revisions?</I>>, shape=note, fillcolor="#ffffff"];
+
+api -> ingest; docs -> ingest;
+ingest -> rel [label="parsed rows"];
+ingest -> graphn [label="compact CSVs, LOAD CSV"];
+ingest -> docn [label="documents.csv, chunks.csv"];
+ingest -> store [label="original file"];
+graphn -> rel [label="series_id, release_id (same natural keys)", style=dashed, dir=both];
+docn -> graphn [label="release_key", style=dashed];
+docn -> store [label="path", style=dashed];
+rel -> q; graphn -> q; docn -> q;
+q -> iq;
+}

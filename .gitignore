@@ -48,3 +48,6 @@ neo4j/import/
 
 # Neo4j runtime/import data; version scripts and declarative config separately.
 neo4j/import/
+
+# FRED raw API payloads written by src/python/fred_load.py (keep locally, never commit)
+payloads/

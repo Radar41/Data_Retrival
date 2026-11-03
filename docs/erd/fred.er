@@ -1,0 +1,98 @@
+# FRED Metadata Catalog ERD, in erd (BurntSushi) text format.
+# Render:  erd -i fred.er -o fred_erd.pdf      (or -f png / -f svg)
+# Keys:    *attribute = primary key, +attribute = foreign key, *+ = both
+# Cardinality: ? 0..1   1 exactly 1   * 0..many   + 1..many
+
+title {label: "FRED Metadata Catalog", size: "20"}
+entity {bgcolor: "#e8eef7"}
+
+[Source]
+*source_id
+source_name
+source_link
+
+[Release]
+*release_id
+release_name
+press_release
+release_link
+
+[Release_Source]
+*+release_id
+*+source_id
+
+[Release_Date]
+*+release_id
+*release_date
+date_status
+
+[Frequency]
+*frequency_code
+frequency_name
+
+[Units]
+*units_code
+units_name
+
+[Seasonal_Adjustment]
+*sa_code
+sa_name
+
+[Series]
+*series_id
+title
++release_id
++frequency_code
++units_code
++sa_code
+observation_start
+observation_end
+last_updated
+popularity
+notes
+
+[Category]
+*category_id
+category_name
++parent_id
+
+[Series_Category]
+*+series_id
+*+category_id
+
+[Tag_Group]
+*group_id
+group_name
+
+[Tag]
+*tag_name
++group_id
+tag_notes
+popularity
+
+[Series_Tag]
+*+series_id
+*+tag_name
+
+[Observation]
+*+series_id
+*observation_date
+*realtime_start
+realtime_end
+value
+
+# Relationships (entity cardinality on each side)
+Source              1--+ Release_Source      {label: "publishes"}
+Release             1--+ Release_Source      {label: "published by"}
+Release             1--+ Release_Date        {label: "is scheduled"}
+Release             1--+ Series              {label: "contains"}
+Frequency           1--* Series              {label: "describes"}
+Units               1--* Series              {label: "measures"}
+Seasonal_Adjustment 1--* Series              {label: "adjusts"}
+Series              1--+ Series_Category     {label: "classified in"}
+Category            1--* Series_Category     {label: "holds"}
+Category            ?--* Category            {label: "parent of"}
+Series              1--* Series_Tag          {label: "carries"}
+Tag                 1--+ Series_Tag          {label: "applied as"}
+Tag_Group           1--+ Tag                 {label: "groups"}
+Series              1--* Observation         {label: "has"}

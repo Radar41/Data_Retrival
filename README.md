@@ -188,6 +188,22 @@ Series:         fred:<series_id>
 SeriesVariant:  fred:<series_id>:<transformation_code>
 ```
 
+## FRED Metadata Catalog (ADIT2200 term project, branch `fred-catalog-adit2200`)
+
+A relational core in PostgreSQL plus the catalog, provenance and document layers in the project's Neo4j container, fed by `src/python/fred_load.py`. Start at `docs/FRED_Catalog_ADIT2200_Handoff.md`; it is the brief for whoever is running it on the T9 and lists run order, conventions, and what is still unbuilt.
+
+```text
+sql/                         PostgreSQL DDL, triggers, sample data, query set (Q01-Q13)
+neo4j/cypher/003..005        catalog graph schema, LOAD CSV import, document layer
+neo4j/cypher/fred_queries.cypher   graph versions of the same questions
+src/python/fred_load.py      FRED API -> PostgreSQL + neo4j-import CSVs + raw payload manifest
+docs/erd/                    ERD (.er for the erd tool, Graphviz source, PNGs), architecture diagram
+docs/fred_logical_design.md  relations, FDs, normalization, data representation plan
+docs/ADIT2200_course_map.md  course deliverables and dates
+```
+
+Rules carried over from the rest of this project: raw API payloads are immutable and hashed, dense observations live in PostgreSQL only, graph keys follow `fred:<series_id>` / `fred:category:<id>`, LOAD CSV with no APOC, no secrets in git.
+
 ## Local setup
 
 MATLAB project root:
