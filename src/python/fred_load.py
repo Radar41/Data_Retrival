@@ -10,7 +10,7 @@ with LOAD CSV from data/catalog/neo4j-import/fred_catalog/.
 Observations go to PostgreSQL only; they are never exported for the graph.
 
     export FRED_API_KEY=...
-    python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO
+    python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
 
 Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
@@ -30,14 +30,33 @@ PG = os.environ.get("FRED_PG", "dbname=fred")
 ALL_VINTAGES = {"realtime_start": "1776-07-04", "realtime_end": "9999-12-31"}
 
 
+MIN_INTERVAL = 0.55  # seconds between requests: FRED allows 120 req/min
+_last_call = [0.0]
+
+
+def _request(endpoint: str, params: dict) -> dict:
+    """One HTTP request, throttled globally, retried on 429 / 5xx with backoff."""
+    for attempt in range(6):
+        wait = _last_call[0] + MIN_INTERVAL - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _last_call[0] = time.monotonic()
+        r = requests.get(f"{API}/{endpoint}", params=params, timeout=60)
+        if r.status_code == 429 or r.status_code >= 500:
+            time.sleep(min(60, 5 * 2 ** attempt))
+            continue
+        r.raise_for_status()
+        return r.json()
+    r.raise_for_status()
+    raise RuntimeError(f"{endpoint}: gave up after retries (HTTP {r.status_code})")
+
+
 def get(endpoint: str, **params) -> dict:
     """One FRED call, paged to completion, returned as a single merged payload."""
     params |= {"api_key": KEY, "file_type": "json", "limit": 1000, "offset": 0}
     merged, key = None, None
     while True:
-        r = requests.get(f"{API}/{endpoint}", params=params, timeout=60)
-        r.raise_for_status()
-        page = r.json()
+        page = _request(endpoint, params)
         if merged is None:
             merged = page
             key = next(k for k, v in page.items() if isinstance(v, list))
@@ -46,7 +65,6 @@ def get(endpoint: str, **params) -> dict:
         if page.get("offset", 0) + page.get("limit", 0) >= page.get("count", 0):
             return merged
         params["offset"] += 1000
-        time.sleep(0.6)  # FRED allows 120 req/min
 
 
 def save(name: str, payload) -> None:
@@ -73,7 +91,7 @@ def upsert(cur, table: str, cols: list[str], rows: list[tuple], key: list[str]) 
     cur.executemany(sql, rows)
 
 
-def main(release_ids: list[int], obs_series: list[str]) -> None:
+def main(release_ids: list[int], obs_series: list[str], max_series: int | None = None) -> None:
     with psycopg.connect(PG) as conn, conn.cursor() as cur:
         # --- sources and releases -------------------------------------------------
         sources = get("sources"); save("sources", sources)
@@ -97,7 +115,12 @@ def main(release_ids: list[int], obs_series: list[str]) -> None:
                     for d in rd["release_dates"]], ["release_id", "release_date"])
 
             ser = get("release/series", release_id=rid); ser["release_id"] = rid; save(f"series_{rid}", ser)
-            for s in ser["seriess"]:
+            keep = ser["seriess"]
+            if max_series is not None:
+                # top N by popularity, plus any requested observation series in this release
+                ranked = sorted(keep, key=lambda s: -(s.get("popularity") or 0))
+                keep = ranked[:max_series] + [s for s in ranked[max_series:] if s["id"] in obs_series]
+            for s in keep:
                 lookups["frequency"][s["frequency_short"]] = s["frequency"]
                 lookups["units"][s["units_short"]] = s["units"]
                 lookups["sa"][s["seasonal_adjustment_short"]] = s["seasonal_adjustment"]
@@ -200,7 +223,10 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--releases", type=int, nargs="+", default=[50, 10, 53, 13])
     ap.add_argument("--observations", nargs="+", default=["UNRATE", "PAYEMS", "GDPC1", "CPIAUCSL", "INDPRO"])
+    ap.add_argument("--max-series", type=int, default=None,
+                    help="per release, keep only the N most popular series (plus --observations series); "
+                         "the raw release/series payload is still saved in full")
     a = ap.parse_args()
     if not KEY:
         raise SystemExit("set FRED_API_KEY")
-    main(a.releases, a.observations)
+    main(a.releases, a.observations, a.max_series)
