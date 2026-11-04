@@ -8,10 +8,12 @@ State on 2026-11-03, tested from MATLAB R2026a with `matlab -batch`:
 |---|---|
 | Database Toolbox | installed (`postgresql`, `neo4j`, `executeCypher`) |
 | MATLAB Report Generator | installed (`mlreportgen.report`, `mlreportgen.dom`) |
-| Neo4j from MATLAB | **blocked**: `Database Toolbox Interface for Neo4j Bolt Protocol has not been installed.` |
-| PostgreSQL from MATLAB | **blocked**: `fe_sendauth: no password supplied` (role `radar-41-0` has no password) |
+| Neo4j from MATLAB | was blocked (`Database Toolbox Interface for Neo4j Bolt Protocol has not been installed.`); **working** as of 2026-11-04 |
+| PostgreSQL from MATLAB | was blocked (`fe_sendauth: no password supplied`); **working** as of 2026-11-04 |
 
-Steps 1 and 2 fix the two blockers. Steps 3 to 5 confirm everything works.
+Steps 1 and 2 fixed the two blockers. Steps 3 to 5 confirm everything works.
+
+**2026-11-04:** all checks passed from the MATLAB desktop. Bolt add-on installed, role password set, `fred_pg` and `neo4j_pw` stored in the vault, and Step 4 returned 5200 categories from both PostgreSQL and Neo4j.
 
 ---
 
