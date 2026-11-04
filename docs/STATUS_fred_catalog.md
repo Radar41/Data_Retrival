@@ -162,7 +162,7 @@ export FRED_API_KEY=... NEO4J_PASSWORD=...
 
 ## Also fixed
 
-- **`src/fred_pull.m` line 45** now reads `getenv("FRED_API_KEY")` instead of `MYFREDKey`, matching its help text and `fred_api_request.m`. Not run in MATLAB.
+- **`src/fred_pull.m` line 45** now reads `getenv("FRED_API_KEY")` instead of `MYFREDKey`, matching its own help text and error message. Not run in MATLAB. Note that `src/fred_api_request.m` (used by the category crawl) does not use the environment variable: it reads `getenv("FRED_API_KEY")` and then overwrites it with `getSecret("MyFREDKey")` from the MATLAB vault. The two MATLAB entry points therefore take the key from different places.
 - **API key leak in loader errors.** On any failed request, `requests` printed the full URL including `api_key=`. Errors now say e.g. `FRED sources: HTTP 400: Bad Request.  The value for variable api_key is not registered. …`; the key appeared 0 times in the test output.
 
 ## Diffs to review (round two)
@@ -200,7 +200,7 @@ parent 32436: class=double size=[0 0]   fred_category_children OK: 0 children
 ```
 They are leaves. MATLAB decodes FRED's empty `[]` as an empty double. The parser version running at the start of the crawl rejected that, and the current version accepts it (4,802 other leaves were saved normally). **No subtrees are missing.** `checkpoint.mat` and `failures.csv` were not modified; the four rows in `failures.csv` are false failures.
 
-Correction to round two: `src/fred_api_request.m` reads `FRED_API_KEY` and then overwrites it with `getSecret("MyFREDKey")` (MATLAB vault), so the crawl used the vault secret. `fred_pull.m` uses the environment variable.
+The crawl's requests go through `src/fred_api_request.m`, which takes the key from the MATLAB vault (`getSecret("MyFREDKey")`), not from `FRED_API_KEY` (see round two, "Also fixed").
 
 ## Loaded
 
