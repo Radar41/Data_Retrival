@@ -20,13 +20,13 @@ Adrian writes his own prose for class submissions and wants to write and debug t
 |---|---|---|
 | `sql/fred_schema.sql` | DDL: 14 tables, named PK/FK/CHECK constraints, 10 indexes, commented per column. ANSI SQL; parses as PostgreSQL and MySQL 8. **This file is the Week 9 Physical Design submission, due Sat 2026-11-08.** | Ran clean on PostgreSQL 16 |
 | `sql/fred_triggers.sql` | BEFORE INSERT trigger that closes the prior vintage (business rule 11), AFTER INSERT trigger that maintains the derived `series.observation_start/end`, `value_as_of()` function, `post_release()` procedure. PL/pgSQL; MySQL equivalents in comments. | Ran and tested |
-| `sql/fred_sample_data.sql` | Real FRED ids and names, illustrative values, 5 releases, 7 series, 22 observation vintages. For proving the schema before a real load. | Ran |
+| `sql/fred_sample_data.sql` | Real FRED ids and names, illustrative values, 5 releases, 7 series, 21 observation vintages. For proving the schema before a real load. | Ran |
 | `sql/fred_queries.sql` | Q01 to Q13, each tied to a course technique (joins, outer joins, subqueries, recursive CTE, CASE, window LAG, EXCEPT, vintage lookup). | All 13 ran, output checked |
-| `neo4j/cypher/003_fred_catalog_schema.cypher` | Constraints and indexes for the catalog graph, plus full-text and vector indexes on `Chunk`. Extends 001/002; keys follow this repo's conventions. | **Untested** (no Neo4j in the cloud session) |
-| `neo4j/cypher/004_fred_catalog_load.cypher` | LOAD CSV import of the catalog CSVs, linked to a `CatalogSnapshot`. Needs `:param snapshot_id`. | **Untested** |
-| `neo4j/cypher/005_fred_documents_load.cypher` | Document and Chunk import with embeddings parsed from a JSON-array string. | **Untested**, and `fred_load.py --documents` does not exist yet (section 5) |
-| `neo4j/cypher/fred_queries.cypher` | Graph versions of Q01 to Q06, Q09, Q11, Q12, Q13, plus graph-only Q06b and Q12b. | **Untested** |
-| `src/python/fred_load.py` | FRED API to PostgreSQL + Neo4j CSVs + raw payload manifest. | Smoke-tested offline against canned FRED-shaped payloads; **never run against the live API** |
+| `neo4j/cypher/003_fred_catalog_schema.cypher` | Constraints and indexes for the catalog graph, plus full-text and vector indexes on `Chunk`. Extends 001/002; keys follow this repo's conventions. | Ran on Community 2026.07.1 |
+| `neo4j/cypher/004_fred_catalog_load.cypher` | LOAD CSV import of the catalog CSVs, linked to a `CatalogSnapshot`. Needs `:param snapshot_id`. | Ran; all row counts equal the SQL counterparts |
+| `neo4j/cypher/005_fred_documents_load.cypher` | Document and Chunk import with embeddings parsed from a JSON-array string. | Ran: 12 documents, 1,853 chunks |
+| `neo4j/cypher/fred_queries.cypher` | Graph versions of Q01 to Q06, Q09, Q11, Q12, Q13, plus graph-only Q06b and Q12b. | Ran; all row counts equal the SQL counterparts |
+| `src/python/fred_load.py` | FRED API to PostgreSQL + Neo4j CSVs + raw payload manifest; `--max-series`, throttled; `--documents` for press releases. | Run against the live API 2026-11-03: 400 series, 63,047 vintages, 12 documents |
 | `docs/erd/fred.er` | ERD in BurntSushi `erd` text format (Adrian's `erd` repo is a fork of that tool). | Not rendered yet |
 | `docs/erd/build_erd.py`, `*.png` | Graphviz ERD (Hoffer crow's foot) and the data architecture diagram. | Rendered |
 | `docs/fred_logical_design.md` | Relations, FDs, 1NF to 3NF proof, denormalization reasons, JSON and document representation plan. Week 6 submission (overdue). | Written |
@@ -76,10 +76,7 @@ export NEO4J_IMPORT="$PWD/data/catalog/neo4j-import"
 export FRED_PAYLOADS="$PWD/payloads"
 ```
 
-Neo4j version matters for 003: `CREATE VECTOR INDEX` needs 5.11+, `IS NODE KEY` constraints need Enterprise **or** you replace them with `IS UNIQUE` on a composite... which Community does not support either. If the container is Community (the compose file says `neo4j:community`), change the three NODE KEY constraints in 003 to a single-property uniqueness on a concatenated key property and add that property in 004 and 005:
-- `ReleaseDate`: add `rd_key = release_key + ":" + toString(date)`
-- `Chunk`: add `chunk_key = doc_id + ":" + toString(seq)`
-This is the most likely first failure. Record what you did.
+Neo4j notes (resolved 2026-11-03, see `docs/STATUS_fred_catalog.md`): the container is Community 2026.07.1. `IS NODE KEY` is Enterprise-only, so 003 uses single-property uniqueness on concatenated keys `ReleaseDate.rd_key` and `Chunk.chunk_key`. Composite `IS UNIQUE` does work on Community (001 already uses one). The loader cannot write into the container-owned import directory; write CSVs to `data/staging/neo4j-import/` and `docker cp` them in (commands in the status report).
 
 ---
 
@@ -142,7 +139,7 @@ Compare the two visually; they should show the same 14 entities and 14 relations
 
 ## 5. What does not exist yet (build these, in this order)
 
-1. **`fred_load.py --documents`**: for each `release_date` with `date_status='actual'` in the loaded releases, download the agency press release PDF (BLS: `https://www.bls.gov/news.release/archives/empsit_MMDDYYYY.pdf` and `cpi_MMDDYYYY.pdf`; BEA GDP: `https://www.bea.gov/sites/default/files/YYYY-MM/gdpNqYY_adv.pdf` style, verify the pattern; FRB G.17: `https://www.federalreserve.gov/releases/g17/YYYYMMDD/g17.pdf`), register it unchanged under `data/raw/documents/<release_id>/<release_date>.pdf` with SHA-256, extract text (pypdf), split into ~800-character chunks, embed with a local sentence-transformer (`all-mpnet-base-v2` is 768-dim and matches 003; if you choose another model, change the dimension in 003), and write `documents.csv` and `chunks.csv` in the shapes 005 documents. Start with the last 6 Employment Situation releases; that is enough for Q13.
+1. ~~`fred_load.py --documents`~~ **Done 2026-11-03.** Covers releases 50, 10, 13; GDP (53) has no stable URL pattern and is skipped. Original spec: for each `release_date` with `date_status='actual'` in the loaded releases, download the agency press release PDF (BLS: `https://www.bls.gov/news.release/archives/empsit_MMDDYYYY.pdf` and `cpi_MMDDYYYY.pdf`; BEA GDP: `https://www.bea.gov/sites/default/files/YYYY-MM/gdpNqYY_adv.pdf` style, verify the pattern; FRB G.17: `https://www.federalreserve.gov/releases/g17/YYYYMMDD/g17.pdf`), register it unchanged under `data/raw/documents/<release_id>/<release_date>.pdf` with SHA-256, extract text (pypdf), split into ~800-character chunks, embed with a local sentence-transformer (`all-mpnet-base-v2` is 768-dim and matches 003; if you choose another model, change the dimension in 003), and write `documents.csv` and `chunks.csv` in the shapes 005 documents. Start with the last 6 Employment Situation releases; that is enough for Q13.
 2. **`src/python/fred_integrated.py`**: runs SQL Q13, passes the result to Cypher Q13 (neo4j Python driver, read-only), prints a joined table: series, release, revisions, top passage. This is the project's required integrated question and the demo for the presentation.
 3. **A `Makefile` or `run_all.sh`** at repo root that does 4.1 through 4.3 in order with `set -e`, so the whole thing is reproducible in one command on a clean machine.
 4. **Optional, only if time**: a MATLAB entry point `src/fred_catalog_pg.m` that reads the PostgreSQL tables via Database Toolbox, so the catalog is reachable from Adrian's MATLAB-first workflow without going through Python.

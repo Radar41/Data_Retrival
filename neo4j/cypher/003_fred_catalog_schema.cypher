@@ -18,7 +18,7 @@
 //   (:Source   {source_key})                 "fred:source:<id>"
 //   (:Release  {release_key})                "fred:release:<id>"
 //   (:ReleaseDate {rd_key})                  "<release_key>:<date>"
-//   (:Series   {series_catalog_key})         "fred:<series_id>"
+//   (:Series   {catalog_key})                "fred:<series_id>"  (series_catalog_key kept as alias)
 //   (:Frequency {code}) (:Units {code}) (:SeasonalAdjustment {code})
 //   (:TagGroup {group_id})  (:Tag {tag_name})
 //   (:Document {doc_id})    (:Chunk {chunk_key})  "<doc_id>:<seq>"
@@ -49,8 +49,10 @@ FOR (r:Release) REQUIRE r.release_key IS UNIQUE;
 CREATE CONSTRAINT release_date_key IF NOT EXISTS
 FOR (d:ReleaseDate) REQUIRE d.rd_key IS UNIQUE;
 
-CREATE CONSTRAINT series_catalog_key_unique IF NOT EXISTS
-FOR (s:Series) REQUIRE s.series_catalog_key IS UNIQUE;
+// Series uniqueness is already enforced on catalog_key by
+// cypher/import_fred_datalist_banks_weekly_catalog.cypher (fred_series_catalog_key_unique),
+// and 004 merges on that property. No second constraint here: a constraint named
+// series_catalog_key_unique would collide with that script's own name.
 
 CREATE CONSTRAINT frequency_code_unique IF NOT EXISTS
 FOR (f:Frequency) REQUIRE f.code IS UNIQUE;

@@ -106,17 +106,23 @@ ORDER BY se.series_id;
 //      Step 2 (here): for those series, find passages in their release documents
 //      that talk about revisions. Python passes the SQL result as $revised,
 //      a list of {series_id, release_id, n_revisions}.
-//      :param revised => [{series_id:'PAYEMS', release_id:50, n_revisions:3}, {series_id:'GDPC1', release_id:53, n_revisions:2}]
+//      :param revised => [{series_id:'PAYEMS', release_id:50, n_revisions:19}, {series_id:'INDPRO', release_id:13, n_revisions:45}]
+//      Pattern to notice: a global LIMIT after ORDER BY lets the series with the
+//      most matching chunks crowd out the others. Cypher has no window functions,
+//      so "top 3 per group" is collect() in score order, then slice the list.
 UNWIND $revised AS rv
 MATCH (se:Series {series_id: rv.series_id})-[:IN_RELEASE]->(r:Release {release_id: rv.release_id})
 // Neo4j-specific: db.index.fulltext.queryNodes
 CALL db.index.fulltext.queryNodes('chunk_text', 'revised OR revision OR revisions') YIELD node AS chunk, score
 MATCH (doc:Document)-[:HAS_CHUNK]->(chunk), (doc)-[:DESCRIBES]->(r)
+WITH se, r, rv, chunk, doc, score
+ORDER BY score DESC
+WITH se, r, rv, collect({doc: doc.title, release_date: doc.release_date, seq: chunk.seq,
+                         relevance: round(score, 2), passage: left(chunk.text, 240)})[0..3] AS top
+UNWIND top AS hit
 RETURN se.series_id, r.name AS release_name, rv.n_revisions,
-       doc.title AS document, doc.release_date, chunk.seq,
-       round(score, 2) AS relevance, left(chunk.text, 240) AS passage
-ORDER BY rv.n_revisions DESC, relevance DESC
-LIMIT 20;
+       hit.doc AS document, hit.release_date, hit.seq AS chunk, hit.relevance, hit.passage
+ORDER BY rv.n_revisions DESC, hit.relevance DESC;
 
 
 // Q13c Semantic variant: embed the question in Python, pass as $qvec
