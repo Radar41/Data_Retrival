@@ -4,3 +4,4 @@ psycopg[binary]>=3.1
 pypdf>=6.0
 fonttools>=4.50          # lets pypdf decode the Type1 fonts in BLS/FRB PDFs
 sentence-transformers>=3.0   # all-mpnet-base-v2, 768 dims (matches 003)
+neo4j>=5.20                  # fred_integrated.py (read-only driver)
