@@ -78,7 +78,7 @@ Framing for the end-of-term discussion: Königsberg. Euler's point was that only
 
 Repo layout to adopt when homework starts: `homework/hwNN_fred/` and `homework/hwNN_submission/`.
 
-Degree audit template (one per ERD relationship, expected result: no rows):
+Element-by-element coverage (what each graded element maps to, or why it is absent on one side) is in `docs/ADIT2200_element_coverage.md`. The full degree audit is `neo4j/cypher/fred_degree_audit.cypher`; the template:
 ```cypher
 MATCH (s:Series) WITH s, count { (s)-[:IN_RELEASE]->() } AS d
 WHERE d <> 1 RETURN s.series_id, d
