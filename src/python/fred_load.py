@@ -42,14 +42,22 @@ def _request(endpoint: str, params: dict) -> dict:
         if wait > 0:
             time.sleep(wait)
         _last_call[0] = time.monotonic()
-        r = requests.get(f"{API}/{endpoint}", params=params, timeout=60)
+        try:
+            r = requests.get(f"{API}/{endpoint}", params=params, timeout=60)
+        except requests.RequestException as exc:
+            # requests' own message embeds the URL, which carries api_key: never surface it
+            raise RuntimeError(f"FRED {endpoint}: {type(exc).__name__} (request URL withheld)") from None
         if r.status_code == 429 or r.status_code >= 500:
             time.sleep(min(60, 5 * 2 ** attempt))
             continue
-        r.raise_for_status()
+        if r.status_code != 200:
+            try:
+                detail = r.json().get("error_message", r.reason)
+            except ValueError:
+                detail = r.reason
+            raise RuntimeError(f"FRED {endpoint}: HTTP {r.status_code}: {detail}")
         return r.json()
-    r.raise_for_status()
-    raise RuntimeError(f"{endpoint}: gave up after retries (HTTP {r.status_code})")
+    raise RuntimeError(f"FRED {endpoint}: gave up after {attempt + 1} attempts (HTTP {r.status_code})")
 
 
 def get(endpoint: str, **params) -> dict:
