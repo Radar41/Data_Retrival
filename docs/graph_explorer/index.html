@@ -1,0 +1,537 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FRED Graph Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a fixed-height workbench. Left rail picks a view, the centre is the force graph
+   (neo4jd3 on D3 v4), the right inspector shows the legend and whatever is under the pointer. */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --panel-2: #e9edf3;
+  --line: #d3dae4;
+  --fg: #1b2330;
+  --muted: #5d6b7e;
+  --accent: #2457c5;
+  --accent-soft: #e3eafc;
+  --edge: #a5adbb;
+  --ok: #0f8b6c;
+  --bad: #b53d2e;
+  --font-ui: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --panel: #171d26; --panel-2: #1f2733; --line: #2c3645; --fg: #e6ebf2;
+    --muted: #97a3b4; --accent: #7ea2f0; --accent-soft: #223252; --edge: #566274;
+    --ok: #3fc39c; --bad: #ee7b6a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --panel: #171d26; --panel-2: #1f2733; --line: #2c3645; --fg: #e6ebf2;
+  --muted: #97a3b4; --accent: #7ea2f0; --accent-soft: #223252; --edge: #566274;
+  --ok: #3fc39c; --bad: #ee7b6a; color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px;
+  line-height: 1.45; display: flex; flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 700; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: 12px; }
+
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding-block: 12px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.topbar h1 { font-size: 18px; letter-spacing: 0.01em; }
+.topbar .sub { color: var(--muted); font-size: 13px; }
+.topbar .sub b { color: var(--fg); font-weight: 700; }
+
+.bench {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr) 330px;
+  gap: 12px; padding-block: 12px;
+}
+.rail, .inspector { min-width: 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 14px; }
+.graph-wrap { min-width: 0; min-height: 0; position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+#graph { position: absolute; inset: 0; }
+
+.eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.views { display: flex; flex-direction: column; gap: 3px; }
+.views button {
+  text-align: left; background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 6px 9px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 1px; color: var(--fg);
+}
+.views button:hover { background: var(--panel-2); }
+.views button[aria-current="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.views button .id { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.views button .name { font-size: 12px; color: var(--muted); }
+.views button:focus-visible, .btn:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.find input, .live input, .live select, .live textarea {
+  width: 100%; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px;
+}
+.live textarea { font-family: var(--font-mono); font-size: 12px; min-height: 96px; resize: vertical; }
+.live { border-top: 1px solid var(--line); padding-top: 12px; }
+.live summary { cursor: pointer; font-weight: 700; }
+.live .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+.live .fields label { font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.live .fields label.wide { grid-column: 1 / -1; }
+.btn {
+  background: var(--accent); color: #fff; border: 0; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-weight: 700;
+}
+.btn.quiet { background: var(--panel-2); color: var(--fg); }
+.status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.4em; white-space: pre-wrap; }
+.status.bad { color: var(--bad); }
+.status.ok { color: var(--ok); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.card h2 { font-size: 15px; margin-bottom: 4px; }
+.card p { margin: 0; color: var(--muted); font-size: 13px; }
+.counts { display: flex; gap: 14px; margin-top: 8px; font-variant-numeric: tabular-nums; font-size: 13px; }
+.counts b { font-size: 18px; display: block; line-height: 1.1; }
+
+.legend { display: flex; flex-direction: column; gap: 10px; }
+.legend .layer-name { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px 2px 5px;
+  background: var(--panel); cursor: pointer; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.chip .dot { width: 12px; height: 12px; border-radius: 50%; }
+.chip .n { color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+
+.details .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.details .pill { color: #fff; border-radius: 4px; padding: 2px 8px; font-weight: 700; font-size: 12px; }
+.details .pin { font-size: 11px; color: var(--muted); }
+.props { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.props th { text-align: left; font-family: var(--font-mono); font-weight: 400; color: var(--muted); padding: 4px 8px 4px 0; vertical-align: top; width: 38%; word-break: break-word; }
+.props td { padding: 4px 0; vertical-align: top; word-break: break-word; }
+.props td .long { max-height: 9em; overflow: auto; white-space: pre-wrap; font-size: 12px; background: var(--panel-2); border-radius: 4px; padding: 6px; }
+.props tr + tr { border-top: 1px solid var(--line); }
+.rows { overflow-x: auto; }
+.rows table { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.rows th, .rows td { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: left; white-space: nowrap; max-width: 28ch; overflow: hidden; text-overflow: ellipsis; }
+.empty { color: var(--muted); font-size: 13px; }
+
+/* neo4jd3's own stylesheet (0.0.5), inlined and moved onto the theme tokens. */
+.neo4jd3-graph { background: var(--panel); }
+.node .outline { cursor: pointer; pointer-events: all; stroke-width: 2px; }
+.node .ring { fill: none; opacity: 0; stroke: var(--accent); stroke-width: 8px; }
+.node.selected .ring, .node:hover .ring { opacity: .35; }
+.node text.text { font-family: var(--font-ui); font-weight: 700; }
+.node text.caption { font-family: var(--font-ui); font-size: 11px; fill: var(--fg); text-anchor: middle; pointer-events: none; }
+.relationship { cursor: default; }
+.relationship .outline { fill: var(--edge); cursor: default; }
+.relationship .overlay { fill: var(--accent); opacity: 0; }
+.relationship.selected .overlay, .relationship:hover .overlay { opacity: .3; }
+.relationship text { fill: var(--muted) !important; font-family: var(--font-mono); font-size: 8px; }
+.node.dim, .relationship.dim { opacity: 0.12; }
+svg.neo4jd3-graph { cursor: move; }
+
+.hint { position: absolute; left: 10px; bottom: 8px; font-size: 11px; color: var(--muted); pointer-events: none; }
+.toolbar { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; }
+.toolbar .btn { padding: 4px 9px; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .bench { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .rail { order: 1; } .graph-wrap { order: 2; height: 58vh; min-height: 360px; } .inspector { order: 3; }
+  .views { flex-direction: row; flex-wrap: wrap; }
+  .views button { flex: 1 1 110px; }
+}
+</style>
+
+<header class="topbar">
+  <h1>FRED Graph Explorer</h1>
+  <span class="sub" id="meta-line">Loading snapshot…</span>
+</header>
+
+<main class="bench">
+  <nav class="rail" aria-label="Views">
+    <div>
+      <div class="eyebrow">Views</div>
+      <div class="views" id="views"></div>
+    </div>
+    <div class="find">
+      <div class="eyebrow">Find in view</div>
+      <input id="find" type="search" placeholder="series id, tag, name…" autocomplete="off">
+    </div>
+    <details class="live" id="live">
+      <summary>Live Cypher</summary>
+      <p class="empty" style="margin:6px 0 0">Runs against your Neo4j over its HTTP API. Works when this page is opened locally; a published copy cannot reach localhost. The password stays in this tab.</p>
+      <div class="fields">
+        <label class="wide">Endpoint<input id="live-url" value="http://localhost:7474"></label>
+        <label>Database<input id="live-db" value="neo4j"></label>
+        <label>User<input id="live-user" value="neo4j"></label>
+        <label class="wide">Password<input id="live-pw" type="password" autocomplete="off"></label>
+        <label class="wide">Preset
+          <select id="live-preset"></select>
+        </label>
+      </div>
+      <textarea id="live-cypher" spellcheck="false"></textarea>
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+        <button class="btn" id="live-run" type="button">Run</button>
+        <span class="mono" style="color:var(--muted)">resultDataContents: graph + row</span>
+      </div>
+      <div class="status" id="live-status"></div>
+    </details>
+  </nav>
+
+  <section class="graph-wrap" aria-label="Graph">
+    <div id="graph"></div>
+    <div class="toolbar">
+      <button class="btn quiet" id="refit" type="button">Fit</button>
+    </div>
+    <div class="hint">Drag nodes · scroll to zoom · hover to inspect · click to pin</div>
+  </section>
+
+  <aside class="inspector">
+    <div class="card" id="view-card">
+      <h2 id="view-title"></h2>
+      <p id="view-desc"></p>
+      <div class="counts"><div><b id="n-nodes">0</b>nodes</div><div><b id="n-rels">0</b>relationships</div></div>
+    </div>
+    <div>
+      <div class="eyebrow">Labels in this view · click to isolate</div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="card details" id="details"><p class="empty">Hover a node or relationship.</p></div>
+    <div class="card rows" id="rows" hidden></div>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/neo4jd3@0.0.5/dist/js/neo4jd3.min.js"></script>
+<script src="fred_graph_data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ---- label styling: colours and groups follow src/+dbdesign/fred_graph_model.m layers ----
+  var LAYERS = {
+    catalog: ['Series', 'Release', 'Source', 'Frequency', 'Units', 'SeasonalAdjustment', 'Category', 'Tag', 'TagGroup'],
+    documents: ['ReleaseDate', 'Document', 'Chunk'],
+    lineage: ['Provider', 'CatalogSnapshot', 'ApiResponseArtifact', 'Dataset', 'StagingRun', 'RawArtifact', 'SourceMember', 'SeriesVariant']
+  };
+  var LAYER_TITLE = { catalog: 'FRED catalog', documents: 'Press releases', lineage: 'Provenance and lineage' };
+  var COLOR = {
+    Series: '#2457c5', Release: '#0f8b6c', Source: '#0b7a93', Frequency: '#3d9970', Units: '#6a9c3a',
+    SeasonalAdjustment: '#8a9a2a', Category: '#c2671f', Tag: '#7b55c9', TagGroup: '#55389d',
+    ReleaseDate: '#c9931a', Document: '#b53d2e', Chunk: '#e0735a',
+    Provider: '#4b5566', CatalogSnapshot: '#6e7f98', ApiResponseArtifact: '#8a93a5', Dataset: '#355f84',
+    StagingRun: '#5f6f96', RawArtifact: '#7d6b8e', SourceMember: '#8c6f5a', SeriesVariant: '#a57c4a'
+  };
+  var ABBR = {
+    Series: 'S', Release: 'Rel', Source: 'Src', Frequency: 'Frq', Units: 'Unt', SeasonalAdjustment: 'SA',
+    Category: 'Cat', Tag: 'Tag', TagGroup: 'TG', ReleaseDate: 'Dt', Document: 'Doc', Chunk: 'Chk',
+    Provider: 'Prv', CatalogSnapshot: 'Snp', ApiResponseArtifact: 'API', Dataset: 'DS', StagingRun: 'Run',
+    RawArtifact: 'Raw', SourceMember: 'Mbr', SeriesVariant: 'Var'
+  };
+  var CAPTION = {
+    Series: function (p) { return p.series_id; }, Tag: function (p) { return p.tag_name; },
+    ReleaseDate: function (p) { return p.date; }, Document: function (p) { return p.release_date || p.title; },
+    Chunk: function (p) { return 'chunk ' + p.seq; }, Provider: function (p) { return p.short_name || p.name; },
+    CatalogSnapshot: function (p) { return p.snapshot_id; }, ApiResponseArtifact: function (p) { return p.kind || p.endpoint; },
+    Dataset: function (p) { return p.dataset_id; }, StagingRun: function (p) { return p.staging_key; },
+    RawArtifact: function (p) { return p.raw_file_name; }, SourceMember: function (p) { return p.member_path; },
+    SeriesVariant: function (p) { return p.transformation_code + ' · ' + p.series_id; }
+  };
+  var PRESETS = [
+    { name: 'Series tagged "inflation" with their releases',
+      q: 'MATCH p = (s:Series)-[:TAGGED]->(:Tag {tag_name: "inflation"})\nMATCH q = (s)-[:IN_RELEASE]->(:Release)\nRETURN p, q LIMIT 40' },
+    { name: 'Full-text search over press-release chunks (chunk_text index)',
+      q: 'CALL db.index.fulltext.queryNodes("chunk_text", "unemployment rate") YIELD node, score\nMATCH p = (:Document)-[:HAS_CHUNK]->(node)\nRETURN p, score ORDER BY score DESC LIMIT 8' },
+    { name: 'Vector search: chunks nearest to one chunk (chunk_embedding index)',
+      q: 'MATCH (seed:Chunk {chunk_key: "fred:release:50:2026-10-02:0"})\nCALL db.index.vector.queryNodes("chunk_embedding", 6, seed.embedding) YIELD node, score\nMATCH p = (:Document)-[:HAS_CHUNK]->(node)\nRETURN p, score' },
+    { name: 'Category path from a series to the root',
+      q: 'MATCH p = (:Series {series_id: "GDPC1"})-[:IN_CATEGORY]->(:Category)-[:CHILD_OF*0..10]->(:Category)\nRETURN p' },
+    { name: 'Next scheduled dates for every press release',
+      q: 'MATCH (r:Release {press_release: true})-[:SCHEDULED_ON]->(d:ReleaseDate)\nWHERE d.date >= date()\nRETURN r.name AS release, min(d.date) AS next_date ORDER BY next_date LIMIT 25' },
+    { name: 'Label counts',
+      q: 'MATCH (n) WITH labels(n)[0] AS label, count(*) AS nodes ORDER BY nodes DESC RETURN label, nodes' }
+  ];
+
+  var DATA = window.FRED_GRAPH;
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { view: null, pinned: null, isolated: null, current: null };
+
+  function layerOf(label) {
+    for (var k in LAYERS) { if (LAYERS[k].indexOf(label) >= 0) { return k; } }
+    return 'other';
+  }
+  function colorOf(label) { return COLOR[label] || '#8a93a5'; }
+  function caption(d) {
+    var l = d.labels[0], p = d.properties || {}, f = CAPTION[l];
+    if (p.constraints !== undefined && p.indexes !== undefined) { return p.name || l; }   // db.schema.visualization() meta node
+    var c = f ? f(p) : (p.name || p.title || l);
+    return c === undefined || c === null || /undefined/.test(String(c)) ? (p.name || l) : String(c);
+  }
+  function short(s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- rendering ----
+  function render(graph, title, desc) {
+    state.current = graph;
+    state.pinned = null; state.isolated = null;
+    var g = JSON.parse(JSON.stringify(graph));            // neo4jd3 mutates relationships (source/target)
+    var order = [];
+    g.nodes.forEach(function (n) { if (order.indexOf(n.labels[0]) < 0) { order.push(n.labels[0]); } });
+
+    var byId = {};
+    g.nodes.forEach(function (n) { byId[n.id] = n; });
+
+    // neo4jd3 cannot draw a relationship from a node to itself (its unit vector divides by zero),
+    // so self-loops such as (:Category)-[:CHILD_OF]->(:Category) in the schema view are listed instead.
+    var loops = g.relationships.filter(function (r) { return r.startNode === r.endNode; });
+    g.relationships = g.relationships.filter(function (r) { return r.startNode !== r.endNode; });
+    if (loops.length) {
+      desc += ' Not drawn (self-relationship): ' + loops.map(function (r) {
+        var n = byId[r.startNode];
+        return '(' + caption(n) + ')-[:' + r.type + ']->(' + caption(n) + ')';
+      }).join(', ') + '.';
+    }
+
+    new Neo4jd3('#graph', {
+      colors: order.map(colorOf),                          // neo4jd3 assigns colours in first-appearance order
+      nodeRadius: 20,
+      minCollision: 62,
+      arrowSize: 5,
+      infoPanel: false,
+      zoomFit: false,                                      // neo4jd3's own fit never fires here; fit() below does it
+      neo4jData: { results: [{ data: [{ graph: g }] }] },
+      onNodeMouseEnter: function (d) { if (!state.pinned) { showNode(d, false); } },
+      onNodeClick: function (d) {
+        if (state.pinned && state.pinned.id === d.id) { state.pinned = null; showNode(d, false); }
+        else { state.pinned = d; showNode(d, true); }
+      }
+    });
+
+    var root = d3.select('#graph');
+    root.selectAll('.node').each(function (d) {
+      var node = d3.select(this), label = d.labels[0], cap = caption(d);
+      node.select('text.text').text(ABBR[label] || label.slice(0, 3)).attr('font-size', '10px').attr('y', '4px');
+      node.append('text').attr('class', 'caption').attr('y', 34).text(short(cap, 24));
+      node.append('title').text(label + ': ' + cap);
+    });
+    root.selectAll('.relationship').on('mouseenter', function (d) {
+      if (!state.pinned) { showRel(d, byId); }
+    });
+
+    $('view-title').textContent = title;
+    $('view-desc').textContent = desc;
+    $('n-nodes').textContent = g.nodes.length;
+    $('n-rels').textContent = g.relationships.length;
+    buildLegend(g);
+    $('details').innerHTML = '<p class="empty">Hover a node or relationship.</p>';
+    applyFind();
+    scheduleFit();
+  }
+
+  // Fit the drawing to the panel while the force layout settles, until the viewer takes over.
+  var fitTimers = [];
+  function scheduleFit() {
+    fitTimers.forEach(clearTimeout);
+    fitTimers = [400, 1200, 2500, 4500].map(function (ms) { return setTimeout(fit, ms); });
+    var svgEl = document.querySelector('#graph svg');
+    if (svgEl) {
+      var stop = function () { fitTimers.forEach(clearTimeout); fitTimers = []; };
+      svgEl.addEventListener('wheel', stop, { passive: true });
+      svgEl.addEventListener('mousedown', stop);
+      svgEl.addEventListener('touchstart', stop, { passive: true });
+    }
+  }
+  function fit() {
+    var svgEl = document.querySelector('#graph svg'), g = svgEl && svgEl.querySelector('g');
+    if (!g) { return; }
+    var bb = g.getBBox(), w = svgEl.clientWidth, h = svgEl.clientHeight;
+    if (!bb.width || !bb.height || !w || !h) { return; }
+    var k = Math.min(0.92 * w / bb.width, 0.92 * h / bb.height, 1.4);
+    var tx = w / 2 - k * (bb.x + bb.width / 2), ty = h / 2 - k * (bb.y + bb.height / 2);
+    svgEl.__zoom = d3.zoomIdentity.translate(tx, ty).scale(k);   // so the next wheel/drag zoom continues from here
+    g.setAttribute('transform', 'translate(' + tx + ', ' + ty + ') scale(' + k + ')');
+  }
+
+  function buildLegend(g) {
+    var counts = {};
+    g.nodes.forEach(function (n) { counts[n.labels[0]] = (counts[n.labels[0]] || 0) + 1; });
+    var html = '';
+    ['catalog', 'documents', 'lineage', 'other'].forEach(function (layer) {
+      var labels = Object.keys(counts).filter(function (l) { return layerOf(l) === layer; });
+      if (!labels.length) { return; }
+      labels.sort(function (a, b) { return counts[b] - counts[a]; });
+      html += '<div><div class="layer-name">' + (LAYER_TITLE[layer] || 'Other') + '</div><div class="chips">' +
+        labels.map(function (l) {
+          return '<button type="button" class="chip" data-label="' + esc(l) + '" aria-pressed="false">' +
+            '<span class="dot" style="background:' + colorOf(l) + '"></span>' + esc(l) + ' <span class="n">' + counts[l] + '</span></button>';
+        }).join('') + '</div></div>';
+    });
+    $('legend').innerHTML = html;
+    Array.prototype.forEach.call($('legend').querySelectorAll('.chip'), function (chip) {
+      chip.addEventListener('click', function () {
+        state.isolated = state.isolated === chip.dataset.label ? null : chip.dataset.label;
+        Array.prototype.forEach.call($('legend').querySelectorAll('.chip'), function (c) {
+          c.setAttribute('aria-pressed', String(c.dataset.label === state.isolated));
+        });
+        applyFind();
+      });
+    });
+  }
+
+  function applyFind() {
+    var q = $('find').value.trim().toLowerCase(), iso = state.isolated;
+    var keep = {};
+    d3.select('#graph').selectAll('.node').classed('dim', function (d) {
+      var hay = (caption(d) + ' ' + d.labels[0] + ' ' + JSON.stringify(d.properties || {})).toLowerCase();
+      var hit = (!q || hay.indexOf(q) >= 0) && (!iso || d.labels[0] === iso);
+      if (hit) { keep[d.id] = true; }
+      return !hit;
+    });
+    d3.select('#graph').selectAll('.relationship').classed('dim', function (d) {
+      var s = d.source.id !== undefined ? d.source.id : d.source, t = d.target.id !== undefined ? d.target.id : d.target;
+      return !(keep[s] && keep[t]);
+    });
+  }
+
+  function propsTable(props) {
+    var keys = Object.keys(props || {});
+    if (!keys.length) { return '<p class="empty">No properties.</p>'; }
+    return '<table class="props">' + keys.map(function (k) {
+      var v = props[k], s = Array.isArray(v) ? v.join('\n') : (typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v));
+      var cell = s.length > 90 ? '<div class="long">' + esc(s) + '</div>' : esc(s);
+      return '<tr><th>' + esc(k) + '</th><td>' + cell + '</td></tr>';
+    }).join('') + '</table>';
+  }
+
+  function showNode(d, pinned) {
+    var label = d.labels[0];
+    $('details').innerHTML =
+      '<div class="head"><span class="pill" style="background:' + colorOf(label) + '">:' + esc(label) + '</span>' +
+      '<b>' + esc(caption(d)) + '</b>' + (pinned ? '<span class="pin">pinned · click again to release</span>' : '') + '</div>' +
+      propsTable(d.properties);
+  }
+
+  function showRel(d, byId) {
+    var s = byId[d.source.id !== undefined ? d.source.id : d.source] || d.source;
+    var t = byId[d.target.id !== undefined ? d.target.id : d.target] || d.target;
+    $('details').innerHTML =
+      '<div class="head"><span class="pill" style="background:var(--edge)">[:' + esc(d.type) + ']</span></div>' +
+      '<p>(<b>' + esc(caption(s)) + '</b>:' + esc(s.labels[0]) + ') → (<b>' + esc(caption(t)) + '</b>:' + esc(t.labels[0]) + ')</p>' +
+      propsTable(d.properties);
+  }
+
+  // ---- views ----
+  function showView(id) {
+    var v = null;
+    DATA.views.forEach(function (x) { if (x.id === id) { v = x; } });
+    if (!v) { v = DATA.views[0]; }
+    state.view = v.id;
+    Array.prototype.forEach.call($('views').querySelectorAll('button'), function (b) {
+      b.setAttribute('aria-current', String(b.dataset.id === v.id));
+    });
+    $('rows').hidden = true;
+    render(v.graph, v.title, v.description);
+    if (location.hash !== '#' + v.id) { try { history.replaceState(null, '', '#' + v.id); } catch (e) { } }
+  }
+
+  function init() {
+    var m = DATA.meta;
+    var seriesCount = 0, obs = 0;
+    m.label_counts.forEach(function (c) { if (c.name === 'Series') { seriesCount = c.count; } });
+    m.relationship_counts.forEach(function (c) { obs += c.count; });
+    var totalNodes = m.label_counts.reduce(function (a, c) { return a + c.count; }, 0);
+    $('meta-line').innerHTML = 'Snapshot of <b>' + esc(m.database) + '</b> on ' + esc(m.neo4j_version) +
+      ' · ' + totalNodes.toLocaleString() + ' nodes, ' + obs.toLocaleString() + ' relationships, ' + seriesCount + ' series · exported ' +
+      esc(m.exported_at_utc.replace('T', ' ').replace('Z', ' UTC'));
+
+    $('views').innerHTML = DATA.views.map(function (v) {
+      var parts = v.title.split(' · ');
+      return '<button type="button" data-id="' + esc(v.id) + '"><span class="id">' + esc(parts[0]) + '</span>' +
+        (parts[1] ? '<span class="name">' + esc(short(parts[1], 34)) + '</span>' : '<span class="name">' + v.graph.nodes.length + ' nodes</span>') + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('views').querySelectorAll('button'), function (b) {
+      b.addEventListener('click', function () { showView(b.dataset.id); });
+    });
+
+    $('find').addEventListener('input', applyFind);
+    $('refit').addEventListener('click', fit);
+    window.addEventListener('hashchange', function () { showView(location.hash.slice(1)); });
+    window.addEventListener('resize', debounce(function () { if (state.view) { showView(state.view); } }, 300));
+
+    $('live-preset').innerHTML = PRESETS.map(function (p, i) { return '<option value="' + i + '">' + esc(p.name) + '</option>'; }).join('');
+    $('live-cypher').value = PRESETS[0].q;
+    $('live-url').value = m.url || 'http://localhost:7474';
+    $('live-db').value = m.database || 'neo4j';
+    $('live-preset').addEventListener('change', function () { $('live-cypher').value = PRESETS[+this.value].q; });
+    $('live-run').addEventListener('click', runLive);
+    $('live-cypher').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { runLive(); } });
+
+    showView(location.hash.slice(1));
+  }
+
+  function debounce(fn, ms) { var t; return function () { clearTimeout(t); t = setTimeout(fn, ms); }; }
+
+  // ---- live Cypher over the HTTP API ----
+  function runLive() {
+    var url = $('live-url').value.replace(/\/+$/, '') + '/db/' + encodeURIComponent($('live-db').value) + '/tx/commit';
+    var status = $('live-status');
+    status.className = 'status'; status.textContent = 'Running…';
+    var body = { statements: [{ statement: $('live-cypher').value, resultDataContents: ['graph', 'row'] }] };
+    var auth = 'Basic ' + btoa($('live-user').value + ':' + $('live-pw').value);
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: auth }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
+      .then(function (res) {
+        if (res.json.errors && res.json.errors.length) { throw new Error(res.json.errors.map(function (e) { return e.code + ': ' + e.message; }).join('\n')); }
+        if (!res.ok) { throw new Error('HTTP ' + res.status); }
+        var result = res.json.results[0], nodes = {}, rels = {}, graph = { nodes: [], relationships: [] };
+        result.data.forEach(function (row) {
+          row.graph.nodes.forEach(function (n) { if (!nodes[n.id]) { nodes[n.id] = true; graph.nodes.push(n); } });
+          row.graph.relationships.forEach(function (r) { if (!rels[r.id]) { rels[r.id] = true; graph.relationships.push(r); } });
+        });
+        graph.nodes.forEach(function (n) { if (n.properties && Array.isArray(n.properties.embedding)) { n.properties.embedding_dims = n.properties.embedding.length; delete n.properties.embedding; } });
+        Array.prototype.forEach.call($('views').querySelectorAll('button'), function (b) { b.setAttribute('aria-current', 'false'); });
+        state.view = null;
+        status.className = 'status ok';
+        status.textContent = result.data.length + ' row' + (result.data.length === 1 ? '' : 's') + ' · ' + graph.nodes.length + ' nodes, ' + graph.relationships.length + ' relationships';
+        render(graph, 'Live result', 'Result of the Cypher statement run just now against ' + $('live-url').value + '.');
+        showRows(result);
+      })
+      .catch(function (err) {
+        status.className = 'status bad';
+        status.textContent = (err && err.message === 'Failed to fetch')
+          ? 'Could not reach ' + $('live-url').value + '. Is Neo4j running, and is this page opened locally (a published copy cannot call localhost)?'
+          : String(err && err.message || err);
+      });
+  }
+
+  function showRows(result) {
+    var box = $('rows');
+    if (!result.columns.length || !result.data.length) { box.hidden = true; return; }
+    var html = '<div class="eyebrow">Rows</div><table><thead><tr>' + result.columns.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    result.data.slice(0, 50).forEach(function (row) {
+      html += '<tr>' + row.row.map(function (v) {
+        var s = (v && typeof v === 'object') ? JSON.stringify(v) : String(v);
+        return '<td title="' + esc(s) + '">' + esc(short(s, 60)) + '</td>';
+      }).join('') + '</tr>';
+    });
+    html += '</tbody></table>' + (result.data.length > 50 ? '<p class="empty">First 50 of ' + result.data.length + ' rows.</p>' : '');
+    box.innerHTML = html; box.hidden = false;
+  }
+
+  if (!DATA) {
+    $('meta-line').textContent = 'fred_graph_data.js is missing. Run export_fred_graph_explorer_data() in MATLAB.';
+  } else if (!window.Neo4jd3 || !window.d3) {
+    $('meta-line').textContent = 'Could not load D3 or neo4jd3 from the CDN.';
+  } else {
+    init();
+  }
+})();
+</script>
