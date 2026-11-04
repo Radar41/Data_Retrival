@@ -5,13 +5,15 @@ arguments
 end
 
 requiredFields = [ ...
-    "adapter_id"
-    "normalized_csv_path"
-    "source_member"
-    "series_id"
-    "data_variant"
-    "target_transform"
-    "origin_index"];
+"adapter_id"
+"normalized_csv_path"
+"source_member"
+"series_id"
+"data_variant"
+"target_transform"
+"origin_index"
+"forecast_horizon_policy"
+"maximum_forecast_horizon"];
 
 assert(all(isfield(config, requiredFields)), ...
     "config is missing one or more required fields.");
@@ -42,54 +44,87 @@ assert(isscalar(config.origin_index) && ...
     config.origin_index >= 1, ...
     "origin_index must be a positive integer scalar.");
 
+assert(isscalar(string(config.forecast_horizon_policy)) && ...
+strlength(string(config.forecast_horizon_policy)) > 0, ...
+"config.forecast_horizon_policy must be one nonempty scalar string.");
+
+forecastHorizonPolicy = ...
+string(config.forecast_horizon_policy);
+
+assert(any(forecastHorizonPolicy == [ ...
+"to_data_end"
+"fixed"]), ...
+"config.forecast_horizon_policy must be ""to_data_end"" or ""fixed"".");
+
+maximumForecastHorizon = config.maximum_forecast_horizon;
+
+if forecastHorizonPolicy == "to_data_end"
+
+assert(isnumeric(maximumForecastHorizon) && ...
+isscalar(maximumForecastHorizon) && ...
+isnan(maximumForecastHorizon), ...
+"config.maximum_forecast_horizon must be NaN when " + ...
+"forecast_horizon_policy is ""to_data_end"".");
+
+else
+
+assert(isnumeric(maximumForecastHorizon) && ...
+isscalar(maximumForecastHorizon) && ...
+isfinite(maximumForecastHorizon) && ...
+maximumForecastHorizon >= 1 && ...
+maximumForecastHorizon == floor(maximumForecastHorizon), ...
+"config.maximum_forecast_horizon must be a positive integer " + ...
+"when forecast_horizon_policy is ""fixed"".");
+
+end
 createdAtUtc = datetime( ...
     "now", ...
     "TimeZone", "UTC", ...
     "Format", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-T = readtable(config.normalized_csv_path, "TextType", "string");
+targetSelector = struct();
 
-requiredInputColumns = [ ...
-    "source_member"
-    "series_id"
-    "transformation_code"
-    "observation_date"
-    "value"];
+targetSelector.source_member = string(config.source_member);
+targetSelector.series_id = string(config.series_id);
+targetSelector.data_variant = string(config.data_variant);
+targetSelector.target_transform = ...
+    string(config.target_transform);
 
-assert(all(ismember(requiredInputColumns, ...
-    string(T.Properties.VariableNames))), ...
-    "Normalized input is missing one or more required columns.");
+dataVersionReference = "";
 
-S = T( ...
-    string(T.source_member) == string(config.source_member) & ...
-    string(T.series_id) == string(config.series_id) & ...
-    string(T.transformation_code) == string(config.data_variant), ...
-    ["observation_date", "value"]);
+if isfield(config, "data_version_reference")
 
-assert(~isempty(S), ...
-    "No normalized rows match source_member, series_id, and data_variant.");
+    dataVersionReference = ...
+        string(config.data_version_reference);
 
-S = sortrows(S, "observation_date");
+end
 
-dates = datetime(string(S.observation_date), ...
-    "InputFormat", "yyyy-MM-dd");
-dates = dates(:);
+missingValuePolicy = "reject_nonfinite";
 
-x = S.value;
+if isfield(config, "missing_value_policy")
 
-assert(isnumeric(x) && isvector(x), ...
-    "Normalized series values must be a numeric vector.");
+    missingValuePolicy = ...
+        string(config.missing_value_policy);
 
-x = x(:);
+end
+
+targetData = gdss.load_normalized_target( ...
+    string(config.normalized_csv_path), ...
+    targetSelector, ...
+    MissingValuePolicy=missingValuePolicy, ...
+    DataVersionReference=dataVersionReference);
+
+dates = targetData.observation_dates;
+x = targetData.target_values;
 
 assert(numel(dates) == numel(x), ...
-    "Observation-date count must equal value count.");
+    "Resolved target date/value counts differ.");
 
 assert(all(isfinite(x)), ...
-    "Normalized series values must all be finite.");
+    "Resolved target values must all be finite.");
 
 assert(all(diff(dates) > days(0)), ...
-    "Normalized observation dates must be strictly increasing.");
+    "Resolved target observation dates must be strictly increasing.");
 
 seriesTT = timetable(dates, x, ...
     'VariableNames', {'target_value'});
@@ -100,10 +135,28 @@ assert(config.origin_index < height(seriesTT), ...
 originIndex = config.origin_index;
 originTime = seriesTT.dates(originIndex);
 
-trainTT = seriesTT(1:originIndex, :);
-actualTT = seriesTT((originIndex + 1):end, :);
+availableHeldOutCount = height(seriesTT) - originIndex;
 
-forecastHorizons = (1:height(actualTT))';
+if forecastHorizonPolicy == "to_data_end"
+
+    forecastHorizonCount = availableHeldOutCount;
+
+else
+
+    forecastHorizonCount = maximumForecastHorizon;
+
+    assert(availableHeldOutCount >= forecastHorizonCount, ...
+        "Fixed forecast horizon exceeds available held-out observations.");
+
+end
+
+trainTT = seriesTT(1:originIndex, :);
+
+actualTT = seriesTT( ...
+    (originIndex + 1):(originIndex + forecastHorizonCount), ...
+    :);
+
+forecastHorizons = (1:forecastHorizonCount)';
 
 assert(height(trainTT) == originIndex, ...
     "Training partition length does not equal origin_index.");
@@ -195,6 +248,12 @@ fitRealization.series_id = string(config.series_id);
 fitRealization.data_variant = string(config.data_variant);
 fitRealization.target_transform = string(config.target_transform);
 
+fitRealization.data_version_reference = ...
+    targetData.data_version_reference;
+
+fitRealization.source_column = ...
+    targetData.source_column;
+
 fitRealization.adapter_id = string(config.adapter_id);
 fitRealization.backend_id = string(fitPayload.backend_id);
 fitRealization.backend_version = string(fitPayload.backend_version);
@@ -228,11 +287,23 @@ forecastRealization.data_variant = fitRealization.data_variant;
 forecastRealization.target_transform = ...
     fitRealization.target_transform;
 
+forecastRealization.data_version_reference = ...
+    fitRealization.data_version_reference;
+
+forecastRealization.source_column = ...
+    fitRealization.source_column;
+
 forecastRealization.adapter_id = fitRealization.adapter_id;
 forecastRealization.backend_id = fitRealization.backend_id;
 forecastRealization.backend_version = fitRealization.backend_version;
 forecastRealization.backend_model_class = ...
     fitRealization.backend_model_class;
+
+forecastRealization.forecast_horizon_policy = ...
+    forecastHorizonPolicy;
+
+forecastRealization.maximum_forecast_horizon = ...
+    maximumForecastHorizon;
 
 forecastRealization.horizon = forecastHorizons;
 forecastRealization.target_index = originIndex + forecastHorizons;
@@ -394,6 +465,12 @@ forecastScorecard.data_variant = forecastRealization.data_variant;
 forecastScorecard.target_transform = ...
     forecastRealization.target_transform;
 
+forecastScorecard.data_version_reference = ...
+    forecastRealization.data_version_reference;
+
+forecastScorecard.source_column = ...
+    forecastRealization.source_column;
+
 forecastScorecard.adapter_id = forecastRealization.adapter_id;
 
 forecastScorecard.backend_id = forecastRealization.backend_id;
@@ -402,6 +479,12 @@ forecastScorecard.backend_version = ...
 
 forecastScorecard.backend_model_class = ...
     forecastRealization.backend_model_class;
+
+forecastScorecard.forecast_horizon_policy = ...
+    forecastHorizonPolicy;
+
+forecastScorecard.maximum_forecast_horizon = ...
+    maximumForecastHorizon;
 
 forecastScorecard.horizon_count = nForecasts;
 forecastScorecard.first_horizon = forecastHorizons(1);
@@ -448,6 +531,12 @@ evaluationRun.series_id = fitRealization.series_id;
 evaluationRun.data_variant = fitRealization.data_variant;
 evaluationRun.target_transform = fitRealization.target_transform;
 
+evaluationRun.data_version_reference = ...
+    fitRealization.data_version_reference;
+
+evaluationRun.source_column = ...
+    fitRealization.source_column;
+
 evaluationRun.adapter_id = fitRealization.adapter_id;
 
 evaluationRun.backend_id = fitRealization.backend_id;
@@ -463,6 +552,12 @@ evaluationRun.first_target_time = ...
 
 evaluationRun.last_target_time = ...
     forecastScorecard.last_target_time;
+
+evaluationRun.forecast_horizon_policy = ...
+    forecastHorizonPolicy;
+
+evaluationRun.maximum_forecast_horizon = ...
+    maximumForecastHorizon;
 
 evaluationRun.fit_realization = fitRealization;
 evaluationRun.forecast_realization = forecastRealization;

@@ -24,6 +24,8 @@ config.series_id = "TOTBKCRNSA";
 config.data_variant = "LEVEL";
 config.target_transform = "identity";
 config.origin_index = 2539;
+config.forecast_horizon_policy = "to_data_end";
+config.maximum_forecast_horizon = NaN;
 
 config.target_dimension = 1;
 config.forecast_strategy = "recursive";

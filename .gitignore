@@ -51,3 +51,7 @@ neo4j/import/
 
 # FRED raw API payloads written by src/python/fred_load.py (keep locally, never commit)
 payloads/
+
+# Generated evaluation outputs and Python bytecode
+output/
+__pycache__/
