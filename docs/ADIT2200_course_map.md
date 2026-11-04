@@ -60,3 +60,26 @@ Done: Week 1 (10/15), Week 3 (11/15). Open: Weeks 2, 4, 5, 6 (overdue), Week 7 (
 2. Shore to Shore scripts: makship (DDL) and insert (data), MySQL versions, plus the data-model map image.
 3. Week 6: Term Project Assignment prompt page (to confirm it is the relational model / normalization stage).
 4. Quiz 4 to 9 pages are not needed; they are taken in Canvas.
+
+## Course of action (recorded 2026-11-04)
+
+Method, as agreed with the instructor on Zoom: every homework topic is first worked on the FRED catalog in both PostgreSQL and Neo4j, then the assigned course problem is done as written. The FRED pass is the preamble that shows the concept in the chosen systems; the course problem is the submission. The two never mix in one file.
+
+Framing for the end-of-term discussion: Königsberg. Euler's point was that only the connections matter. In the relational model a connection is stored on one side (the "one" side's key migrates; MAPER steps 3 and 4 decide where), so normalization is partly about where the key lives. In a property graph the connection is its own object, traversed at equal cost either way, so the migration rules and associative tables have no counterpart; FDs still govern properties inside a node. Multiplicity is the trade: Neo4j does not enforce cardinality, so each crow's-foot constraint on the ERD becomes a degree-audit query whose expected answer is zero rows.
+
+| HW | FRED preamble (both stores) | Course submission |
+|---|---|---|
+| 1 ERD | done: docs/erd | Paul's Popcorn Poppers |
+| 2 EERD | Series supertype by frequency or Tag by group, discriminator; Neo4j multi-label `(:Series:Monthly)` | online music company |
+| 3, 4 FDs, normalization | docs/erd/fred_fd_maps.png; same FDs shown inside a Series node | antique manifest; HW4 prompt still needed |
+| 5, 6 joins, outer joins | Q02 to Q05 in both languages; degree audit as the outer-join case | Shore to Shore; makship + insert scripts still needed |
+| 7 set ops, CASE, windows | Q07 to Q09; which have no Cypher equivalent and why | HW7 prompt still needed |
+| 8 triggers, procedures | sql/fred_triggers.sql; Neo4j has no triggers without APOC | HW8 |
+
+Repo layout to adopt when homework starts: `homework/hwNN_fred/` and `homework/hwNN_submission/`.
+
+Degree audit template (one per ERD relationship, expected result: no rows):
+```cypher
+MATCH (s:Series) WITH s, count { (s)-[:IN_RELEASE]->() } AS d
+WHERE d <> 1 RETURN s.series_id, d
+```
