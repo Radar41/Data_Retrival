@@ -13,6 +13,8 @@ function outputs = build_fred_design_diagrams(options)
 %      fred_logical_design      DBMS-independent relational model
 %      fred_physical_postgresql PostgreSQL 16
 %      fred_physical_mysql      MySQL 8 / MariaDB (InnoDB)
+%      fred_neo4j_logical       property graph model (dbdesign.fred_graph_model)
+%      fred_neo4j_physical      Neo4j Community: types, constraints, indexes
 %
 % Needs Graphviz (dot) on the PATH.
 
@@ -38,9 +40,16 @@ problems = [ ...
     prefix("mysql DDL", dbdesign.check_model_against_ddl(model, ...
         fullfile(root, "sql", "mysql", "fred_schema.sql"), "mysql"))];
 
+graph = dbdesign.fred_graph_model(model);
+
 if options.CheckLiveDatabase
-    problems = [problems; prefix("live " + options.Database, ...
-        dbdesign.check_model_against_postgres(model, options.Database))];
+    problems = [problems
+        prefix("live " + options.Database, ...
+            dbdesign.check_model_against_postgres(model, options.Database))
+        prefix("graph", dbdesign.check_graph_model(graph, model))];
+else
+    problems = [problems
+        prefix("graph", dbdesign.check_graph_model(graph, model, Live=false))];
 end
 
 if ~isempty(problems)
@@ -49,10 +58,11 @@ if ~isempty(problems)
 end
 
 fprintf("Model matches both DDL files%s.\n", ...
-    repmat(" and the live " + options.Database + " database", 1, options.CheckLiveDatabase));
+    repmat(" and the live " + options.Database + " and Neo4j databases", 1, options.CheckLiveDatabase));
 
-views = ["logical", "postgresql", "mysql"];
-stems = ["fred_logical_design", "fred_physical_postgresql", "fred_physical_mysql"];
+views = ["logical", "postgresql", "mysql", "graph_logical", "graph_physical"];
+stems = ["fred_logical_design", "fred_physical_postgresql", "fred_physical_mysql", ...
+    "fred_neo4j_logical", "fred_neo4j_physical"];
 
 if ~isfolder(outputFolder)
     mkdir(outputFolder);
@@ -63,7 +73,11 @@ outputs = strings(0, 1);
 for k = 1:numel(views)
 
     dotPath = fullfile(outputFolder, stems(k) + ".dot");
-    dbdesign.write_schema_dot(model, views(k), dotPath);
+    if startsWith(views(k), "graph_")
+        dbdesign.write_graph_dot(graph, model, views(k), dotPath);
+    else
+        dbdesign.write_schema_dot(model, views(k), dotPath);
+    end
 
     for fmt = ["png", "svg"]
 
