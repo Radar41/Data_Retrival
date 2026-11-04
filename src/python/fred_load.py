@@ -13,6 +13,7 @@ Observations go to PostgreSQL only; they are never exported for the graph.
     python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
     python fred_load.py --documents --releases 50 13 --doc-last 6     # press releases -> 005 CSVs
     python fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv
+    python fred_load.py --observations-all            # every vintage for catalog series with none yet
 
 Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
@@ -63,9 +64,10 @@ def _request(endpoint: str, params: dict) -> dict:
     raise RuntimeError(f"FRED {endpoint}: gave up after {attempt + 1} attempts (HTTP {r.status_code})")
 
 
-def get(endpoint: str, **params) -> dict:
-    """One FRED call, paged to completion, returned as a single merged payload."""
-    params |= {"api_key": KEY, "file_type": "json", "limit": 1000, "offset": 0}
+def get(endpoint: str, page_size: int = 1000, **params) -> dict:
+    """One FRED call, paged to completion, returned as a single merged payload.
+    Most endpoints cap limit at 1000; series/observations allows 100000."""
+    params |= {"api_key": KEY, "file_type": "json", "limit": page_size, "offset": 0}
     merged, key = None, None
     while True:
         page = _request(endpoint, params)
@@ -76,7 +78,7 @@ def get(endpoint: str, **params) -> dict:
             merged[key].extend(page[key])
         if page.get("offset", 0) + page.get("limit", 0) >= page.get("count", 0):
             return merged
-        params["offset"] += 1000
+        params["offset"] += page_size
 
 
 def save(name: str, payload) -> None:
@@ -215,20 +217,69 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
         write_csv("series_tags", ["series_id", "tag_name"],
                   [(st["series_id"], t["name"]) for st in tags_out for t in st["tags"]])
 
-        # --- observations, every vintage (ALFRED), PostgreSQL only ----------------
-        for sid in obs_series:
-            ob = get("series/observations", series_id=sid, **ALL_VINTAGES); save(f"observations_{sid}", ob)
-            rows = [(sid, o["date"], o["realtime_start"], o["realtime_end"],
-                     None if o["value"] == "." else o["value"]) for o in ob["observations"]]
-            # order by realtime_start so the BEFORE INSERT trigger closes vintages in sequence
-            rows.sort(key=lambda r: (r[1], r[2]))
-            upsert(cur, "observation", ["series_id", "observation_date", "realtime_start", "realtime_end", "value"],
-                   rows, ["series_id", "observation_date", "realtime_start"])
         conn.commit()
+        # --- observations, every vintage (ALFRED), PostgreSQL only ----------------
+        load_observations(conn, obs_series)
     (PAYLOADS / "manifest.json").write_text(json.dumps(MANIFEST, indent=1))
     print(f"loaded {len(series_rows)} series from {len(release_ids)} releases")
     print(f"raw payloads + manifest: {PAYLOADS.resolve()}")
     print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 003 then 004 with :param snapshot_id)")
+
+
+def fetch_observation_rows(sid: str) -> tuple[dict, list[tuple]]:
+    """Every vintage of one series from ALFRED, as observation rows."""
+    ob = get("series/observations", page_size=100000, series_id=sid, **ALL_VINTAGES)
+    rows = [(sid, o["date"], o["realtime_start"], o["realtime_end"],
+             None if o["value"] == "." else o["value"]) for o in ob["observations"]]
+    # order by realtime_start so the BEFORE INSERT trigger closes vintages in sequence
+    rows.sort(key=lambda r: (r[1], r[2]))
+    return ob, rows
+
+
+def load_observations(conn, series_ids: list[str]) -> list[str]:
+    """Load every vintage for each series, committing per series so a failure
+    (or Ctrl+C) keeps everything loaded so far. Raw payloads go to a new,
+    timestamped folder and are never overwritten. Returns the failed ids."""
+    run_dir = PAYLOADS / "observations" / time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    run_dir.mkdir(parents=True, exist_ok=True)
+    manifest, failed, total, t0 = {}, [], 0, time.monotonic()
+    for i, sid in enumerate(series_ids, 1):
+        try:
+            ob, rows = fetch_observation_rows(sid)
+        except RuntimeError as exc:
+            failed.append(sid); print(f"[{i}/{len(series_ids)}] {sid}: FAILED {exc}", flush=True)
+            continue
+        text = json.dumps(ob, indent=1)
+        path = run_dir / f"{sid}.json"
+        path.write_text(text)
+        manifest[path.name] = {"sha256": hashlib.sha256(text.encode()).hexdigest(), "bytes": len(text),
+                               "retrieved_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        with conn.cursor() as cur:
+            upsert(cur, "observation", ["series_id", "observation_date", "realtime_start", "realtime_end", "value"],
+                   rows, ["series_id", "observation_date", "realtime_start"])
+        conn.commit()
+        total += len(rows)
+        print(f"[{i}/{len(series_ids)}] {sid}: {len(rows)} vintages  (total {total}, "
+              f"{time.monotonic() - t0:.0f}s)", flush=True)
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=1))
+    print(f"observations: {total} rows for {len(series_ids) - len(failed)} series in {run_dir}")
+    if failed:
+        print(f"failed ({len(failed)}): {' '.join(failed)}")
+    return failed
+
+
+def observations_all(refresh: bool) -> None:
+    """Observations for every series already in the catalog (no metadata calls).
+    Without --refresh, only series that have no observation rows yet."""
+    with psycopg.connect(PG) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT s.series_id FROM series s" + ("" if refresh else
+                        " WHERE NOT EXISTS (SELECT 1 FROM observation o WHERE o.series_id = s.series_id)") +
+                        " ORDER BY s.popularity DESC NULLS LAST, s.series_id")
+            ids = [r[0] for r in cur.fetchall()]
+        print(f"{len(ids)} series to load ({'all' if refresh else 'missing only'})", flush=True)
+        failed = load_observations(conn, ids)
+    raise SystemExit(1 if failed else 0)
 
 
 # --- documents: agency press releases -> Document / Chunk CSVs (005) ----------
@@ -377,6 +428,10 @@ if __name__ == "__main__":
     ap.add_argument("--category-crawl", type=pathlib.Path, default=None, metavar="CSV",
                     help="instead of the catalog load, upsert the full category tree from the MATLAB "
                          "crawl (data/catalog/fred/crawls/active/all_categories.csv); no API calls")
+    ap.add_argument("--observations-all", action="store_true",
+                    help="instead of the catalog load, fetch every vintage for each series already in "
+                         "the series table that has no observations yet (add --refresh for all)")
+    ap.add_argument("--refresh", action="store_true", help="with --observations-all: reload every series")
     a = ap.parse_args()
     if a.category_crawl:
         category_crawl(a.category_crawl)
@@ -386,4 +441,6 @@ if __name__ == "__main__":
         raise SystemExit(0)
     if not KEY:
         raise SystemExit("set FRED_API_KEY")
+    if a.observations_all:
+        observations_all(a.refresh)
     main(a.releases, a.observations, a.max_series)
