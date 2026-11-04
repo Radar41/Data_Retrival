@@ -110,3 +110,75 @@ No changes under `sql/`.
 4. **Constraint-name collision.** `cypher/import_fred_datalist_banks_weekly_catalog.cypher` creates `series_catalog_key_unique IF NOT EXISTS` on `catalog_key`, and that name now belongs to 003's constraint on `series_catalog_key`. Rerunning the datalist script will silently skip that statement. Harmless today, because `fred_series_catalog_key_unique` already covers `catalog_key`, but it is worth renaming one of them.
 5. **Known soft spot, as the handoff notes:** `last_updated` drops the UTC offset (`[:19]`).
 6. **The FRED API key is in plaintext** in `~/Documents/MATLAB/startup.m`, outside the repo. It works, but the shell never sees it, so run the loader with `export FRED_API_KEY=…` or source it from a single private file.
+
+---
+
+# Round two   (2026-11-04T00:50Z)
+
+Brief: pull b6c5d26, re-run 003 and Q13, build 5.2 and 5.3, fix `fred_pull.m` line 45. All done; one item needs Adrian (the full `run_all.sh` run, below).
+
+## b6c5d26 verified
+
+- **Stale constraint dropped.** b6c5d26 removed `series_catalog_key_unique` from 003, but the round-one run had already created it in the live graph. Ran `DROP CONSTRAINT series_catalog_key_unique IF EXISTS`; the only Series constraint now is `fred_series_catalog_key_unique` on `catalog_key`. 003 reruns clean. Open item 4 above is resolved.
+- **Q13 (top 3 per series):** 6 rows, 3 INDPRO + **3 PAYEMS**. PAYEMS' top passage is Employment Situation 2026-08-07, chunk 8, relevance 5.07: "*The change in total nonfarm payroll employment for May was revised down by 66,000…*". GDPC1 and CPIAUCSL return no rows (no GDP/CPI documents loaded), as expected. Open item 1 above is resolved.
+
+## 5.2 `src/python/fred_integrated.py`: built, verified
+
+```
+export NEO4J_PASSWORD=...
+~/.venvs/fred/bin/python src/python/fred_integrated.py [--passages N]
+```
+- **Queries:** reads Q13 from both query files (no copies). The SQL runs in a read-only psycopg session; its rows go as `$revised` to a read transaction in a `READ_ACCESS` neo4j session. The script joins on series_id and prints series / release / revisions / top passage.
+- **Output** (`--passages 1`): INDPRO 45 → G.17 2026-06-15 chunk 8; PAYEMS 19 → Employment Situation 2026-08-07 chunk 8; GDPC1 9 and CPIAUCSL 1 → "no press-release documents loaded". "4 revised series from PostgreSQL; 6 passages from Neo4j."
+- **Missing password:** exits with `NEO4J_PASSWORD is not set; export it and rerun.`
+- **New dependency:** `neo4j>=5.20` (installed: 6.4.1).
+
+## 5.3 `run_all.sh`: built, partly verified
+
+```
+export FRED_API_KEY=... NEO4J_PASSWORD=...
+./run_all.sh                   # sample, load, graph, documents into a NEW database "fred"
+./run_all.sh --fresh           # drop and recreate the database first
+./run_all.sh graph documents   # selected steps against a loaded database
+```
+- **Behaviour:** `set -euo pipefail`. Credentials come from the environment only, and only the ones the chosen steps need. The script refuses an existing database unless `--fresh`, because the schema script is not rerunnable and `sql/` was left unchanged. Logs go to `data/staging/run_all/<UTC>/`.
+- **Checks it runs:**
+  - 4.1: 21 sample rows, Q07 revision counts, both Q10 values, Q11 = STALE1, trigger proof (inside a rolled-back transaction).
+  - 4.2: no SQL query returns 0 rows.
+  - 4.3: 004 `series_loaded` = SQL count, Q06 Cypher rows = SQL rows.
+  - 5.1: 005 `chunks_loaded` = chunks.csv rows.
+- **Neo4j setup:** the script creates `Provider {provider_id:"fred"}` and 001's two constraints inline, because 001 needs the MATLAB crawl CSV and 002 hardcodes one snapshot from this machine, so neither can run on a clean machine. It writes CSVs to staging, then `docker cp` + `chown 7474:7474` into the container (resolves open item 2).
+
+| Test | Result |
+|---|---|
+| no `FRED_API_KEY` / no `NEO4J_PASSWORD` | `FAIL: FRED_API_KEY is not set. Export it in this shell and rerun.` / same for NEO4J_PASSWORD, exit 1 |
+| `FRED_DB=fred_runall_test ./run_all.sh sample` | 6/6 checks ok |
+| same again, without `--fresh` | `FAIL: database 'fred_runall_test' already exists. …`; real `fred` also protected (still 400 series) |
+| `--fresh sample` | drops, rebuilds, checks ok |
+| `load` with an invalid key | stops at 4.2, exit 1 |
+| `./run_all.sh graph documents` on the loaded `fred` | 400 = 400, Q06 102 = 102, 1853 = 1853 chunks; 37 s, exit 0 |
+
+**Not run: a full `./run_all.sh` including the live load.** The brief says to read `FRED_API_KEY` from the environment only, and this shell does not have it. Adrian, to finish the check: after moving the key to `~/.config/fred/env`, run `FRED_DB=fred_check ./run_all.sh` (about 25 min). That builds everything into a separate database and leaves `fred` alone.
+
+## Also fixed
+
+- **`src/fred_pull.m` line 45** now reads `getenv("FRED_API_KEY")` instead of `MYFREDKey`, matching its help text and `fred_api_request.m`. Not run in MATLAB.
+- **API key leak in loader errors.** On any failed request, `requests` printed the full URL including `api_key=`. Errors now say e.g. `FRED sources: HTTP 400: Bad Request.  The value for variable api_key is not registered. …`; the key appeared 0 times in the test output.
+
+## Diffs to review (round two)
+
+| Commit | File | Why |
+|---|---|---|
+| 1b587b4 | `src/fred_pull.m` | env var name fix (line 45) |
+| 39f29df | `src/python/fred_integrated.py` | 5.2 |
+| 39f29df | `src/python/requirements.txt` | `neo4j` driver |
+| 9af90af | `src/python/fred_load.py` | keep api_key out of error messages |
+| b77c265 | `run_all.sh` | 5.3 |
+
+No changes under `sql/` or `neo4j/`. The `.asv` files and the uncommitted GDSS work were left untouched.
+
+## Open (round two)
+
+1. **Full `run_all.sh` run with the live load:** needs `FRED_API_KEY` in the environment (see above).
+2. **GDP (53) and CPI (10) have no documents.** CPI's BLS pattern (`cpi_MMDDYYYY.pdf`) is in the loader but was not requested; add `10` to `DOC_RELEASES` to try it. GDP still has no verified URL pattern.
+3. **The loader's default `NEO4J_IMPORT`** still points at the container-owned folder. `run_all.sh` overrides it, but running `fred_load.py` by hand without `NEO4J_IMPORT=$PWD/data/staging/neo4j-import` still fails with the round-one PermissionError.
