@@ -1,0 +1,93 @@
+digraph fd_maps {
+graph [rankdir=LR, pad=0.4, fontname="Helvetica", labelloc=t, fontsize=20, label=<<B>FRED Metadata Catalog: Functional dependency maps (every determinant is the whole primary key: 3NF)</B><BR/><FONT POINT-SIZE="11">Adrian Aziza · ADIT2200-01 Database Management, Fall 2026</FONT>>, nodesep=0.25, ranksep=0.5, compound=true];
+node [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="white", color="#1f3557"];
+edge [color="#1f3557", arrowsize=0.7];
+subgraph cluster_1 { label="FREQUENCY"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k1 [label=<<U>frequency_code</U>>, fillcolor="#e8eef7"];
+a1_1 [label="frequency_name", fillcolor="white"];
+k1 -> a1_1;
+}
+subgraph cluster_2 { label="UNITS"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k2 [label=<<U>units_code</U>>, fillcolor="#e8eef7"];
+a2_1 [label="units_name", fillcolor="white"];
+k2 -> a2_1;
+}
+subgraph cluster_3 { label="SEASONAL_ADJUSTMENT"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k3 [label=<<U>sa_code</U>>, fillcolor="#e8eef7"];
+a3_1 [label="sa_name", fillcolor="white"];
+k3 -> a3_1;
+}
+subgraph cluster_4 { label="SOURCE"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k4 [label=<<U>source_id</U>>, fillcolor="#e8eef7"];
+a4_1 [label="source_name", fillcolor="white"];
+k4 -> a4_1;
+a4_2 [label="source_link", fillcolor="white"];
+k4 -> a4_2;
+}
+subgraph cluster_5 { label="RELEASE"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k5 [label=<<U>release_id</U>>, fillcolor="#e8eef7"];
+a5_1 [label="release_name", fillcolor="white"];
+k5 -> a5_1;
+a5_2 [label="press_release", fillcolor="white"];
+k5 -> a5_2;
+a5_3 [label="release_link", fillcolor="white"];
+k5 -> a5_3;
+}
+subgraph cluster_7 { label="RELEASE_DATE"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k7 [label=<<U>release_id<BR/>release_date</U>>, fillcolor="#e8eef7"];
+a7_1 [label="date_status", fillcolor="white"];
+k7 -> a7_1;
+}
+subgraph cluster_8 { label="CATEGORY"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k8 [label=<<U>category_id</U>>, fillcolor="#e8eef7"];
+a8_1 [label="category_name", fillcolor="white"];
+k8 -> a8_1;
+a8_2 [label="parent_id (FK)", fillcolor="white"];
+k8 -> a8_2;
+}
+subgraph cluster_9 { label="TAG_GROUP"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k9 [label=<<U>group_id</U>>, fillcolor="#e8eef7"];
+a9_1 [label="group_name", fillcolor="white"];
+k9 -> a9_1;
+}
+subgraph cluster_10 { label="TAG"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k10 [label=<<U>tag_name</U>>, fillcolor="#e8eef7"];
+a10_1 [label="group_id (FK)", fillcolor="white"];
+k10 -> a10_1;
+a10_2 [label="tag_notes", fillcolor="white"];
+k10 -> a10_2;
+a10_3 [label="popularity", fillcolor="white"];
+k10 -> a10_3;
+}
+subgraph cluster_11 { label="SERIES"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k11 [label=<<U>series_id</U>>, fillcolor="#e8eef7"];
+a11_1 [label="title", fillcolor="white"];
+k11 -> a11_1;
+a11_2 [label="release_id (FK)", fillcolor="white"];
+k11 -> a11_2;
+a11_3 [label="frequency_code (FK)", fillcolor="white"];
+k11 -> a11_3;
+a11_4 [label="units_code (FK)", fillcolor="white"];
+k11 -> a11_4;
+a11_5 [label="sa_code (FK)", fillcolor="white"];
+k11 -> a11_5;
+a11_6 [label="[observation_start]", fillcolor="#fbefdc"];
+k11 -> a11_6;
+a11_7 [label="[observation_end]", fillcolor="#fbefdc"];
+k11 -> a11_7;
+a11_8 [label="last_updated", fillcolor="white"];
+k11 -> a11_8;
+a11_9 [label="popularity", fillcolor="white"];
+k11 -> a11_9;
+a11_10 [label="notes", fillcolor="white"];
+k11 -> a11_10;
+}
+subgraph cluster_14 { label="OBSERVATION"; style="rounded"; color="#1f3557"; fontname="Helvetica-Bold"; fontsize=11;
+k14 [label=<<U>series_id<BR/>observation_date<BR/>realtime_start</U>>, fillcolor="#e8eef7"];
+a14_1 [label="realtime_end", fillcolor="white"];
+k14 -> a14_1;
+a14_2 [label="value", fillcolor="white"];
+k14 -> a14_2;
+}
+note [shape=note, fillcolor="#f8f0dc", label="All-key relations (no non-key attributes, nothing to depend):\nRELEASE_SOURCE, SERIES_CATEGORY, SERIES_TAG\n\nDerived attributes in [brackets] are controlled denormalization,\nkept consistent by trigger (see the physical designs)."];
+}

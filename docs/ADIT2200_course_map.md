@@ -71,7 +71,7 @@ Framing for the end-of-term discussion: Königsberg. Euler's point was that only
 |---|---|---|
 | 1 ERD | done: docs/erd | Paul's Popcorn Poppers |
 | 2 EERD | Series supertype by frequency or Tag by group, discriminator; Neo4j multi-label `(:Series:Monthly)` | online music company |
-| 3, 4 FDs, normalization | docs/erd/fred_fd_maps.png; same FDs shown inside a Series node | antique manifest; HW4 prompt still needed |
+| 3, 4 FDs, normalization | docs/design/fred_fd_maps.png and fred_table_map.png; same FDs shown inside a Series node | antique manifest; HW4 prompt still needed |
 | 5, 6 joins, outer joins | Q02 to Q05 in both languages; degree audit as the outer-join case | Shore to Shore; makship + insert scripts still needed |
 | 7 set ops, CASE, windows | Q07 to Q09; which have no Cypher equivalent and why | HW7 prompt still needed |
 | 8 triggers, procedures | sql/fred_triggers.sql; Neo4j has no triggers without APOC | HW8 |

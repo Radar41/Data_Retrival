@@ -1,5 +1,5 @@
-digraph TM {
-graph [rankdir=LR, fontname="Helvetica", labelloc=t, fontsize=18, label="Table map (logical model): underline = primary key, FK = foreign key, arrows point to the referenced key", nodesep=0.35, ranksep=0.9, splines=true];
+digraph table_map {
+graph [rankdir=LR, pad=0.4, fontname="Helvetica", labelloc=t, fontsize=20, label=<<B>FRED Metadata Catalog: Table map: underline = primary key, FK = foreign key, arrows point to the referenced key</B><BR/><FONT POINT-SIZE="11">Adrian Aziza · ADIT2200-01 Database Management, Fall 2026</FONT>>, nodesep=0.35, ranksep=0.9, splines=true];
 node [fontname="Helvetica", fontsize=10, shape=plain];
 edge [color="#8a1c22", arrowsize=0.7, penwidth=1.1];
 "FREQUENCY" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" COLSPAN="2"><FONT COLOR="white"><B>FREQUENCY</B></FONT></TD></TR><TR><TD PORT="frequency_code" ALIGN="LEFT"><U>frequency_code</U></TD><TD>PK</TD></TR><TR><TD PORT="frequency_name" ALIGN="LEFT">frequency_name</TD><TD></TD></TR></TABLE>>];
@@ -16,19 +16,19 @@ edge [color="#8a1c22", arrowsize=0.7, penwidth=1.1];
 "SERIES_CATEGORY" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" COLSPAN="2"><FONT COLOR="white"><B>SERIES_CATEGORY</B></FONT></TD></TR><TR><TD PORT="series_id" ALIGN="LEFT"><U>series_id</U></TD><TD>FK</TD></TR><TR><TD PORT="category_id" ALIGN="LEFT"><U>category_id</U></TD><TD>FK</TD></TR></TABLE>>];
 "SERIES_TAG" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" COLSPAN="2"><FONT COLOR="white"><B>SERIES_TAG</B></FONT></TD></TR><TR><TD PORT="series_id" ALIGN="LEFT"><U>series_id</U></TD><TD>FK</TD></TR><TR><TD PORT="tag_name" ALIGN="LEFT"><U>tag_name</U></TD><TD>FK</TD></TR></TABLE>>];
 "OBSERVATION" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" COLSPAN="2"><FONT COLOR="white"><B>OBSERVATION</B></FONT></TD></TR><TR><TD PORT="series_id" ALIGN="LEFT"><U>series_id</U></TD><TD>FK</TD></TR><TR><TD PORT="observation_date" ALIGN="LEFT"><U>observation_date</U></TD><TD>PK</TD></TR><TR><TD PORT="realtime_start" ALIGN="LEFT"><U>realtime_start</U></TD><TD>PK</TD></TR><TR><TD PORT="realtime_end" ALIGN="LEFT">realtime_end</TD><TD></TD></TR><TR><TD PORT="value" ALIGN="LEFT">value</TD><TD></TD></TR></TABLE>>];
-"RELEASE_SOURCE":"release_id" -> "RELEASE":"release_id";
-"RELEASE_SOURCE":"source_id" -> "SOURCE":"source_id";
-"RELEASE_DATE":"release_id" -> "RELEASE":"release_id";
-"CATEGORY":"parent_id" -> "CATEGORY":"category_id";
-"TAG":"group_id" -> "TAG_GROUP":"group_id";
-"SERIES":"release_id" -> "RELEASE":"release_id";
-"SERIES":"frequency_code" -> "FREQUENCY":"frequency_code";
-"SERIES":"units_code" -> "UNITS":"units_code";
-"SERIES":"sa_code" -> "SEASONAL_ADJUSTMENT":"sa_code";
-"SERIES_CATEGORY":"series_id" -> "SERIES":"series_id";
-"SERIES_CATEGORY":"category_id" -> "CATEGORY":"category_id";
-"SERIES_TAG":"series_id" -> "SERIES":"series_id";
-"SERIES_TAG":"tag_name" -> "TAG":"tag_name";
-"OBSERVATION":"series_id" -> "SERIES":"series_id";
+"RELEASE_SOURCE":"release_id":e -> "RELEASE":"release_id":w;
+"RELEASE_SOURCE":"source_id":e -> "SOURCE":"source_id":w;
+"RELEASE_DATE":"release_id":e -> "RELEASE":"release_id":w;
+"CATEGORY":"parent_id":e -> "CATEGORY":"category_id":w;
+"TAG":"group_id":e -> "TAG_GROUP":"group_id":w;
+"SERIES":"release_id":e -> "RELEASE":"release_id":w;
+"SERIES":"frequency_code":e -> "FREQUENCY":"frequency_code":w;
+"SERIES":"units_code":e -> "UNITS":"units_code":w;
+"SERIES":"sa_code":e -> "SEASONAL_ADJUSTMENT":"sa_code":w;
+"SERIES_CATEGORY":"series_id":e -> "SERIES":"series_id":w;
+"SERIES_CATEGORY":"category_id":e -> "CATEGORY":"category_id":w;
+"SERIES_TAG":"series_id":e -> "SERIES":"series_id":w;
+"SERIES_TAG":"tag_name":e -> "TAG":"tag_name":w;
+"OBSERVATION":"series_id":e -> "SERIES":"series_id":w;
 {rank=same; FREQUENCY; UNITS; SEASONAL_ADJUSTMENT;}
 }

@@ -11,6 +11,8 @@ function outputs = build_fred_design_diagrams(options)
 %    with the code it documents.
 % 3. Writes .dot, .png and .svg for each view into docs/design/:
 %      fred_logical_design      DBMS-independent relational model
+%      fred_fd_maps             functional dependency map per relation (course notation)
+%      fred_table_map           relations as records with FK arrows
 %      fred_physical_postgresql PostgreSQL 16
 %      fred_physical_mysql      MySQL 8 / MariaDB (InnoDB)
 %      fred_neo4j_logical       property graph model (dbdesign.fred_graph_model)
@@ -60,9 +62,9 @@ end
 fprintf("Model matches both DDL files%s.\n", ...
     repmat(" and the live " + options.Database + " and Neo4j databases", 1, options.CheckLiveDatabase));
 
-views = ["logical", "postgresql", "mysql", "graph_logical", "graph_physical"];
-stems = ["fred_logical_design", "fred_physical_postgresql", "fred_physical_mysql", ...
-    "fred_neo4j_logical", "fred_neo4j_physical"];
+views = ["logical", "fd_maps", "table_map", "postgresql", "mysql", "graph_logical", "graph_physical"];
+stems = ["fred_logical_design", "fred_fd_maps", "fred_table_map", "fred_physical_postgresql", ...
+    "fred_physical_mysql", "fred_neo4j_logical", "fred_neo4j_physical"];
 
 if ~isfolder(outputFolder)
     mkdir(outputFolder);
@@ -75,6 +77,8 @@ for k = 1:numel(views)
     dotPath = fullfile(outputFolder, stems(k) + ".dot");
     if startsWith(views(k), "graph_")
         dbdesign.write_graph_dot(graph, model, views(k), dotPath);
+    elseif ismember(views(k), ["fd_maps", "table_map"])
+        dbdesign.write_fd_dot(model, views(k), dotPath);
     else
         dbdesign.write_schema_dot(model, views(k), dotPath);
     end
