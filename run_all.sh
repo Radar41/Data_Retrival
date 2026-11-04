@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
-# run_all.sh: build the FRED Metadata Catalog end to end (handoff 4.1, 4.2, 4.3, 5.1).
+# run_all.sh: build the FRED Metadata Catalog end to end (handoff 4.1, 4.2, 4.3, 5.1,
+# plus the full category tree from the MATLAB crawl).
 #
 #   export FRED_API_KEY=...  NEO4J_PASSWORD=...     # environment only, never read from files
 #   ./run_all.sh                    # all steps into a NEW database (default name: fred)
 #   ./run_all.sh --fresh            # drop and recreate the database first (destroys its data)
 #   ./run_all.sh graph documents    # only some steps, against an already-loaded database
 #
-# Steps, in order:  sample  load  graph  documents
+# Steps, in order:  sample  load  graph  categories  documents
 #   sample     4.1  schema, triggers, sample data, queries, trigger proof, expected values
 #   load       4.2  truncate sample rows, live FRED load, every SQL query must return rows
 #   graph      4.3  docker cp CSVs into the Neo4j import dir, 003, 004, counts vs SQL
+#   categories      full tree from src/fred_category_tree_crawl.m (CRAWL_CSV) into
+#                   PostgreSQL and Neo4j (006); counts and depth must match
 #   documents  5.1  press-release PDFs -> chunks -> embeddings, docker cp, 005
 #
 # Optional environment:
 #   FRED_DB (fred)  MAX_SERIES (100)  RELEASES ("50 10 53 13")  DOC_RELEASES ("50 13")
 #   DOC_LAST (6)  VENV (~/.venvs/fred)  NEO4J_CONTAINER (data_retrival_neo4j)
+#   CRAWL_CSV (data/catalog/fred/crawls/active/all_categories.csv)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,6 +32,7 @@ DOC_RELEASES="${DOC_RELEASES:-50 13}"
 DOC_LAST="${DOC_LAST:-6}"
 VENV="${VENV:-$HOME/.venvs/fred}"
 NEO4J_CONTAINER="${NEO4J_CONTAINER:-data_retrival_neo4j}"
+CRAWL_CSV="${CRAWL_CSV:-$ROOT/data/catalog/fred/crawls/active/all_categories.csv}"
 LOGDIR="$ROOT/data/staging/run_all/$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 
 export FRED_PG="dbname=$FRED_DB"
@@ -40,12 +45,12 @@ FRESH=0; STEPS=()
 for arg in "$@"; do
     case "$arg" in
         --fresh) FRESH=1 ;;
-        sample|load|graph|documents) STEPS+=("$arg") ;;
-        -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+        sample|load|graph|categories|documents) STEPS+=("$arg") ;;
+        -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
         *) echo "unknown argument: $arg (see --help)" >&2; exit 2 ;;
     esac
 done
-[ ${#STEPS[@]} -eq 0 ] && STEPS=(sample load graph documents)
+[ ${#STEPS[@]} -eq 0 ] && STEPS=(sample load graph categories documents)
 want() { [[ " ${STEPS[*]} " == *" $1 "* ]]; }
 
 say()  { printf '\n==> %s\n' "$*"; }
@@ -62,7 +67,7 @@ cypher() { docker exec -i -e NEO4J_USERNAME=neo4j -e NEO4J_PASSWORD "$NEO4J_CONT
 if want load && [ -z "${FRED_API_KEY:-}" ]; then
     die "FRED_API_KEY is not set. Export it in this shell and rerun."
 fi
-if { want graph || want documents; } && [ -z "${NEO4J_PASSWORD:-}" ]; then
+if { want graph || want categories || want documents; } && [ -z "${NEO4J_PASSWORD:-}" ]; then
     die "NEO4J_PASSWORD is not set. Export it in this shell and rerun."
 fi
 export NEO4J_PASSWORD="${NEO4J_PASSWORD:-}"
@@ -81,7 +86,7 @@ fi
 PY="$VENV/bin/python"
 
 # --- Neo4j container ---------------------------------------------------------
-if want graph || want documents; then
+if want graph || want categories || want documents; then
     if ! docker ps --format '{{.Names}}' | grep -qx "$NEO4J_CONTAINER"; then
         say "starting Neo4j ($NEO4J_CONTAINER)"
         (cd neo4j && docker compose up -d)
@@ -173,6 +178,30 @@ CYPHER
     cy_q06="$(echo "MATCH (:Category {provider_id:'fred', category_id:'10'})<-[:CHILD_OF*0..]-(:Category)<-[:IN_CATEGORY]-(se:Series) RETURN count(*);" | cypher | tail -1)"
     check "Q06 rows, Cypher = SQL" "$cy_q06" "$sql_q06"
     echo "    snapshot_id $snapshot"
+fi
+
+# --- full category tree (MATLAB crawl, Path A) ------------------------------
+if want categories; then
+    say "category tree from $CRAWL_CSV"
+    if [ ! -f "$CRAWL_CSV" ]; then
+        echo "    skipped: no crawl CSV (run fred_category_tree_crawl in MATLAB first)"
+    else
+        "$PY" src/python/fred_load.py --category-crawl "$CRAWL_CSV" | tee "$LOGDIR/categories.log"
+        docker cp "$CRAWL_CSV" "$NEO4J_CONTAINER:/var/lib/neo4j/import/fred_all_categories.csv"
+        docker exec -u 0 "$NEO4J_CONTAINER" chown 7474:7474 /var/lib/neo4j/import/fred_all_categories.csv
+        manifest="$(dirname "$CRAWL_CSV")/crawl_manifest.json"
+        started="$("$PY" -c "import json,datetime,sys; m=json.load(open(sys.argv[1])); print(datetime.datetime.strptime(m['started_at_utc'],'%d-%b-%Y %H:%M:%S').strftime('%Y-%m-%dT%H:%M:%SZ'))" "$manifest")"
+        cypher --param "snapshot_id => '${started//:/-}'" --param "retrieved_at_utc => '$started'" \
+            < neo4j/cypher/006_fred_category_crawl_load.cypher > "$LOGDIR/006.log"
+        sql_cats="$(q 'SELECT count(*) FROM category')"
+        cy_cats="$(echo 'MATCH (c:Category {provider_id:"fred"}) RETURN count(c);' | cypher | tail -1)"
+        check "categories, Cypher = SQL" "$cy_cats" "$sql_cats"
+        reach="$(tail -1 "$LOGDIR/006.log" | awk -F', ' '{print $3}')"
+        check "categories reachable from root = SQL count" "$reach" "$sql_cats"
+        sql_depth="$(q 'WITH RECURSIVE t AS (SELECT category_id, 0 d FROM category WHERE category_id=0 UNION ALL SELECT c.category_id, d+1 FROM category c JOIN t ON c.parent_id=t.category_id) SELECT max(d) FROM t')"
+        cy_depth="$(echo 'MATCH p=(:Category {provider_id:"fred",category_id:"0"})<-[:CHILD_OF*]-() RETURN max(length(p));' | cypher | tail -1)"
+        check "tree depth, Cypher = SQL" "$cy_depth" "$sql_depth"
+    fi
 fi
 
 # --- 5.1 documents -----------------------------------------------------------
