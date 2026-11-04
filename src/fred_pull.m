@@ -42,7 +42,7 @@ end
 apiKey = options.ApiKey;
 
 if strlength(apiKey) == 0
-    apiKey = string(getenv("MYFREDKey"));
+    apiKey = string(getenv("FRED_API_KEY"));
 end
 
 if strlength(apiKey) == 0
