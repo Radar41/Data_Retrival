@@ -182,3 +182,66 @@ No changes under `sql/` or `neo4j/`. The `.asv` files and the uncommitted GDSS w
 1. **Full `run_all.sh` run with the live load:** needs `FRED_API_KEY` in the environment (see above).
 2. **GDP (53) and CPI (10) have no documents.** CPI's BLS pattern (`cpi_MMDDYYYY.pdf`) is in the loader but was not requested; add `10` to `DOC_RELEASES` to try it. GDP still has no verified URL pattern.
 3. **The loader's default `NEO4J_IMPORT`** still points at the container-owned folder. `run_all.sh` overrides it, but running `fred_load.py` by hand without `NEO4J_IMPORT=$PWD/data/staging/neo4j-import` still fails with the round-one PermissionError.
+
+---
+
+# Category crawl (Path A) completed into both stores   (2026-11-04T01:10Z)
+
+## The crawl was already complete
+
+`data/catalog/fred/crawls/active/crawl_manifest.json`: status complete, 5,199 categories, 5,200 parents visited, 4 failed parents (5, 32262, 33936, 32436), all with `FRED categories response has unsupported type 'double'.` in the crawl's first 4 minutes (2026-09-02 16:51–16:52).
+
+Re-requested through the project's own MATLAB code (`matlab -batch`, key from the MATLAB vault):
+```
+parent 5:     class=double size=[0 0]   fred_category_children OK: 0 children
+parent 32262: class=double size=[0 0]   fred_category_children OK: 0 children
+parent 33936: class=double size=[0 0]   fred_category_children OK: 0 children
+parent 32436: class=double size=[0 0]   fred_category_children OK: 0 children
+```
+They are leaves. MATLAB decodes FRED's empty `[]` as an empty double. The parser version running at the start of the crawl rejected that, and the current version accepts it (4,802 other leaves were saved normally). **No subtrees are missing.** `checkpoint.mat` and `failures.csv` were not modified; the four rows in `failures.csv` are false failures.
+
+Correction to round two: `src/fred_api_request.m` reads `FRED_API_KEY` and then overwrites it with `getSecret("MyFREDKey")` (MATLAB vault), so the crawl used the vault secret. `fred_pull.m` uses the environment variable.
+
+## Loaded
+
+| | PostgreSQL `category` | Neo4j `:Category {provider_id:"fred"}` |
+|---|---|---|
+| before | 112 (ancestors of the 400 series) | 180 |
+| after | **5,200** (root + 5,199) | **5,200** |
+| parent links | 5,199 non-null `parent_id` | 5,199 `CHILD_OF`, 0 multi-parent, only root has no parent |
+| reachable from root | 5,200 (recursive CTE) | 5,200 (`[:CHILD_OF*0..]`) |
+| max depth | 9 | 9 |
+
+How it was loaded:
+- `python src/python/fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv` (PostgreSQL, parents first, no API calls).
+- `neo4j/cypher/006_fred_category_crawl_load.cypher` with `snapshot_id = 2026-09-02T16-48-53Z` (the crawl's start). That CatalogSnapshot holds 5,199 categories via `CONTAINS_CATEGORY`.
+- Both are now the `categories` step of `run_all.sh`, which checks Cypher = SQL on count, reachability and depth.
+
+## SQL vs Cypher over the full tree
+
+Recursive CTE vs `[:CHILD_OF*0..]`, per top-level category. **All 8 rows are identical in both stores** (descendants, depth, distinct series):
+
+| id | top-level category | descendants | depth | series |
+|---|---|---|---|---|
+| 1 | Production & Business Activity | 32 | 2 | 100 |
+| 10 | Population, Employment, & Labor Markets | 81 | 3 | 101 |
+| 3008 | U.S. Regional Data | 4170 | 6 | 15 |
+| 32263 | International Data | 465 | 8 | 0 |
+| 32455 | Prices | 104 | 3 | 86 |
+| 32991 | Money, Banking, & Finance | 179 | 3 | 0 |
+| 32992 | National Accounts | 95 | 3 | 99 |
+| 33060 | Academic Data | 65 | 2 | 0 |
+
+- U.S. Regional Data holds 4,170 of the 5,199 categories; International Data is the deepest (8 levels below its top category).
+- Series counts are unchanged: the 400 loaded series were already attached via 004. The new categories mostly hold series that are not loaded (`--max-series 100`). Money, Banking, & Finance, International Data and Academic Data show 0 series because none of the four loaded releases publishes into them.
+- All 13 SQL queries return the same row counts as before; Q06 is still 102 rows in both stores.
+
+## Also changed
+
+- `fred_load.py`: `NEO4J_IMPORT` now defaults to `data/staging/neo4j-import` (resolves round-two open item 3).
+
+| Commit | File | Why |
+|---|---|---|
+| 857cbd9 | `src/python/fred_load.py` | `--category-crawl`; staging default for CSVs |
+| 2727a2f | `neo4j/cypher/006_fred_category_crawl_load.cypher` | full tree into Neo4j |
+| 83ec4ab | `run_all.sh` | `categories` step |
