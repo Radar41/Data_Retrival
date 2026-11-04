@@ -1,0 +1,36 @@
+digraph INF {
+graph [rankdir=LR, fontname="Helvetica", fontsize=18, labelloc=t, label="Inference and governance layer on the FRED catalog (design)", pad=0.4, nodesep=0.45, ranksep=0.9];
+node [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="white", color="#1f3557"];
+edge [fontname="Helvetica", fontsize=9, color="#1f3557"];
+
+api [label="FRED API"];
+pdf [label="Press-release PDFs\n(data/raw/documents)"];
+load [label="fred_load.py", fillcolor="#f8f0dc"];
+subgraph cluster_pg { label="PostgreSQL (former): system of record"; style=rounded; color="#1f3557"; fontcolor="#1f3557";
+  obs [label="observation\n(every vintage)", fillcolor="#e8eef7"];
+  ev  [label="event\n(series, release_date,\nvalue, change, revision)", fillcolor="#e8eef7"];
+}
+subgraph cluster_neo { label="Neo4j (latter): class deliverable, unchanged"; style=rounded; color="#2f7a4f"; fontcolor="#2f7a4f";
+  neo [label="catalog + provenance\n+ Document / Chunk", fillcolor="#e3f2e9"];
+}
+worker [label="event_worker.py\nLISTEN fred_event", fillcolor="#f8f0dc"];
+subgraph cluster_mg { label="Memgraph: live inference graph"; style=rounded; color="#8a1c22"; fontcolor="#8a1c22";
+  mev [label="(:Event)", fillcolor="#fae4e2"];
+  hyp [label="(:Series)-[:LEADS {lag, strength,\nmethod, version, supersedes}]->(:Series)", fillcolor="#fae4e2"];
+  ent [label="(:Entity), (:Statement)\nfrom Cognee", fillcolor="#fae4e2"];
+  pol [label="(:Policy)\nthresholds as data", fillcolor="#fae4e2"];
+  trg [label="CREATE TRIGGER ON CREATE :Event\nevaluate hypotheses, attach evidence,\nversion the edge", shape=note, fillcolor="#fbefdc"];
+}
+cog [label="Cognee\n(local LLM, Memgraph adapter)", fillcolor="#f8f0dc"];
+mem [label="Mem0\n(memory per Entity,\ngraph store = Memgraph)", fillcolor="#f8f0dc"];
+down [label="Consumers:\nresidual / e3nn work, K-Space", shape=folder, fillcolor="white"];
+
+api -> load; load -> obs; load -> neo [label="CSVs, as today"];
+obs -> ev [label="AFTER INSERT trigger"];
+ev -> worker [label="NOTIFY"];
+worker -> mev; worker -> mem [label="Memory"];
+mev -> trg [style=dashed]; trg -> hyp [label="SUPPORTED_BY /\nCONTRADICTED_BY"]; pol -> trg [style=dashed];
+pdf -> cog; cog -> ent; ent -> hyp [label="qualitative evidence", style=dashed];
+mem -> ent [style=dashed, dir=both, label="shared nodes"];
+hyp -> down; obs -> down [label="dense reads"];
+}
