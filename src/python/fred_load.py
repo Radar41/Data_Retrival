@@ -12,6 +12,7 @@ Observations go to PostgreSQL only; they are never exported for the graph.
     export FRED_API_KEY=...
     python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
     python fred_load.py --documents --releases 50 13 --doc-last 6     # press releases -> 005 CSVs
+    python fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv
 
 Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
@@ -23,7 +24,9 @@ import psycopg
 API = "https://api.stlouisfed.org/fred"
 KEY = os.environ.get("FRED_API_KEY")
 PAYLOADS = pathlib.Path(os.environ.get("FRED_PAYLOADS", "payloads")); PAYLOADS.mkdir(parents=True, exist_ok=True)
-NEO_IMPORT = pathlib.Path(os.environ.get("NEO4J_IMPORT", "data/catalog/neo4j-import")) / "fred_catalog"
+# Host-writable staging; the container-owned data/catalog/neo4j-import is filled by
+# docker cp (run_all.sh). Override with NEO4J_IMPORT.
+NEO_IMPORT = pathlib.Path(os.environ.get("NEO4J_IMPORT", "data/staging/neo4j-import")) / "fred_catalog"
 NEO_IMPORT.mkdir(parents=True, exist_ok=True)
 MANIFEST = {}
 PG = os.environ.get("FRED_PG", "dbname=fred")
@@ -330,6 +333,34 @@ def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | Non
     print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 005 next)")
 
 
+# --- full category tree from the MATLAB crawl (Path A) -> PostgreSQL ----------
+def category_crawl(path: pathlib.Path) -> None:
+    """Upsert every category from fred_category_tree_crawl.m's all_categories.csv
+    (CategoryID,Name,ParentID) into PostgreSQL, parents before children.
+    No API calls: the crawl's raw responses are already registered on disk."""
+    with open(path, newline="") as fh:
+        rows = [(int(r["CategoryID"]), r["Name"], int(r["ParentID"])) for r in csv.DictReader(fh)]
+    with psycopg.connect(PG) as conn, conn.cursor() as cur:
+        cur.execute("SELECT category_id FROM category")
+        placed = {r[0] for r in cur.fetchall()}
+        if 0 not in placed:  # FRED's root is not a row in the crawl file
+            upsert(cur, "category", ["category_id", "category_name", "parent_id"],
+                   [(0, "Categories", None)], ["category_id"])
+            placed.add(0)
+        ordered, pending = [], rows
+        while pending:
+            level = [r for r in pending if r[2] in placed]
+            if not level:
+                raise RuntimeError(f"category parents missing for {[r[0] for r in pending][:10]}")
+            ordered += level
+            placed |= {r[0] for r in level}
+            pending = [r for r in pending if r[0] not in placed]
+        upsert(cur, "category", ["category_id", "category_name", "parent_id"], ordered, ["category_id"])
+        conn.commit()
+        cur.execute("SELECT count(*) FROM category")
+        print(f"category crawl: {len(rows)} rows from {path}; category table now {cur.fetchone()[0]} rows")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--releases", type=int, nargs="+", default=[50, 10, 53, 13])
@@ -343,7 +374,13 @@ if __name__ == "__main__":
     ap.add_argument("--doc-last", type=int, default=6, help="with --documents: most recent N actual release dates")
     ap.add_argument("--doc-dir", type=pathlib.Path, default=None,
                     help="with --documents: folder of hand-downloaded PDFs laid out as <release_id>/<YYYY-MM-DD>.pdf")
+    ap.add_argument("--category-crawl", type=pathlib.Path, default=None, metavar="CSV",
+                    help="instead of the catalog load, upsert the full category tree from the MATLAB "
+                         "crawl (data/catalog/fred/crawls/active/all_categories.csv); no API calls")
     a = ap.parse_args()
+    if a.category_crawl:
+        category_crawl(a.category_crawl)
+        raise SystemExit(0)
     if a.documents:
         documents(a.releases, a.doc_last, a.doc_dir)
         raise SystemExit(0)
