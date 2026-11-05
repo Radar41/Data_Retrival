@@ -23,9 +23,9 @@ staging = fullfile(root, "data", "staging", "neo4j-import", "fred_catalog");
 if isfolder(staging)
     files = dir(fullfile(staging, "*.csv"));
     if ~isempty(files)
-        newest = max([files.datenum]);
+        newest = datetime(max([files.datenum]), "ConvertFrom", "datenum");
         fprintf("Data_Retrival: %d catalog CSV(s) staged, newest %s. Run ./run_all.sh graph to import.\n", ...
-            numel(files), datestr(newest, "yyyy-mm-dd HH:MM"));
+            numel(files), string(newest, "yyyy-MM-dd HH:mm"));
     end
 end
 end

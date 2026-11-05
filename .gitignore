@@ -55,3 +55,9 @@ payloads/
 # Generated evaluation outputs and Python bytecode
 output/
 __pycache__/
+
+# MATLAB Test Manager / build-tool result databases (regenerated on every run)
+derived/
+
+# MATLAB build tool cache
+.buildtool/

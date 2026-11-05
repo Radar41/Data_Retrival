@@ -59,7 +59,7 @@ classdef MatlabSsmDampedTrendAdapter < gdss.DynamicModelAdapter
 
         end
 
-        function fitPayload = fit(obj, trainingData, fitContext)
+        function fitPayload = fit(~, trainingData, fitContext)
 
             assert(isfield(trainingData, "target_values"), ...
                 "trainingData.target_values is required.");

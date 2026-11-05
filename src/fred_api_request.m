@@ -22,11 +22,13 @@ end
 
 apiKey = string(getenv("FRED_API_KEY"));
 
-apiKey = getSecret("MyFREDKey");
+if strlength(apiKey) == 0 && isSecret("MyFREDKey")
+    apiKey = string(getSecret("MyFREDKey"));
+end
 
 if strlength(apiKey) == 0
     error("Data_Retrival:FRED:MissingApiKey", ...
-        "The MATLAB vault secret 'MyFREDKey' is unavailable.");
+        "Set FRED_API_KEY or store the MATLAB vault secret 'MyFREDKey' (setSecret).");
 end
 
 endpoint = strip(endpoint, "/");

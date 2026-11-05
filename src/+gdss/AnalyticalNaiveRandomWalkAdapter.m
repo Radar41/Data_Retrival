@@ -38,7 +38,7 @@ classdef AnalyticalNaiveRandomWalkAdapter < gdss.DynamicModelAdapter
             end
         end
 
-        function fitPayload = fit(obj, trainingData, fitContext)
+        function fitPayload = fit(~, trainingData, fitContext)
             assert(isfield(trainingData, "target_values"), ...
                 "trainingData.target_values is required.");
 
@@ -67,11 +67,12 @@ classdef AnalyticalNaiveRandomWalkAdapter < gdss.DynamicModelAdapter
             fitPayload.parameter_table = table();
             fitPayload.fixed_parameter_table = table();
 
-            fitPayload.parameter_covariance_refefitPayload.parameter_covariance = [];
+            fitPayload.parameter_covariance = [];
             fitPayload.parameter_covariance_status = "NOT_AVAILABLE";
+            fitPayload.parameter_covariance_reference = "";
 
             fitPayload.parameter_standard_error = NaN(0, 1);
-            fitPayload.parameter_standard_error_status = "NOT_AVAILABLE";rence = "";
+            fitPayload.parameter_standard_error_status = "NOT_AVAILABLE";
             fitPayload.parameter_standard_error_reference = "";
 
             fitPayload.predictive_context_kind = ...
@@ -111,7 +112,7 @@ classdef AnalyticalNaiveRandomWalkAdapter < gdss.DynamicModelAdapter
             fitPayload.fit_context = fitContext;
         end
 
-        function forecastPayload = forecast(obj, fitPayload, forecastContext)
+        function forecastPayload = forecast(~, fitPayload, forecastContext)
             assert(isfield(fitPayload, "state_at_origin"), ...
                 "fitPayload.state_at_origin is required.");
 
