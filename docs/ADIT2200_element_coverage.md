@@ -53,11 +53,12 @@ A06 stays in the write-up as a teaching example even though it is closed: it was
 | Lecture slides: declarative vs procedural, PL/SQL vs T-SQL | PL/pgSQL and MySQL/MariaDB dialects side by side in `sql/` and `sql/mysql/`; `fred_triggers.sql` comments name the differences | Cypher is declarative only | – |
 | Neo4j video: labeled property graph, `:RETWEETED` self-relationship, Cypher vs SQL recommendation query | `Category-[:CHILD_OF]->Category` is the project's self-relationship (the one neo4jd3 cannot draw) | Q06 / Q06b (variable-length `CHILD_OF*`) against the recursive CTE in SQL Q06 is the project's version of the slide's "5 lines vs 25" | – |
 | neo4jd3 demo page | – | `docs/graph_explorer/` renders the live schema and six data views | – |
-| Observations (vintages, realtime columns) | OBSERVATION weak entity, 63,047 rows, Q10 | **Absent** | Yes. Dense, append-only, queried by range: a table. `fred_logical_design.md` §6–7 |
+| Observations (vintages, realtime columns) | OBSERVATION weak entity, 284,430 rows over 103 series (7 Nov, after the first `--updates` run), Q10 | **Absent** | Yes. Dense, append-only, queried by range: a table. `fred_logical_design.md` §6–7 |
 
 ## 3. What still needs doing for the course pass
 
 1. ~~`fred_load.py`: fetch `release/sources` and `release/dates` for every release~~ Done 7 Nov 2026: the loader now calls `release/sources` once per release and the bulk `releases/dates` endpoint, so both stores carry a source and the date calendar for all 335 releases (finding A06 closed).
 2. HW2 preamble: add the `(:Series:Monthly)` style second label and the matching PostgreSQL supertype/subtype sketch, then write down why the production model does not use it.
 3. HW7 preamble: the `collect()` workaround for window functions in Cypher, next to Q08.
-4. Rerun `neo4j/cypher/fred_degree_audit.cypher` after each load and keep the A-rule table in this file current.
+4. Rerun `neo4j/cypher/fred_degree_audit.cypher` after each load and keep the A-rule table in this file current (the MATLAB test suite does this: `matlab -batch "buildtool"`).
+5. `fred_load.py --updates` refreshes PostgreSQL only (series rows, vintages, vintage dates). The graph's `Series` properties catch up at the next `./run_all.sh load graph`; a graph-side refresh from the same `series/updates` call is the next piece of the self-updating loop, together with the `event` table from `docs/INFERENCE_LAYER_design.md` step 1.

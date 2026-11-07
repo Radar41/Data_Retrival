@@ -421,7 +421,8 @@ def updates(since: str | None) -> None:
     watermark (series/updates), keep those in the catalog, refresh their
     metadata, reload their vintages and vintage dates. Idempotent: upserts
     only. The watermark is max(series.last_updated) minus a day unless given
-    as --since YYYYMMDDHHMM (FRED's own time, US Central)."""
+    as --since YYYYMMDDHHMM (FRED's own time, US Central). PostgreSQL only:
+    the graph's Series nodes catch up at the next full load (run_all.sh load graph)."""
     with psycopg.connect(PG) as conn:
         with conn.cursor() as cur:
             if since is None:
