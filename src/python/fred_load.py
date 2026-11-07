@@ -49,8 +49,13 @@ def _request(endpoint: str, params: dict) -> dict:
         try:
             r = requests.get(f"{API}/{endpoint}", params=params, timeout=60)
         except requests.RequestException as exc:
-            # requests' own message embeds the URL, which carries api_key: never surface it
-            raise RuntimeError(f"FRED {endpoint}: {type(exc).__name__} (request URL withheld)") from None
+            # timeouts and resets are retried like 429/5xx; requests' own message
+            # embeds the URL, which carries api_key, so it is never surfaced
+            last_error = f"{type(exc).__name__} (request URL withheld)"
+            if attempt == 5:
+                raise RuntimeError(f"FRED {endpoint}: {last_error} after {attempt + 1} attempts") from None
+            time.sleep(min(60, 5 * 2 ** attempt))
+            continue
         if r.status_code == 429 or r.status_code >= 500:
             time.sleep(min(60, 5 * 2 ** attempt))
             continue
@@ -117,17 +122,34 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
                [(r["id"], r["name"], bool(r["press_release"]), r.get("link")) for r in releases["releases"]],
                ["release_id"])
 
+        # --- every release gets its sources and its dates (ERD rule 1: a release is
+        # published by at least one source; audit A06). Sources need one call per
+        # release (no bulk endpoint); dates come from the bulk releases/dates call.
+        all_release_ids = [r["id"] for r in releases["releases"]]
         rs_payloads, rd_payloads, series_rows, lookups = [], [], [], {"frequency": {}, "units": {}, "sa": {}}
-        for rid in release_ids:
+        today = time.strftime("%Y-%m-%d")
+        for rid in all_release_ids:
             rs = get("release/sources", release_id=rid); rs["release_id"] = rid; rs_payloads.append(rs)
             upsert(cur, "release_source", ["release_id", "source_id"],
                    [(rid, s["id"]) for s in rs["sources"]], ["release_id", "source_id"])
+        print(f"release/sources: {len(rs_payloads)} releases, "
+              f"{sum(len(rs['sources']) for rs in rs_payloads)} links", flush=True)
 
-            rd = get("release/dates", release_id=rid, include_release_dates_with_no_data="true"); rd_payloads.append(rd)
+        bulk = get("releases/dates", include_release_dates_with_no_data="true",
+                   realtime_start="1776-07-04", realtime_end="9999-12-31")
+        by_release: dict[int, list[dict]] = {}
+        for d in bulk["release_dates"]:
+            by_release.setdefault(d["release_id"], []).append(d)
+        for rid in all_release_ids:
+            dates = by_release.get(rid, [])
+            rd_payloads.append({"release_id": rid, "release_dates": dates})
             upsert(cur, "release_date", ["release_id", "release_date", "date_status"],
-                   [(rid, d["date"], "actual" if d["date"] <= time.strftime("%Y-%m-%d") else "scheduled")
-                    for d in rd["release_dates"]], ["release_id", "release_date"])
+                   [(rid, d["date"], "actual" if d["date"] <= today else "scheduled") for d in dates],
+                   ["release_id", "release_date"])
+        print(f"releases/dates: {len(bulk['release_dates'])} dates over {len(by_release)} releases", flush=True)
+        conn.commit()   # the release phase stands on its own; a failure below keeps it
 
+        for rid in release_ids:
             ser = get("release/series", release_id=rid); ser["release_id"] = rid; save(f"series_{rid}", ser)
             keep = ser["seriess"]
             if max_series is not None:

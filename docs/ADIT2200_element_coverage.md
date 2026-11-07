@@ -23,7 +23,7 @@ Run against the live graph (Neo4j 2026.07.1, 20 labels, 23 relationship patterns
 | Rule | Result | Meaning |
 |---|---|---|
 | A01–A05 Series → Release, Frequency, Units, SeasonalAdjustment, Category | 41 rows each, all with `dataset_id` set | The 41 data-list series (`ALLACBW027NBOG` …) came from the FRED data-list archive, not the series API. They carry frequency, units, release and source as text properties and have none of the catalog edges. Documented exception until the catalog crawl reaches them. |
-| **A06 Release → Source** | **331 of 335 releases have no `PUBLISHED_BY`** | Not a graph problem. `src/python/fred_load.py` fetches `releases` in bulk but `release/sources` and `release/dates` only for the release ids passed on the command line (4). PostgreSQL agrees: `release` has 335 rows, `release_source` covers 4. The ERD says a release has at least one source, so the relational copy violates its own ERD too, silently, because `release_source` is a separate table and nothing forces a row to exist. Fix: loop `release/sources` over every release (331 more API calls). |
+| **A06 Release → Source** | 4 Nov: **331 of 335 releases had no `PUBLISHED_BY`**. 7 Nov: 0 rows | Was not a graph problem. `src/python/fred_load.py` fetched `releases` in bulk but `release/sources` and `release/dates` only for the release ids on the command line (4). PostgreSQL agreed: `release_source` covered 4 of 335. The ERD says a release has at least one source, so the relational copy violated its own ERD too, silently, because `release_source` is a separate table and nothing forces a row to exist. Fixed 7 Nov: the loader calls `release/sources` for every release and the bulk `releases/dates`; after the reload `release_source` has 383 rows over 337 releases, `release_date` 119,991, and the graph the same 383 `PUBLISHED_BY` edges and 119,991 `ReleaseDate` nodes. |
 | A07 ReleaseDate ← Release | 0 rows | Weak entity holds |
 | A08 Category → parent | 0 rows | Unary 1:M holds, root is the only orphan |
 | A09 Tag → TagGroup | 0 rows | |
@@ -31,7 +31,7 @@ Run against the live graph (Neo4j 2026.07.1, 20 labels, 23 relationship patterns
 | A12 SeriesVariant | 0 rows | |
 | A13–A14 key-property drift | 0 rows | The FK value kept as a property agrees with the edge |
 
-A06 is worth keeping as a teaching example: it is the one place where SQL and Cypher fail in the same way for different reasons. SQL cannot express "at least one row in the join table" without a trigger or a deferred constraint; Neo4j cannot express it at all.
+A06 stays in the write-up as a teaching example even though it is closed: it was the one place where SQL and Cypher failed in the same way for different reasons. SQL cannot express "at least one row in the join table" without a trigger or a deferred constraint; Neo4j cannot express it at all.
 
 ## 2. Element by element
 
@@ -56,7 +56,7 @@ A06 is worth keeping as a teaching example: it is the one place where SQL and Cy
 
 ## 3. What still needs doing for the course pass
 
-1. `fred_load.py`: fetch `release/sources` and `release/dates` for every release, not only the four on the command line (finding A06). Both stores inherit the fix through the normal load.
+1. ~~`fred_load.py`: fetch `release/sources` and `release/dates` for every release~~ Done 7 Nov 2026: the loader now calls `release/sources` once per release and the bulk `releases/dates` endpoint, so both stores carry a source and the date calendar for all 335 releases (finding A06 closed).
 2. HW2 preamble: add the `(:Series:Monthly)` style second label and the matching PostgreSQL supertype/subtype sketch, then write down why the production model does not use it.
 3. HW7 preamble: the `collect()` workaround for window functions in Cypher, next to Q08.
 4. Rerun `neo4j/cypher/fred_degree_audit.cypher` after each load and keep the A-rule table in this file current.

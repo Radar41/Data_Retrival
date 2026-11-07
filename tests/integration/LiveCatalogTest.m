@@ -80,16 +80,16 @@ classdef (TestTags = {'Live'}) LiveCatalogTest < matlab.unittest.TestCase
 
         function everyReleaseHasASource(testCase)
             % A06: rule 1, a release is published by at least one source.
-            % Known gap on 4 Nov 2026: fred_load.py fetches release/sources
-            % only for the releases named on its command line, so 331 of 335
-            % releases have none in either store. Until the loader is fixed
-            % this is reported as an unmet assumption, not a failure.
+            % Until 7 Nov 2026 fred_load.py fetched release/sources only for
+            % the releases named on its command line, so 331 of 335 releases
+            % had none; since then every release is fetched, and this is a
+            % verification like the others.
             testCase.assumeNeo4j();
             testCase.runAudit();
             rows = testCase.rowsFor("A06");
             nReleases = testCase.cypherScalar("MATCH (r:Release) RETURN count(r)");
-            testCase.assumeEmpty(rows, sprintf( ...
-                "A06: %d of %d releases have no PUBLISHED_BY edge (loader gap, see docs/ADIT2200_element_coverage.md §3).", ...
+            testCase.verifyEmpty(rows, sprintf( ...
+                "A06: %d of %d releases have no PUBLISHED_BY edge (rerun fred_load.py, then ./run_all.sh graph).", ...
                 numel(rows), nReleases));
         end
 

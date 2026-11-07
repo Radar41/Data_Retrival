@@ -20,7 +20,7 @@ matlab -batch "buildtool"
 
 Default tasks: `check` then `test`. `derived/` and `.buildtool/` are git-ignored; they are rebuilt on every run.
 
-State on 7 Nov 2026: `check` 0 errors, 0 warnings, 50 info; `test` 30 passed, 1 incomplete (A06, by design); `compat` 0 recommendations; `diagrams` byte-identical to the committed set.
+State on 7 Nov 2026 (after the release/sources reload): `check` 0 errors, 0 warnings; `test` 31 passed, 0 failed, 0 incomplete; `compat` 0 recommendations; `diagrams` byte-identical to the committed set.
 
 ## 2. Tests (MATLAB Test / unit test framework)
 
@@ -28,7 +28,7 @@ State on 7 Nov 2026: `check` 0 errors, 0 warnings, 50 info; `test` 30 passed, 1 
 |---|---|---|---|
 | `tests/unit/DesignModelTest.m` | Design | model = PostgreSQL DDL; model = MySQL DDL; graph model covers the relational model; `physical_type` table; every table, label and relationship appears in every diagram view; each `.dot` compiles with Graphviz; the degree-audit file has 14 statements A01..A14 and names only declared relationship types | nothing (Graphviz optional) |
 | `tests/unit/NaiveAdapterPayloadTest.m` | – | the naive random-walk fit payload has all six uncertainty fields. Regression for commit ab38d13, which spliced two assignment lines together and lost two fields without any test noticing | nothing |
-| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A14 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is an *assumption* until the loader fetches `release/sources` for all 335 releases, so it shows as Incomplete, not Failed | PostgreSQL on 5432, Neo4j HTTP on 21004 (radar-41 port registry, data band), password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
+| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A14 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is verified like the rest since the loader fetches `release/sources` for every release (7 Nov 2026) | PostgreSQL on 5432, Neo4j HTTP on 21004 (radar-41 port registry, data band), password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
 | `tests/test_run_totbkcrnsa_naive_evaluation.m` | – | the GDSS forecasting pipeline (pre-existing) | nothing |
 
 In the project: **Project > Run Tests** or the Test Browser runs the same files; the Classification label `Test` is set on all of them. Coverage with MC/DC needs MATLAB Test's Test Manager; the build tool writes statement coverage to `derived/quality/coverage.xml`.
