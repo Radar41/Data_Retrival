@@ -34,4 +34,4 @@ Any of these work:
 
 ## Live Cypher
 
-The panel posts to `http://localhost:7474/db/neo4j/tx/commit` with Basic auth and `resultDataContents: ["graph", "row"]`. Graph results replace the drawing; tabular results appear under the inspector. The presets cover tag lookups, the `chunk_text` full-text index, the `chunk_embedding` vector index, a category path, upcoming release dates and label counts. The password is kept only in the page's memory.
+The panel posts to `http://localhost:21004/db/neo4j/tx/commit` with Basic auth and `resultDataContents: ["graph", "row"]`. Graph results replace the drawing; tabular results appear under the inspector. The presets cover tag lookups, the `chunk_text` full-text index, the `chunk_embedding` vector index, a category path, upcoming release dates and label counts. The password is kept only in the page's memory.

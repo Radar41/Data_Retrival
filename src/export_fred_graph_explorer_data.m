@@ -30,7 +30,7 @@ arguments
     options.ProjectRoot (1,1) string = string(fileparts(fileparts(mfilename("fullpath"))))
     options.OutputFile (1,1) string = ""
     options.SeriesIds (1,:) string = ["UNRATE", "PAYEMS", "GDPC1", "CPIAUCSL", "INDPRO"]
-    options.Url (1,1) string = "http://localhost:7474"
+    options.Url (1,1) string = "http://localhost:21004"
     options.Database (1,1) string = "neo4j"
     options.Username (1,1) string = "neo4j"
     options.Password (1,1) string = ""

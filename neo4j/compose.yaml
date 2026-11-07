@@ -4,12 +4,18 @@ services:
     container_name: data_retrival_neo4j
     restart: unless-stopped
 
+    # Host ports follow the radar-41 port registry (data band 21xxx); the
+    # entries to append to registry/ports.toml are in ./radar-41-ports.toml.
+    # 7687 on this host belongs to the native memgraph.service.
     ports:
-      - "127.0.0.1:7474:7474"
-      - "127.0.0.1:7687:7687"
+      - "127.0.0.1:21004:7474"
+      - "127.0.0.1:21003:7687"
 
     environment:
       NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD}"
+      # what the discovery document and neo4j:// routing hand to clients;
+      # without this the server advertises 7687, which is Memgraph here
+      NEO4J_server_bolt_advertised__address: "localhost:21003"
       NEO4J_server_directories_import: "/var/lib/neo4j/import"
       NEO4J_server_memory_heap_initial__size: "512m"
       NEO4J_server_memory_heap_max__size: "1G"

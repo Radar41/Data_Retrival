@@ -73,7 +73,7 @@ fetch(conn, "SELECT count(*) AS categories FROM category")     % expect 5200
 close(conn)
 
 % Neo4j
-nc = neo4j("bolt://localhost:7687", "neo4j", getSecret("neo4j_pw"));
+nc = neo4j("bolt://localhost:21003", "neo4j", getSecret("neo4j_pw"));   % 21003 per the radar-41 port registry
 executeCypher(nc, "MATCH (c:Category {provider_id:'fred'}) RETURN count(c) AS categories")   % expect 5200
 close(nc)
 ```

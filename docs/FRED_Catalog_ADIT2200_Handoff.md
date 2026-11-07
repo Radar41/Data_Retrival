@@ -63,7 +63,8 @@ pip install -r src/python/requirements.txt
 # Neo4j: the project container
 cd neo4j && NEO4J_PASSWORD=... docker compose up -d && cd ..
 # cypher-shell: either `docker exec -it data_retrival_neo4j cypher-shell -u neo4j -p ...`
-# or install cypher-shell locally and point at bolt://127.0.0.1:7687
+# or install cypher-shell locally and point at bolt://127.0.0.1:21003
+# (ports follow the radar-41 registry: 21003 Bolt, 21004 HTTP; 7687 belongs to the native Memgraph)
 
 # Graphviz (ERD rendering) and the erd tool
 dot -V

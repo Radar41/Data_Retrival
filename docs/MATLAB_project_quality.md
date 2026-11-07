@@ -20,7 +20,7 @@ matlab -batch "buildtool"
 
 Default tasks: `check` then `test`. `derived/` and `.buildtool/` are git-ignored; they are rebuilt on every run.
 
-State on 5 Nov 2026: `check` 0 errors, 0 warnings, 50 info; `test` 27 passed, 4 filtered (Neo4j down, see §6); `compat` 0 recommendations; `diagrams` byte-identical to the committed set.
+State on 7 Nov 2026: `check` 0 errors, 0 warnings, 50 info; `test` 30 passed, 1 incomplete (A06, by design); `compat` 0 recommendations; `diagrams` byte-identical to the committed set.
 
 ## 2. Tests (MATLAB Test / unit test framework)
 
@@ -28,7 +28,7 @@ State on 5 Nov 2026: `check` 0 errors, 0 warnings, 50 info; `test` 27 passed, 4 
 |---|---|---|---|
 | `tests/unit/DesignModelTest.m` | Design | model = PostgreSQL DDL; model = MySQL DDL; graph model covers the relational model; `physical_type` table; every table, label and relationship appears in every diagram view; each `.dot` compiles with Graphviz; the degree-audit file has 14 statements A01..A14 and names only declared relationship types | nothing (Graphviz optional) |
 | `tests/unit/NaiveAdapterPayloadTest.m` | – | the naive random-walk fit payload has all six uncertainty fields. Regression for commit ab38d13, which spliced two assignment lines together and lost two fields without any test noticing | nothing |
-| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A14 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is an *assumption* until the loader fetches `release/sources` for all 335 releases, so it shows as Incomplete, not Failed | PostgreSQL on 5432, Neo4j on 7474, password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
+| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A14 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is an *assumption* until the loader fetches `release/sources` for all 335 releases, so it shows as Incomplete, not Failed | PostgreSQL on 5432, Neo4j HTTP on 21004 (radar-41 port registry, data band), password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
 | `tests/test_run_totbkcrnsa_naive_evaluation.m` | – | the GDSS forecasting pipeline (pre-existing) | nothing |
 
 In the project: **Project > Run Tests** or the Test Browser runs the same files; the Classification label `Test` is set on all of them. Coverage with MC/DC needs MATLAB Test's Test Manager; the build tool writes statement coverage to `derived/quality/coverage.xml`.
@@ -74,4 +74,5 @@ The screenshot of 4 Nov (`Unable to open Model Maintainability Dashboard … pro
 | four `+gdss` adapters | `obj` unused in `fit`/`forecast` | `~` |
 | `src/project_shutdown.m` | `datestr` (compatibility recommendation) | `datetime` |
 | `derived/*.dmr` | MATLAB Test Manager databases were tracked in git and changed on every MATLAB start | untracked, `derived/` ignored |
-| Neo4j | a native `memgraph.service` (systemd) now binds 0.0.0.0:7687, so the project container cannot bind 127.0.0.1:7687 and restarts in a loop | `sudo systemctl stop memgraph` (and `disable` if it should not return), or move Memgraph to another port; data under `neo4j/data` is untouched |
+| Neo4j | a native `memgraph.service` (systemd) binds 0.0.0.0:7687, so the project container could not bind 127.0.0.1:7687 and restarted in a loop | resolved 5 Nov by the radar-41 port standardisation: the container now publishes HTTP on 127.0.0.1:21004 and Bolt on 127.0.0.1:21003 (data band 21xxx), with `server.bolt.advertised_address` set to match so drivers using `neo4j://` are not routed to Memgraph's 7687. Every client default in `src/`, `tests/` and `docs/graph_explorer/` follows |
+| `tests/integration/LiveCatalogTest.m` | first live run (7 Nov): when every series flagged by A01–A05 was a data-list series, `cellfun` over the empty remainder returned a double and `strjoin` errored | force a string array (`UniformOutput=false`, then `string`) |

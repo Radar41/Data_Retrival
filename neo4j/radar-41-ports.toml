@@ -1,0 +1,37 @@
+# Entries for the radar-41 port registry (registry/ports.toml), data band 21xxx.
+# Append verbatim, then `portctl lint`. Kept here so the project's compose file
+# and the registry are changed in the same commit, as the registry's own rule asks.
+
+[[port]]
+port = 21003
+proto = "tcp"
+name = "fred-neo4j-bolt"
+node = "head"
+owner = "docker: data_retrival_neo4j (Data_Retrival/neo4j/compose.yaml)"
+bind = "lo"
+status = "active"
+note = "FRED catalog graph, Bolt. Container port 7687; server.bolt.advertised_address matches."
+
+[[port]]
+port = 21004
+proto = "tcp"
+name = "fred-neo4j-http"
+node = "head"
+owner = "docker: data_retrival_neo4j (Data_Retrival/neo4j/compose.yaml)"
+bind = "lo"
+status = "active"
+note = "FRED catalog graph, HTTP API and Neo4j Browser. Container port 7474."
+
+# Not a FRED port, but it is why the two above are not 7687/7474: the native
+# Memgraph listens on 0.0.0.0:7687, outside every managed band. Register it
+# (pinned, like wireguard) or move it with --bolt-port into the data band.
+[[port]]
+port = 7687
+proto = "tcp"
+name = "memgraph-bolt"
+node = "head"
+owner = "memgraph.service"
+bind = "any"
+status = "active"
+pinned = true
+note = "Memgraph default Bolt port; binds all interfaces (/etc/memgraph/memgraph.conf --bolt-address)."

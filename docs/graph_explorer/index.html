@@ -169,7 +169,7 @@ svg.neo4jd3-graph { cursor: move; }
       <summary>Live Cypher</summary>
       <p class="empty" style="margin:6px 0 0">Runs against your Neo4j over its HTTP API. Works when this page is opened locally; a published copy cannot reach localhost. The password stays in this tab.</p>
       <div class="fields">
-        <label class="wide">Endpoint<input id="live-url" value="http://localhost:7474"></label>
+        <label class="wide">Endpoint<input id="live-url" value="http://localhost:21004"></label>
         <label>Database<input id="live-db" value="neo4j"></label>
         <label>User<input id="live-user" value="neo4j"></label>
         <label class="wide">Password<input id="live-pw" type="password" autocomplete="off"></label>
@@ -468,7 +468,7 @@ svg.neo4jd3-graph { cursor: move; }
 
     $('live-preset').innerHTML = PRESETS.map(function (p, i) { return '<option value="' + i + '">' + esc(p.name) + '</option>'; }).join('');
     $('live-cypher').value = PRESETS[0].q;
-    $('live-url').value = m.url || 'http://localhost:7474';
+    $('live-url').value = m.url || 'http://localhost:21004';
     $('live-db').value = m.database || 'neo4j';
     $('live-preset').addEventListener('change', function () { $('live-cypher').value = PRESETS[+this.value].q; });
     $('live-run').addEventListener('click', runLive);

@@ -3,7 +3,7 @@ classdef (TestTags = {'Live'}) LiveCatalogTest < matlab.unittest.TestCase
     % graph satisfies the cardinality rules the ERD declares.
     %
     % Needs PostgreSQL on localhost:5432 (database "fred", socket auth) and
-    % the project's Neo4j container on localhost:7474. The Neo4j password is
+    % the project's Neo4j container on localhost:21004. The Neo4j password is
     % read from the NEO4J_PASSWORD environment variable, else from the MATLAB
     % vault secret "neo4j_pw"; it is never written anywhere. When a store is
     % not reachable the tests that need it are filtered (assumption failure),
@@ -18,7 +18,7 @@ classdef (TestTags = {'Live'}) LiveCatalogTest < matlab.unittest.TestCase
     end
 
     properties (Constant)
-        Url = "http://localhost:7474"
+        Url = "http://localhost:21004"
         Database = "neo4j"
     end
 
@@ -72,7 +72,7 @@ classdef (TestTags = {'Live'}) LiveCatalogTest < matlab.unittest.TestCase
                 rows = testCase.rowsFor(id);
                 if isempty(rows), continue; end
                 isDataList = cellfun(@(r) isequal(r{4}, true), rows);
-                offenders = cellfun(@(r) string(r{2}), rows(~isDataList));
+                offenders = string(cellfun(@(r) string(r{2}), rows(~isDataList), "UniformOutput", false));
                 testCase.verifyEmpty(offenders, sprintf("%s: catalog series without the edge: %s", ...
                     id, strjoin(offenders(1:min(5, end)), ", ")));
             end

@@ -3,7 +3,7 @@ window.FRED_GRAPH = {
   "meta": {
     "exported_at_utc": "2026-11-04T17:40:47Z",
     "database": "neo4j",
-    "url": "http://localhost:7474",
+    "url": "http://localhost:21004",
     "series_ids": [
       "UNRATE",
       "PAYEMS",

@@ -17,7 +17,7 @@ stay the single source. Both connections are read-only.
     python src/python/fred_integrated.py [--passages N]
 
 Optional environment: FRED_PG (default "dbname=fred"), NEO4J_URI
-(default bolt://127.0.0.1:7687), NEO4J_USER (default neo4j).
+(default bolt://127.0.0.1:21003), NEO4J_USER (default neo4j).
 """
 import argparse, os, pathlib, re, sys, textwrap
 import psycopg
@@ -66,7 +66,7 @@ def main(passages: int) -> None:
         raise SystemExit("SQL Q13 returned no rows: load observations first (fred_load.py).")
 
     # Step 2: Neo4j, read transaction in a READ-mode session
-    driver = GraphDatabase.driver(os.environ.get("NEO4J_URI", "bolt://127.0.0.1:7687"),
+    driver = GraphDatabase.driver(os.environ.get("NEO4J_URI", "bolt://127.0.0.1:21003"),
                                   auth=(os.environ.get("NEO4J_USER", "neo4j"), password))
     with driver, driver.session(default_access_mode=READ_ACCESS) as session:
         hits = session.execute_read(lambda tx: tx.run(cypher_query("Q13"), revised=revised).data())
