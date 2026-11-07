@@ -103,7 +103,7 @@ classdef (TestTags = {'Design'}) DesignModelTest < matlab.unittest.TestCase
 
         function degreeAuditCoversEveryRelationshipItNames(testCase)
             % The audit file is hand-written Cypher. Keep it tied to the model:
-            % fourteen statements, one rule id each, and no relationship type
+            % seventeen statements, one rule id each, and no relationship type
             % that the graph model does not declare.
             auditPath = fullfile(testCase.Root, "neo4j", "cypher", "fred_degree_audit.cypher");
             text = fileread(auditPath);
@@ -111,7 +111,7 @@ classdef (TestTags = {'Design'}) DesignModelTest < matlab.unittest.TestCase
             statements = statements(strlength(statements) > 0 & ~startsWith(statements, "//") ...
                 | contains(statements, "MATCH"));
 
-            testCase.verifyEqual(numel(statements), 14, "Expected 14 audit statements.");
+            testCase.verifyEqual(numel(statements), 17, "Expected 17 audit statements.");
 
             ruleIds = strings(0, 1);
             for s = statements'
@@ -120,7 +120,7 @@ classdef (TestTags = {'Design'}) DesignModelTest < matlab.unittest.TestCase
                 testCase.assertNotEmpty(tok, "Statement without a rule id: " + extractBefore(s, 60));
                 ruleIds(end + 1, 1) = string(tok{1}); %#ok<AGROW>
             end
-            testCase.verifyEqual(ruleIds, "A" + compose("%02d", (1:14)'), "Rule ids must be A01..A14 in order.");
+            testCase.verifyEqual(ruleIds, "A" + compose("%02d", (1:17)'), "Rule ids must be A01..A17 in order.");
 
             used = unique(string(regexp(text, "\[:([A-Z_]+)\]", "tokens")));
             declared = [testCase.Graph.relationships.type];

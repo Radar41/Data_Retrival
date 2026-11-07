@@ -18,7 +18,7 @@ Adrian writes his own prose for class submissions and wants to write and debug t
 
 | Path | What it is | State |
 |---|---|---|
-| `sql/fred_schema.sql` | DDL: 14 tables, named PK/FK/CHECK constraints, 10 indexes, commented per column. ANSI SQL; parses as PostgreSQL and MySQL 8. **This file is the Week 9 Physical Design submission, due Sat 2026-11-08.** | Ran clean on PostgreSQL 16 |
+| `sql/fred_schema.sql` | DDL: 16 tables, named PK/FK/CHECK constraints, 14 indexes, commented per column. ANSI SQL; parses as PostgreSQL and MySQL 8. **This file is the Week 9 Physical Design submission, due Sat 2026-11-08.** | Ran clean on PostgreSQL 16 |
 | `sql/fred_triggers.sql` | BEFORE INSERT trigger that closes the prior vintage (business rule 11), AFTER INSERT trigger that maintains the derived `series.observation_start/end`, `value_as_of()` function, `post_release()` procedure. PL/pgSQL; MySQL equivalents in comments. | Ran and tested |
 | `sql/fred_sample_data.sql` | Real FRED ids and names, illustrative values, 5 releases, 7 series, 21 observation vintages. For proving the schema before a real load. | Ran |
 | `sql/fred_queries.sql` | Q01 to Q13, each tied to a course technique (joins, outer joins, subqueries, recursive CTE, CASE, window LAG, EXCEPT, vintage lookup). | All 13 ran, output checked |
@@ -132,9 +132,9 @@ It returns nothing until 005 has documents loaded, which is section 5.
 ### 4.4 ERD render
 ```bash
 erd -i docs/erd/fred.er -f png -o docs/erd/fred_erd_erdtool.png
-python3 docs/erd/build_erd.py      # regenerates the Graphviz versions
+python3 docs/erd/build_erd.py      # regenerates the Graphviz versions (16 entities since 7 Nov: RELEASE_TABLE_ELEMENT, VINTAGE_DATE)
 ```
-Compare the two visually; they should show the same 14 entities and 14 relationships.
+Compare the two visually; they should show the same 16 entities and 17 relationships.
 
 ---
 

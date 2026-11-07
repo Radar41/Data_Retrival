@@ -9,6 +9,8 @@
 //   releases.csv           release_id,release_name,press_release,release_link
 //   release_sources.csv    release_id,source_id
 //   release_dates.csv      release_id,release_date,date_status
+//   release_table_elements.csv  element_id,release_id,parent_id,element_type,element_name,
+//                          element_level,line_no,series_id   (parents before children)
 //   series.csv             series_id,title,release_id,frequency_code,frequency_name,
 //                          units_code,units_name,sa_code,sa_name,observation_start,
 //                          observation_end,last_updated,popularity,notes
@@ -24,8 +26,8 @@
 MATCH (provider:Provider {provider_id: "fred"})
 MERGE (snapshot:CatalogSnapshot {snapshot_id: $snapshot_id})
   SET snapshot.provider_id = "fred",
-      snapshot.endpoint = "releases, release/sources, release/dates, release/series, series/categories, series/tags",
-      snapshot.schema_version = "2"
+      snapshot.endpoint = "releases, release/sources, releases/dates, release/tables, release/series, series/categories, series/tags, series/vintagedates",
+      snapshot.schema_version = "3"
 MERGE (provider)-[:EXPOSED_IN]->(snapshot);
 
 // --- sources ---------------------------------------------------------------
@@ -57,6 +59,33 @@ MERGE (d:ReleaseDate {rd_key: r.release_key + ":" + row.release_date})
       d.date        = date(row.release_date),
       d.status      = row.date_status
 MERGE (r)-[:SCHEDULED_ON]->(d);
+
+// --- release table tree (release/tables): nodes first, then the unary edge,
+// --- then SHOWS where the series is in the catalog ---------------------------
+LOAD CSV WITH HEADERS FROM "file:///fred_catalog/release_table_elements.csv" AS row
+MATCH (r:Release {release_key: "fred:release:" + row.release_id})
+MERGE (e:ReleaseTableElement {element_key: "fred:rte:" + row.element_id})
+  SET e.element_id  = toInteger(row.element_id),
+      e.release_key = r.release_key,
+      e.parent_key  = CASE WHEN row.parent_id = "" THEN null ELSE "fred:rte:" + row.parent_id END,
+      e.type        = row.element_type,
+      e.name        = row.element_name,
+      e.level       = toInteger(row.element_level),
+      e.line        = CASE WHEN row.line_no = "" THEN null ELSE toInteger(row.line_no) END,
+      e.series_id   = CASE WHEN row.series_id = "" THEN null ELSE row.series_id END
+MERGE (e)-[:LISTED_IN]->(r);
+
+LOAD CSV WITH HEADERS FROM "file:///fred_catalog/release_table_elements.csv" AS row
+WITH row WHERE row.parent_id <> ""
+MATCH (e:ReleaseTableElement {element_key: "fred:rte:" + row.element_id})
+MATCH (p:ReleaseTableElement {element_key: "fred:rte:" + row.parent_id})
+MERGE (e)-[:PART_OF]->(p);
+
+LOAD CSV WITH HEADERS FROM "file:///fred_catalog/release_table_elements.csv" AS row
+WITH row WHERE row.series_id <> ""
+MATCH (e:ReleaseTableElement {element_key: "fred:rte:" + row.element_id})
+MATCH (se:Series {catalog_key: "fred:" + row.series_id})
+MERGE (e)-[:SHOWS]->(se);
 
 // --- series and its three lookups ------------------------------------------
 LOAD CSV WITH HEADERS FROM "file:///fred_catalog/series.csv" AS row

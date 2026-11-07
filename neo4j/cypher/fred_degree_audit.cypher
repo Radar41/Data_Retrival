@@ -122,3 +122,28 @@ MATCH (c:Chunk)<-[:HAS_CHUNK]-(d:Document)
 WHERE c.doc_id <> d.doc_id
 RETURN 'A14 Chunk.doc_id drift' AS rule, c.chunk_key AS node, 1 AS degree, false AS datalist_series
 ;
+
+// A15  fk_rte_release (rule 12): a ReleaseTableElement is listed in exactly
+//      one Release.
+MATCH (e:ReleaseTableElement)
+WITH e, count { (e)-[:LISTED_IN]->(:Release) } AS d
+WHERE d <> 1
+RETURN 'A15 ReleaseTableElement-LISTED_IN' AS rule, e.element_key AS node, d AS degree, false AS datalist_series
+;
+
+// A16  fk_rte_parent (unary 1:M, rule 12): an element has one parent, except
+//      a top-level section (parent_key absent), which has none.
+MATCH (e:ReleaseTableElement)
+WITH e, count { (e)-[:PART_OF]->(:ReleaseTableElement) } AS d
+WHERE d <> CASE WHEN e.parent_key IS NULL THEN 0 ELSE 1 END
+RETURN 'A16 ReleaseTableElement-PART_OF' AS rule, e.element_key AS node, d AS degree, false AS datalist_series
+;
+
+// A17  SHOWS (graph only, no FK in SQL): a series row shows at most one
+//      Series, and only a series row shows one. Zero on a series row is
+//      allowed: the catalog holds a subset of each release's series.
+MATCH (e:ReleaseTableElement)
+WITH e, count { (e)-[:SHOWS]->(:Series) } AS d
+WHERE d > 1 OR (e.series_id IS NULL AND d <> 0)
+RETURN 'A17 ReleaseTableElement-SHOWS' AS rule, e.element_key AS node, d AS degree, false AS datalist_series
+;

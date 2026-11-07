@@ -62,6 +62,17 @@ T = addTable(T, "release_date", "RELEASE_DATE", "weak", "provenance", ...
     "release_date", "DATE",        "NN", "",            "", ""
     "date_status",  "VARCHAR(10)", "NN", "'scheduled'", "", "scheduled | actual"});
 
+T = addTable(T, "release_table_element", "RELEASE_TABLE_ELEMENT", "strong", "provenance", ...
+    "Table tree of a release: section > table > header > series row (rule 12)", "element_id", { ...
+    "element_id",    "INTEGER",      "NN", "", "", "FRED element id"
+    "release_id",    "INTEGER",      "NN", "", "", ""
+    "parent_id",     "INTEGER",      "",   "", "", "NULL for a top-level section (unary 1:M)"
+    "element_type",  "VARCHAR(8)",   "NN", "", "", "section | table | header | series"
+    "element_name",  "VARCHAR(300)", "NN", "", "", "Section title, table title, row label"
+    "element_level", "SMALLINT",     "NN", "", "", "Indentation level within its table"
+    "line_no",       "INTEGER",      "",   "", "", "Line number in the published table"
+    "series_id",     "VARCHAR(40)",  "",   "", "", "FRED series id on series rows; no FK: the catalog holds a subset of each release's series"});
+
 T = addTable(T, "category", "CATEGORY", "strong", "classification", ...
     "Topic hierarchy (unary 1:M)", "category_id", { ...
     "category_id",   "INTEGER",      "NN", "", "", "Root = 0"
@@ -113,6 +124,12 @@ T = addTable(T, "observation", "OBSERVATION", "weak", "observation", ...
     "realtime_end",     "DATE",          "NN", "'9999-12-31'", "", "Last day current"
     "value",            "DECIMAL(24,8)", "",   "",             "", "NULL where FRED reports '.'"});
 
+T = addTable(T, "vintage_date", "VINTAGE_DATE", "weak", "observation", ...
+    "Weak: every date on which a series was revised or extended (rule 13)", ...
+    ["series_id", "vintage_date"], { ...
+    "series_id",    "VARCHAR(40)", "NN", "", "", ""
+    "vintage_date", "DATE",        "NN", "", "", "FRED series/vintagedates"});
+
 model.tables = T;
 
 % Foreign keys double as the logical relationships.
@@ -123,6 +140,8 @@ fkRows = {
     "fk_release_source_release",   "release_source",  "release_id",     "release",             "release_id",     "CASCADE",  "published by",  "one",      "one_many"
     "fk_release_source_source",    "release_source",  "source_id",      "source",              "source_id",      "RESTRICT", "publishes",     "one",      "one_many"
     "fk_release_date_release",     "release_date",    "release_id",     "release",             "release_id",     "CASCADE",  "is scheduled",  "one",      "one_many"
+    "fk_rte_release",              "release_table_element", "release_id", "release",           "release_id",     "RESTRICT", "structures",    "one",      "zero_many"
+    "fk_rte_parent",               "release_table_element", "parent_id",  "release_table_element", "element_id", "RESTRICT", "contains",      "zero_one", "zero_many"
     "fk_category_parent",          "category",        "parent_id",      "category",            "category_id",    "RESTRICT", "parent of",     "zero_one", "zero_many"
     "fk_tag_tag_group",            "tag",             "group_id",       "tag_group",           "group_id",       "RESTRICT", "groups",        "one",      "one_many"
     "fk_series_release",           "series",          "release_id",     "release",             "release_id",     "RESTRICT", "contains",      "one",      "one_many"
@@ -133,7 +152,8 @@ fkRows = {
     "fk_series_category_category", "series_category", "category_id",    "category",            "category_id",    "RESTRICT", "holds",         "one",      "zero_many"
     "fk_series_tag_series",        "series_tag",      "series_id",      "series",              "series_id",      "CASCADE",  "carries",       "one",      "zero_many"
     "fk_series_tag_tag",           "series_tag",      "tag_name",       "tag",                 "tag_name",       "RESTRICT", "applied as",    "one",      "one_many"
-    "fk_observation_series",       "observation",     "series_id",      "series",              "series_id",      "CASCADE",  "has",           "one",      "zero_many"};
+    "fk_observation_series",       "observation",     "series_id",      "series",              "series_id",      "CASCADE",  "has",           "one",      "zero_many"
+    "fk_vintage_date_series",      "vintage_date",    "series_id",      "series",              "series_id",      "CASCADE",  "revised on",    "one",      "zero_many"};
 
 FK = struct([]);
 
@@ -166,11 +186,13 @@ model.foreign_keys = FK;
 model.checks = struct( ...
     "name", { ...
     "ck_release_date_status", ...
+    "ck_rte_type", ...
     "ck_series_obs_range", ...
     "ck_observation_realtime"}, ...
-    "table", {"release_date", "series", "observation"}, ...
+    "table", {"release_date", "release_table_element", "series", "observation"}, ...
     "expression", { ...
     "date_status IN ('scheduled', 'actual')", ...
+    "element_type IN ('section', 'table', 'header', 'series')", ...
     "observation_end IS NULL OR observation_start IS NULL OR observation_end >= observation_start", ...
     "realtime_end >= realtime_start"});
 
@@ -188,12 +210,16 @@ idx = {
     "ix_series_frequency_sa", "series",          ["frequency_code", "sa_code"],                  both,   "Monthly SA series"
     "ix_series_last_updated", "series",          "last_updated",                                 both,   "What changed this week"
     "ix_release_date_date",   "release_date",    "release_date",                                 both,   "Releases scheduled in week W"
+    "ix_rte_release",         "release_table_element", "release_id",                             pgOnly, "Table tree of release X"
+    "ix_rte_parent",          "release_table_element", "parent_id",                              pgOnly, "Children of an element"
+    "ix_rte_series",          "release_table_element", "series_id",                              both,   "Where does series X appear in the published tables"
     "ix_category_parent",     "category",        "parent_id",                                    pgOnly, "Hierarchy walk"
     "ix_series_category_cat", "series_category", "category_id",                                  pgOnly, "Reverse lookup of the M:N"
     "ix_series_tag_tag",      "series_tag",      "tag_name",                                     pgOnly, "Reverse lookup of the M:N"
     "ix_tag_group",           "tag",             "group_id",                                     pgOnly, "Tags in a group"
     "ix_observation_current", "observation",     ["series_id", "realtime_end", "observation_date"], both, "Current value as of"
-    "ix_observation_vintage", "observation",     ["series_id", "observation_date", "realtime_end"], both, "How many revisions"};
+    "ix_observation_vintage", "observation",     ["series_id", "observation_date", "realtime_end"], both, "How many revisions"
+    "ix_vintage_date_date",   "vintage_date",    "vintage_date",                                 both,   "What was revised on day D"};
 
 IX = struct([]);
 

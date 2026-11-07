@@ -11,6 +11,7 @@ Observations go to PostgreSQL only; they are never exported for the graph.
 
     export FRED_API_KEY=...
     python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
+    python fred_load.py --updates                 # what changed since the last load (series/updates)
     python fred_load.py --documents --releases 50 13 --doc-last 6     # press releases -> 005 CSVs
     python fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv
     python fred_load.py --observations-all            # every vintage for catalog series with none yet
@@ -86,6 +87,97 @@ def get(endpoint: str, page_size: int = 1000, **params) -> dict:
         params["offset"] += page_size
 
 
+def get_one(endpoint: str, **params) -> dict:
+    """One FRED call without paging, for endpoints whose payload is a dict
+    (release/tables returns {"elements": {id: element}})."""
+    return _request(endpoint, params | {"api_key": KEY, "file_type": "json"})
+
+
+def crawl_release_tables(rid: int) -> list[dict]:
+    """Every element of a release's table tree. release/tables is lazy at the
+    top: the root call lists sections with no children, a section call lists
+    its tables with no children, and a table call returns the table's whole
+    nested tree. So: walk whatever is nested, and call FRED only for elements
+    that came back unexpanded. Breadth-first, so parents precede children."""
+    out, seen, queue = [], set(), [None]
+
+    def take(e: dict) -> None:
+        if e["element_id"] in seen:
+            return
+        seen.add(e["element_id"]); out.append(e)
+        kids = e.get("children") or {}
+        kids = list(kids.values()) if isinstance(kids, dict) else list(kids)
+        if kids:
+            for k in kids:
+                take(k)
+        elif e["type"] != "series":
+            queue.append(e["element_id"])
+
+    while queue:
+        eid = queue.pop(0)
+        res = get_one("release/tables", release_id=rid, **({"element_id": eid} if eid else {}))
+        els = res.get("elements") or {}
+        for e in (els.values() if isinstance(els, dict) else els):   # FRED sends [] when empty
+            take(e)
+    return out
+
+
+def release_table_csv(cur) -> None:
+    """release_table_elements.csv from the database, parents before children,
+    so it covers every release crawled so far, not only this run's."""
+    cur.execute("""
+        WITH RECURSIVE t AS (
+            SELECT element_id, 0 AS depth FROM release_table_element WHERE parent_id IS NULL
+            UNION ALL
+            SELECT c.element_id, t.depth + 1 FROM release_table_element c JOIN t ON c.parent_id = t.element_id)
+        SELECT e.element_id, e.release_id, e.parent_id, e.element_type, e.element_name, e.element_level, e.line_no, e.series_id
+        FROM release_table_element e JOIN t USING (element_id) ORDER BY t.depth, e.element_id""")
+    write_csv("release_table_elements", RTE_COLS,
+              [tuple("" if v is None else v for v in r) for r in cur.fetchall()])
+
+
+def tables_and_vintages(conn, release_ids: list[int], tables: bool, vintages: bool, refresh: bool = False) -> None:
+    """release/tables for the given releases (skipping ones already crawled
+    unless refresh) and series/vintagedates for every catalog series."""
+    with conn.cursor() as cur:
+        if tables:
+            for rid in release_ids:
+                cur.execute("SELECT count(*) FROM release_table_element WHERE release_id = %s", (rid,))
+                if cur.fetchone()[0] and not refresh:
+                    print(f"release/tables {rid}: already loaded, skipped (use --refresh)", flush=True)
+                    continue
+                elements = crawl_release_tables(rid)
+                save(f"release_tables_{rid}", {"release_id": rid, "elements": elements})
+                rows = [element_row(e) for e in elements]
+                upsert(cur, "release_table_element", RTE_COLS, rows, ["element_id"])
+                conn.commit()
+                print(f"release/tables {rid}: {len(rows)} elements, "
+                      f"{sum(1 for r in rows if r[3] == 'series')} series rows", flush=True)
+        if vintages:
+            cur.execute("SELECT series_id FROM series ORDER BY series_id")
+            ids = [r[0] for r in cur.fetchall()]
+            vint = {}
+            for i, sid in enumerate(ids, 1):
+                vd = get("series/vintagedates", series_id=sid)
+                vint[sid] = vd["vintage_dates"]
+                upsert(cur, "vintage_date", ["series_id", "vintage_date"],
+                       [(sid, d) for d in vd["vintage_dates"]], ["series_id", "vintage_date"])
+                if i % 50 == 0:
+                    conn.commit(); print(f"series/vintagedates: {i}/{len(ids)}", flush=True)
+            save("vintage_dates", vint)
+            conn.commit()
+            print(f"series/vintagedates: {sum(len(v) for v in vint.values())} dates over {len(vint)} series", flush=True)
+        release_table_csv(cur)
+
+
+def element_row(e: dict) -> tuple:
+    return (e["element_id"], e["release_id"], e.get("parent_id"), e["type"], (e.get("name") or "")[:300],
+            int(e.get("level") or 0), e.get("line"), e.get("series_id") or None)
+
+
+RTE_COLS = ["element_id", "release_id", "parent_id", "element_type", "element_name", "element_level", "line_no", "series_id"]
+
+
 def save(name: str, payload) -> None:
     """Raw artifact: written once, hashed, never edited."""
     path = PAYLOADS / f"{name}.json"
@@ -110,7 +202,8 @@ def upsert(cur, table: str, cols: list[str], rows: list[tuple], key: list[str]) 
     cur.executemany(sql, rows)
 
 
-def main(release_ids: list[int], obs_series: list[str], max_series: int | None = None) -> None:
+def main(release_ids: list[int], obs_series: list[str], max_series: int | None = None,
+         tables: bool = True, vintages: bool = True) -> None:
     with psycopg.connect(PG) as conn, conn.cursor() as cur:
         # --- sources and releases -------------------------------------------------
         sources = get("sources"); save("sources", sources)
@@ -213,6 +306,9 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
         upsert(cur, "tag", ["tag_name", "group_id", "tag_notes", "popularity"], list(tag_rows.values()), ["tag_name"])
         upsert(cur, "series_tag", ["series_id", "tag_name"],
                [(st["series_id"], t["name"]) for st in tags_out for t in st["tags"]], ["series_id", "tag_name"])
+        conn.commit()
+
+        tables_and_vintages(conn, release_ids, tables, vintages)
 
         # --- Neo4j catalog CSVs (no observations) ---------------------------------
         write_csv("sources", ["source_id", "source_name", "source_link"],
@@ -318,6 +414,42 @@ DOC_URLS = {
 }
 CHUNK_CHARS = 800
 EMBED_MODEL = "sentence-transformers/all-mpnet-base-v2"   # 768 dims, matches 003
+
+
+def updates(since: str | None) -> None:
+    """Self-updating loop, step one: ask FRED which series changed since the
+    watermark (series/updates), keep those in the catalog, refresh their
+    metadata, reload their vintages and vintage dates. Idempotent: upserts
+    only. The watermark is max(series.last_updated) minus a day unless given
+    as --since YYYYMMDDHHMM (FRED's own time, US Central)."""
+    with psycopg.connect(PG) as conn:
+        with conn.cursor() as cur:
+            if since is None:
+                cur.execute("SELECT to_char(max(last_updated) - interval '1 day', 'YYYYMMDDHH24MI') FROM series")
+                since = cur.fetchone()[0]
+            cur.execute("SELECT series_id FROM series")
+            catalog = {r[0] for r in cur.fetchall()}
+            now = time.strftime("%Y%m%d%H%M")
+            up = get("series/updates", start_time=since, end_time=now)
+            save(f"series_updates_{since}_{now}", up)
+            changed = [s for s in up["seriess"] if s["id"] in catalog]
+            print(f"series/updates since {since}: {up.get('count')} series changed in FRED, "
+                  f"{len(changed)} of them in the catalog", flush=True)
+            # UPDATE, not upsert: PostgreSQL checks NOT NULL before ON CONFLICT, so a
+            # partial-column INSERT can never reach the DO UPDATE branch
+            cur.executemany("UPDATE series SET title = %s, last_updated = %s, popularity = %s, notes = %s "
+                            "WHERE series_id = %s",
+                            [(s["title"], s["last_updated"][:19], s.get("popularity"), s.get("notes"), s["id"])
+                             for s in changed])
+            for s in changed:
+                vd = get("series/vintagedates", series_id=s["id"])
+                upsert(cur, "vintage_date", ["series_id", "vintage_date"],
+                       [(s["id"], d) for d in vd["vintage_dates"]], ["series_id", "vintage_date"])
+        conn.commit()
+        ids = [s["id"] for s in changed]
+        if ids:
+            load_observations(conn, ids)
+    (PAYLOADS / "manifest.json").write_text(json.dumps(MANIFEST, indent=1))
 
 
 def chunk_text(text: str, size: int = CHUNK_CHARS) -> list[str]:
@@ -454,6 +586,16 @@ if __name__ == "__main__":
                     help="instead of the catalog load, fetch every vintage for each series already in "
                          "the series table that has no observations yet (add --refresh for all)")
     ap.add_argument("--refresh", action="store_true", help="with --observations-all: reload every series")
+    ap.add_argument("--no-tables", action="store_true", help="skip release/tables (one call per table element)")
+    ap.add_argument("--no-vintages", action="store_true", help="skip series/vintagedates (one call per series)")
+    ap.add_argument("--tables-only", action="store_true",
+                    help="instead of the catalog load: release/tables for --releases (skipping releases already "
+                         "crawled unless --refresh), series/vintagedates for every catalog series, and the CSV")
+    ap.add_argument("--updates", action="store_true",
+                    help="instead of the catalog load, refresh the catalog series FRED reports as changed "
+                         "since the watermark (series/updates) and reload their vintages")
+    ap.add_argument("--since", default=None, metavar="YYYYMMDDHHMM",
+                    help="with --updates: watermark; default max(series.last_updated) minus one day")
     a = ap.parse_args()
     if a.category_crawl:
         category_crawl(a.category_crawl)
@@ -463,6 +605,14 @@ if __name__ == "__main__":
         raise SystemExit(0)
     if not KEY:
         raise SystemExit("set FRED_API_KEY")
+    if a.updates:
+        updates(a.since)
+        raise SystemExit(0)
+    if a.tables_only:
+        with psycopg.connect(PG) as conn:
+            tables_and_vintages(conn, a.releases, not a.no_tables, not a.no_vintages, a.refresh)
+        (PAYLOADS / "manifest.json").write_text(json.dumps(MANIFEST, indent=1))
+        raise SystemExit(0)
     if a.observations_all:
         observations_all(a.refresh)
-    main(a.releases, a.observations, a.max_series)
+    main(a.releases, a.observations, a.max_series, tables=not a.no_tables, vintages=not a.no_vintages)

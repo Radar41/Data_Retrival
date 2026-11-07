@@ -11,13 +11,13 @@ Notation follows the course text: primary key underlined (shown here in **bold**
 
 | Step | Rule applied | Result |
 |---|---|---|
-| 1 Regular entities | One relation each; no composite or multivalued attributes remain in the ERD | SOURCE, RELEASE, SERIES, CATEGORY, TAG, TAG_GROUP, FREQUENCY, UNITS, SEASONAL_ADJUSTMENT |
-| 2 Weak entities | Owner key migrates in; PK = owner key + partial identifier | RELEASE_DATE (release_id, release_date); OBSERVATION (series_id, observation_date, realtime_start) |
-| 3A Binary 1:M | PK of the one side becomes FK on the many side | release_id, frequency_code, units_code, sa_code into SERIES; group_id into TAG |
+| 1 Regular entities | One relation each; no composite or multivalued attributes remain in the ERD | SOURCE, RELEASE, RELEASE_TABLE_ELEMENT, SERIES, CATEGORY, TAG, TAG_GROUP, FREQUENCY, UNITS, SEASONAL_ADJUSTMENT |
+| 2 Weak entities | Owner key migrates in; PK = owner key + partial identifier | RELEASE_DATE (release_id, release_date); OBSERVATION (series_id, observation_date, realtime_start); VINTAGE_DATE (series_id, vintage_date) |
+| 3A Binary 1:M | PK of the one side becomes FK on the many side | release_id, frequency_code, units_code, sa_code into SERIES; group_id into TAG; release_id into RELEASE_TABLE_ELEMENT |
 | 3B Binary M:N | Resolved through associative entities (step 4) | see step 4 |
 | 3C Binary 1:1 | none in the model | |
 | 4 Associative, no identifier | New relation; PK = the two migrated keys | RELEASE_SOURCE, SERIES_CATEGORY, SERIES_TAG |
-| 5A Unary 1:M | Self-referencing FK | parent_id in CATEGORY |
+| 5A Unary 1:M | Self-referencing FK | parent_id in CATEGORY; parent_id in RELEASE_TABLE_ELEMENT |
 | 6 Ternary | none | |
 
 ## 2. Relations
@@ -30,6 +30,8 @@ SOURCE               (source_id, source_name, source_link)
 RELEASE              (release_id, release_name, press_release, release_link)
 RELEASE_SOURCE       (release_id FK, source_id FK)
 RELEASE_DATE         (release_id FK, release_date, date_status)
+RELEASE_TABLE_ELEMENT (element_id, release_id FK, parent_id FK→RELEASE_TABLE_ELEMENT, element_type,
+                      element_name, element_level, line_no, series_id)
 CATEGORY             (category_id, category_name, parent_id FK→CATEGORY)
 TAG_GROUP            (group_id, group_name)
 TAG                  (tag_name, group_id FK, tag_notes, popularity)
@@ -38,8 +40,11 @@ SERIES               (series_id, title, release_id FK, frequency_code FK, units_
 SERIES_CATEGORY      (series_id FK, category_id FK)
 SERIES_TAG           (series_id FK, tag_name FK)
 OBSERVATION          (series_id FK, observation_date, realtime_start, realtime_end, value)
+VINTAGE_DATE         (series_id FK, vintage_date)
 ```
-Primary keys: the first attribute of each relation, or the first two/three where the relation is weak or associative (RELEASE_SOURCE, RELEASE_DATE, SERIES_CATEGORY, SERIES_TAG, OBSERVATION).
+Primary keys: the first attribute of each relation, or the first two/three where the relation is weak or associative (RELEASE_SOURCE, RELEASE_DATE, SERIES_CATEGORY, SERIES_TAG, OBSERVATION, VINTAGE_DATE).
+
+RELEASE_TABLE_ELEMENT.series_id is deliberately not a foreign key: FRED's table tree names every series of a release, and the catalog loads a chosen subset of them. In the graph the same fact is an edge that exists only where the series node does; audit rule A17 checks it.
 
 ## 3. Functional dependencies
 
@@ -50,6 +55,8 @@ sa_code                                     → sa_name
 source_id                                   → source_name, source_link
 release_id                                  → release_name, press_release, release_link
 release_id, release_date                    → date_status
+element_id                                  → release_id, parent_id, element_type, element_name,
+                                              element_level, line_no, series_id
 category_id                                 → category_name, parent_id
 group_id                                    → group_name
 tag_name                                    → group_id, tag_notes, popularity
@@ -57,6 +64,7 @@ series_id                                   → title, release_id, frequency_cod
                                               last_updated, popularity, notes,
                                               observation_start, observation_end   (derived, see §5)
 series_id, observation_date, realtime_start → realtime_end, value
+series_id, vintage_date                     → (all-key)
 ```
 The three associative relations are all-key: no non-key attributes, so no FDs beyond the key itself.
 
@@ -151,6 +159,7 @@ Relational half: Q13 in fred_queries.sql (vintage counts per series and release 
 | release | release_id | | ~330 |
 | release_source | release_id, source_id | release, source | ~350 |
 | release_date | release_id, release_date | release | ~50,000 |
+| release_table_element | element_id | release, release_table_element (parent) | ~2,000 per release with tables |
 | category | category_id | category (parent) | ~5,000 |
 | tag_group | group_id | | 8 |
 | tag | tag_name | tag_group | ~5,000 |
@@ -158,5 +167,6 @@ Relational half: Q13 in fred_queries.sql (vintage counts per series and release 
 | series_category | series_id, category_id | series, category | ~1,000,000 |
 | series_tag | series_id, tag_name | series, tag | ~10,000,000 |
 | observation | series_id, observation_date, realtime_start | series | billions for all of FRED; the catalog loads a chosen subset |
+| vintage_date | series_id, vintage_date | series | ~500 per series |
 
 Column-level metadata (types, lengths, nullability, defaults, checks) is the DDL itself: fred_schema.sql is commented per column.

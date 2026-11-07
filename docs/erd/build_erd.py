@@ -14,6 +14,8 @@ ENT = {
     "RELEASE": ("strong", ["_Release ID", "Release Name", "Press Release Flag", "Release Link"]),
     "RELEASE_SOURCE": ("assoc", []),
     "RELEASE_DATE": ("weak", ["_Release Date", "Date Status (scheduled / actual)"]),
+    "RELEASE_TABLE_ELEMENT": ("strong", ["_Element ID", "Element Type", "Element Name", "Element Level",
+                                          "Line No", "Series ID (text)"]),
     "SERIES": ("strong", ["_Series ID", "Title", "[Observation Start]", "[Observation End]",
                            "Last Updated", "Popularity", "Notes"]),
     "FREQUENCY": ("strong", ["_Frequency Code", "Frequency Name"]),
@@ -25,6 +27,7 @@ ENT = {
     "TAG_GROUP": ("strong", ["_Group ID", "Group Name"]),
     "SERIES_TAG": ("assoc", []),
     "OBSERVATION": ("weak", ["_Observation Date", "_Realtime Start", "Realtime End", "Value"]),
+    "VINTAGE_DATE": ("weak", ["_Vintage Date"]),
 }
 
 # Crow's foot ends, Graphviz arrow strings drawn outward from the entity:
@@ -38,6 +41,8 @@ REL = [
     ("SOURCE", "RELEASE_SOURCE", ONE, ONE_MANY, "Publishes", False),
     ("RELEASE_SOURCE", "RELEASE", ONE_MANY, ONE, "Published By", False),
     ("RELEASE", "RELEASE_DATE", ONE, ONE_MANY, "Is Scheduled", True),
+    ("RELEASE", "RELEASE_TABLE_ELEMENT", ONE, ZERO_MANY, "Structures", False),
+    ("RELEASE_TABLE_ELEMENT", "RELEASE_TABLE_ELEMENT", ZERO_ONE, ZERO_MANY, "Contains", False),
     ("RELEASE", "SERIES", ONE, ONE_MANY, "Contains", False),
     ("FREQUENCY", "SERIES", ONE, ZERO_MANY, "Describes", False),
     ("UNITS", "SERIES", ONE, ZERO_MANY, "Measures", False),
@@ -49,6 +54,7 @@ REL = [
     ("SERIES_TAG", "TAG", ONE_MANY, ONE, "Applied As", False),
     ("TAG_GROUP", "TAG", ONE, ONE_MANY, "Groups", False),
     ("SERIES", "OBSERVATION", ONE, ZERO_MANY, "Has", True),
+    ("SERIES", "VINTAGE_DATE", ONE, ZERO_MANY, "Revised On", True),
 ]
 
 NAVY = "#1f3557"

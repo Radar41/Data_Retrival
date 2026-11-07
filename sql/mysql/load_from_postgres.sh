@@ -40,9 +40,16 @@ echo "schema created in $MYSQL_DB"
 # table : SELECT list in PostgreSQL (column order = the MySQL table's)
 # parents first so every FOREIGN KEY target exists when its children load
 declare -a ORDER=(frequency units seasonal_adjustment source release release_source
-                  release_date category tag_group tag series series_category series_tag observation)
+                  release_date release_table_element category tag_group tag series series_category series_tag
+                  observation vintage_date)
 declare -A SELECT=(
   [release]="release_id, release_name, press_release::int, release_link"
+  # release_table_element is self-referencing too: parents (depth 0) first
+  [release_table_element]="e.element_id, e.release_id, e.parent_id, e.element_type, e.element_name, e.element_level, e.line_no, e.series_id FROM release_table_element e JOIN (
+              WITH RECURSIVE t AS (SELECT element_id, 0 AS depth FROM release_table_element WHERE parent_id IS NULL
+                                   UNION ALL
+                                   SELECT c2.element_id, t.depth + 1 FROM release_table_element c2 JOIN t ON c2.parent_id = t.element_id)
+              SELECT * FROM t) d USING (element_id) ORDER BY d.depth, e.element_id"
   # category is self-referencing: load it level by level from the root down
   [category]="c.category_id, c.category_name, c.parent_id FROM category c JOIN (
               WITH RECURSIVE t AS (SELECT category_id, 0 AS depth FROM category WHERE parent_id IS NULL
@@ -53,7 +60,7 @@ declare -A SELECT=(
 
 for t in "${ORDER[@]}"; do
     cols="${SELECT[$t]:-*}"
-    if [[ "$cols" == *"FROM category c"* ]]; then q="SELECT $cols"; else q="SELECT $cols FROM $t"; fi
+    if [[ "$cols" == *" FROM "* ]]; then q="SELECT $cols"; else q="SELECT $cols FROM $t"; fi
     q="$(tr '\n' ' ' <<< "$q")"          # \copy must be a single line
     psql -d "$PG_DB" -q -c "\\copy ($q) TO '$TMP/$t.csv' WITH (FORMAT csv, NULL 'NULL')"
     # NULL unquoted = SQL NULL; "NULL" quoted = the string. No backslash escapes in PostgreSQL CSV.
@@ -92,7 +99,7 @@ b="$(mydb -N -e "SELECT value_as_of('PAYEMS', '2020-04-01', '2020-06-01')")"
 [[ "${a%%.*}" == "${b%%.*}" ]] || { echo "MISMATCH value_as_of: $a vs $b"; fail=1; }
 
 if [[ $fail -eq 0 ]]; then
-    echo "OK: all 14 tables, observation values, Q06 and value_as_of match PostgreSQL"
+    echo "OK: all ${#ORDER[@]} tables, observation values, Q06 and value_as_of match PostgreSQL"
 else
     exit 1
 fi

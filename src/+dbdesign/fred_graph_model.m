@@ -149,6 +149,17 @@ L = addLabel(L, "ReleaseDate", "catalog", "release_date", "release_date_key", "r
     "date",        "DATE",   1, "release_date", ""
     "status",      "STRING", 1, "date_status",  "scheduled | actual"});
 
+L = addLabel(L, "ReleaseTableElement", "catalog", "release_table_element", "release_table_element_key_unique", "element_key", { ...
+    "element_key", "STRING",  1, "",              "Graph key fred:rte:<element_id>"
+    "element_id",  "INTEGER", 1, "element_id",    ""
+    "release_key", "STRING",  1, "release_id",    "FK value kept"
+    "parent_key",  "STRING",  0, "parent_id",     "FK value kept; absent on a top-level section"
+    "type",        "STRING",  1, "element_type",  "section | table | header | series"
+    "name",        "STRING",  1, "element_name",  ""
+    "level",       "INTEGER", 1, "element_level", ""
+    "line",        "INTEGER", 0, "line_no",       ""
+    "series_id",   "STRING",  0, "series_id",     "On series rows; SHOWS edge only where the Series node exists"});
+
 L = addLabel(L, "Frequency", "catalog", "frequency", "frequency_code_unique", "code", { ...
     "code", "STRING", 1, "frequency_code", ""
     "name", "STRING", 1, "frequency_name", ""});
@@ -234,6 +245,9 @@ relRows = {
     "TAGGED",            "Series",          "Tag",                 "catalog",   "table:series_tag",              ""
     "PUBLISHED_BY",      "Release",         "Source",              "catalog",   "table:release_source",          ""
     "SCHEDULED_ON",      "Release",         "ReleaseDate",         "catalog",   "fk:fk_release_date_release",    "Reversed: owner points to weak entity"
+    "LISTED_IN",         "ReleaseTableElement", "Release",         "catalog",   "fk:fk_rte_release",             ""
+    "PART_OF",           "ReleaseTableElement", "ReleaseTableElement", "catalog", "fk:fk_rte_parent",            "Unary: child element points to its parent"
+    "SHOWS",             "ReleaseTableElement", "Series",          "catalog",   "",                              "No FK in SQL (series_id is text); edge where the Series node exists"
     "CHILD_OF",          "Category",        "Category",            "catalog",   "fk:fk_category_parent",         ""
     "IN_GROUP",          "Tag",             "TagGroup",            "catalog",   "fk:fk_tag_tag_group",           ""
     "DESCRIBES",         "Document",        "Release",             "documents", "",                              ""
@@ -270,19 +284,21 @@ graph.relationships = R;
 
 % Indexes that are not backing a uniqueness constraint.
 graph.indexes = struct( ...
-    "name", {"series_id_lookup"; "series_last_updated"; "release_date_date"; "chunk_text"; "chunk_embedding"}, ...
-    "type", {"RANGE"; "RANGE"; "RANGE"; "FULLTEXT"; "VECTOR"}, ...
-    "label", {"Series"; "Series"; "ReleaseDate"; "Chunk"; "Chunk"}, ...
-    "properties", {"series_id"; "last_updated"; "date"; "text"; "embedding"}, ...
-    "options", {""; ""; ""; "analyzer standard-no-stop-words"; "768 dims, COSINE, HNSW m=16"});
+    "name", {"series_id_lookup"; "series_last_updated"; "release_date_date"; "release_table_element_series"; "chunk_text"; "chunk_embedding"}, ...
+    "type", {"RANGE"; "RANGE"; "RANGE"; "RANGE"; "FULLTEXT"; "VECTOR"}, ...
+    "label", {"Series"; "Series"; "ReleaseDate"; "ReleaseTableElement"; "Chunk"; "Chunk"}, ...
+    "properties", {"series_id"; "last_updated"; "date"; "series_id"; "text"; "embedding"}, ...
+    "options", {""; ""; ""; ""; "analyzer standard-no-stop-words"; "768 dims, COSINE, HNSW m=16"});
 
 graph.indexes = stringifyStruct(graph.indexes);
 
 % Tables and FKs the graph leaves out on purpose.
 graph.excluded = struct( ...
-    "name", {"observation"; "fk_observation_series"}, ...
+    "name", {"observation"; "fk_observation_series"; "vintage_date"; "fk_vintage_date_series"}, ...
     "reason", {"Dense vintages stay in SQL; the graph holds the catalog and lineage"; ...
-        "Goes with OBSERVATION"});
+        "Goes with OBSERVATION"; ...
+        "A series' revision timeline is dense and range-queried, like its vintages; stays in SQL"; ...
+        "Goes with VINTAGE_DATE"});
 
 graph.excluded = stringifyStruct(graph.excluded);
 

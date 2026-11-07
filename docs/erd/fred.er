@@ -26,6 +26,16 @@ release_link
 *release_date
 date_status
 
+[Release_Table_Element]
+*element_id
++release_id
++parent_id
+element_type
+element_name
+element_level
+line_no
+series_id
+
 [Frequency]
 *frequency_code
 frequency_name
@@ -81,10 +91,16 @@ popularity
 realtime_end
 value
 
+[Vintage_Date]
+*+series_id
+*vintage_date
+
 # Relationships (entity cardinality on each side)
 Source              1--+ Release_Source      {label: "publishes"}
 Release             1--+ Release_Source      {label: "published by"}
 Release             1--+ Release_Date        {label: "is scheduled"}
+Release             1--* Release_Table_Element {label: "structures"}
+Release_Table_Element ?--* Release_Table_Element {label: "contains"}
 Release             1--+ Series              {label: "contains"}
 Frequency           1--* Series              {label: "describes"}
 Units               1--* Series              {label: "measures"}
@@ -96,3 +112,4 @@ Series              1--* Series_Tag          {label: "carries"}
 Tag                 1--+ Series_Tag          {label: "applied as"}
 Tag_Group           1--+ Tag                 {label: "groups"}
 Series              1--* Observation         {label: "has"}
+Series              1--* Vintage_Date        {label: "revised on"}

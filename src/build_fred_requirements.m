@@ -8,7 +8,7 @@ function reqSet = build_fred_requirements(options)
 % project's own sources, so the requirement text and the checks that verify
 % it come from the same files:
 %
-%   CARD.A01 .. CARD.A14  one per cardinality rule in
+%   CARD.A01 .. CARD.A17  one per cardinality rule in
 %                         neo4j/cypher/fred_degree_audit.cypher (the rule's
 %                         comment block becomes the description)
 %   MODEL.M01 .. M07      the design model agrees with both DDL files, the
@@ -92,7 +92,7 @@ m = { ...
     "M06", "Every diagram names every table, label and relationship it documents", ...
            "The logical, FD-map, table-map, physical and graph views are rendered from the model and compile with Graphviz.", designTest, ["schemaViewNamesEveryTable", "fdViewNamesEveryTable", "graphViewNamesEveryLabelAndRelationship"]
     "M07", "The degree audit names only relationship types the graph model declares", ...
-           "Fourteen statements A01..A14 in order, each returning a rule column.", designTest, "degreeAuditCoversEveryRelationshipItNames"};
+           "Seventeen statements A01..A17 in order, each returning a rule column.", designTest, "degreeAuditCoversEveryRelationshipItNames"};
 
 for k = 1:size(m, 1)
     req = add(model, "Id", m{k, 1}, "Summary", m{k, 2}, "Description", m{k, 3});

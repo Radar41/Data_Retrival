@@ -20,15 +20,15 @@ matlab -batch "buildtool"
 
 Default tasks: `check` then `test`. `derived/` and `.buildtool/` are git-ignored; they are rebuilt on every run.
 
-State on 7 Nov 2026 (after the release/sources reload): `check` 0 errors, 0 warnings; `test` 31 passed, 0 failed, 0 incomplete; `compat` 0 recommendations; `diagrams` byte-identical to the committed set.
+State on 7 Nov 2026 (after the release/sources reload and the release-table and vintage-date tables): `check` 0 errors, 0 warnings; `test` 31 passed, 0 failed, 0 incomplete; `compat` 0 recommendations; `diagrams` regenerated from the 16-table model.
 
 ## 2. Tests (MATLAB Test / unit test framework)
 
 | File | Tag | Checks | Needs |
 |---|---|---|---|
-| `tests/unit/DesignModelTest.m` | Design | model = PostgreSQL DDL; model = MySQL DDL; graph model covers the relational model; `physical_type` table; every table, label and relationship appears in every diagram view; each `.dot` compiles with Graphviz; the degree-audit file has 14 statements A01..A14 and names only declared relationship types | nothing (Graphviz optional) |
+| `tests/unit/DesignModelTest.m` | Design | model = PostgreSQL DDL; model = MySQL DDL; graph model covers the relational model; `physical_type` table; every table, label and relationship appears in every diagram view; each `.dot` compiles with Graphviz; the degree-audit file has 17 statements A01..A17 and names only declared relationship types | nothing (Graphviz optional) |
 | `tests/unit/NaiveAdapterPayloadTest.m` | – | the naive random-walk fit payload has all six uncertainty fields. Regression for commit ab38d13, which spliced two assignment lines together and lost two fields without any test noticing | nothing |
-| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A14 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is verified like the rest since the loader fetches `release/sources` for every release (7 Nov 2026) | PostgreSQL on 5432, Neo4j HTTP on 21004 (radar-41 port registry, data band), password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
+| `tests/integration/LiveCatalogTest.m` | Live | live PostgreSQL = model; live Neo4j = graph model; degree audit A07–A17 return zero rows; A01–A05 only ever flag data-list series; A06 (every release has a source) is verified like the rest since the loader fetches `release/sources` for every release (7 Nov 2026) | PostgreSQL on 5432, Neo4j HTTP on 21004 (radar-41 port registry, data band), password from `NEO4J_PASSWORD` or the vault secret `neo4j_pw` |
 | `tests/test_run_totbkcrnsa_naive_evaluation.m` | – | the GDSS forecasting pipeline (pre-existing) | nothing |
 
 In the project: **Project > Run Tests** or the Test Browser runs the same files; the Classification label `Test` is set on all of them. Coverage with MC/DC needs MATLAB Test's Test Manager; the build tool writes statement coverage to `derived/quality/coverage.xml`.
@@ -39,11 +39,11 @@ In the project: **Project > Run Tests** or the Test Browser runs the same files;
 
 | Container | Requirements | Source of the text | Verified by |
 |---|---|---|---|
-| CARD | A01–A14, one per cardinality rule | the comment block above each statement in `neo4j/cypher/fred_degree_audit.cypher` | the three audit methods in `LiveCatalogTest` |
+| CARD | A01–A17, one per cardinality rule | the comment block above each statement in `neo4j/cypher/fred_degree_audit.cypher` | the three audit methods in `LiveCatalogTest` |
 | MODEL | M01–M07, model agreement with DDL, graph, live stores, diagrams, audit file | the generator | `DesignModelTest`, `LiveCatalogTest` |
 | GDSS | G01, fit-payload contract | the generator | `NaiveAdapterPayloadTest` |
 
-22 requirements, 24 **Verify** links. Each link's source is a line range of the test method (`tests/**/<Test>~m.slmx` holds them; commit those files). Open the set in the Requirements Editor (`slreq.open("requirements/fred_catalog.slreqx")`), then **Traceability Matrix** shows requirement × test, and after a test run **Verification Status** colours each rule by its last result. Do not edit the `.slreqx` by hand: change the audit file or the generator and run `buildtool requirements`.
+25 requirements, 27 **Verify** links. Each link's source is a line range of the test method (`tests/**/<Test>~m.slmx` holds them; commit those files). Open the set in the Requirements Editor (`slreq.open("requirements/fred_catalog.slreqx")`), then **Traceability Matrix** shows requirement × test, and after a test run **Verification Status** colours each rule by its last result. Do not edit the `.slreqx` by hand: change the audit file or the generator and run `buildtool requirements`.
 
 The empty `requierments.slreqx` created in the editor on 4 Nov at the project root is superseded by this set and can be closed without saving and deleted.
 

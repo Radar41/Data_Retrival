@@ -18,6 +18,7 @@
 //   (:Source   {source_key})                 "fred:source:<id>"
 //   (:Release  {release_key})                "fred:release:<id>"
 //   (:ReleaseDate {rd_key})                  "<release_key>:<date>"
+//   (:ReleaseTableElement {element_key})     "fred:rte:<element_id>"  (release/tables tree)
 //   (:Series   {catalog_key})                "fred:<series_id>"  (series_catalog_key kept as alias)
 //   (:Frequency {code}) (:Units {code}) (:SeasonalAdjustment {code})
 //   (:TagGroup {group_id})  (:Tag {tag_name})
@@ -27,6 +28,9 @@
 // Relationships:
 //   (:Release)-[:PUBLISHED_BY]->(:Source)
 //   (:Release)-[:SCHEDULED_ON]->(:ReleaseDate)
+//   (:ReleaseTableElement)-[:LISTED_IN]->(:Release)
+//   (:ReleaseTableElement)-[:PART_OF]->(:ReleaseTableElement)
+//   (:ReleaseTableElement)-[:SHOWS]->(:Series)          where the Series node exists
 //   (:Series)-[:IN_RELEASE]->(:Release)
 //   (:Series)-[:HAS_FREQUENCY]->(:Frequency)
 //   (:Series)-[:MEASURED_IN]->(:Units)
@@ -48,6 +52,9 @@ FOR (r:Release) REQUIRE r.release_key IS UNIQUE;
 // natural key (release_key, date) is concatenated into one property.
 CREATE CONSTRAINT release_date_key IF NOT EXISTS
 FOR (d:ReleaseDate) REQUIRE d.rd_key IS UNIQUE;
+
+CREATE CONSTRAINT release_table_element_key_unique IF NOT EXISTS
+FOR (e:ReleaseTableElement) REQUIRE e.element_key IS UNIQUE;
 
 // Series uniqueness is already enforced on catalog_key by
 // cypher/import_fred_datalist_banks_weekly_catalog.cypher (fred_series_catalog_key_unique),
@@ -80,6 +87,7 @@ FOR (c:Chunk) REQUIRE c.chunk_key IS UNIQUE;
 CREATE INDEX series_last_updated IF NOT EXISTS FOR (s:Series)      ON (s.last_updated);
 CREATE INDEX series_id_lookup    IF NOT EXISTS FOR (s:Series)      ON (s.series_id);
 CREATE INDEX release_date_date   IF NOT EXISTS FOR (d:ReleaseDate) ON (d.date);
+CREATE INDEX release_table_element_series IF NOT EXISTS FOR (e:ReleaseTableElement) ON (e.series_id);
 
 // unstructured layer (FULLTEXT and VECTOR index DDL are Neo4j-specific)
 CREATE FULLTEXT INDEX chunk_text IF NOT EXISTS

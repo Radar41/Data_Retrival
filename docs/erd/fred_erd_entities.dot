@@ -1,0 +1,40 @@
+digraph ERD {
+graph [rankdir=LR, splines=polyline, nodesep=0.7, ranksep=1.1, pad=0.4, fontname="Helvetica", labelloc=t, fontsize=18, label="FRED Metadata Catalog: E-R Diagram (entities and relationships)"];
+node [shape=plaintext, fontname="Helvetica", fontsize=11];
+edge [dir=both, color="#1f3557", fontname="Helvetica", fontsize=10, arrowsize=0.9];
+"SOURCE" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>SOURCE</B></FONT></TD></TR></TABLE>>];
+"RELEASE" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>RELEASE</B></FONT></TD></TR></TABLE>>];
+"RELEASE_SOURCE" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557" STYLE="ROUNDED"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>RELEASE SOURCE</B></FONT></TD></TR></TABLE>>];
+"RELEASE_DATE" [label=<<TABLE BORDER="2" CELLBORDER="0" CELLSPACING="2" COLOR="#1f3557"><TR><TD><TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>RELEASE DATE</B></FONT></TD></TR></TABLE></TD></TR></TABLE>>];
+"RELEASE_TABLE_ELEMENT" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>RELEASE TABLE ELEMENT</B></FONT></TD></TR></TABLE>>];
+"SERIES" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>SERIES</B></FONT></TD></TR></TABLE>>];
+"FREQUENCY" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>FREQUENCY</B></FONT></TD></TR></TABLE>>];
+"UNITS" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>UNITS</B></FONT></TD></TR></TABLE>>];
+"SEASONAL_ADJUSTMENT" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>SEASONAL ADJUSTMENT</B></FONT></TD></TR></TABLE>>];
+"CATEGORY" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>CATEGORY</B></FONT></TD></TR></TABLE>>];
+"SERIES_CATEGORY" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557" STYLE="ROUNDED"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>SERIES CATEGORY</B></FONT></TD></TR></TABLE>>];
+"TAG" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>TAG</B></FONT></TD></TR></TABLE>>];
+"TAG_GROUP" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>TAG GROUP</B></FONT></TD></TR></TABLE>>];
+"SERIES_TAG" [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557" STYLE="ROUNDED"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>SERIES TAG</B></FONT></TD></TR></TABLE>>];
+"OBSERVATION" [label=<<TABLE BORDER="2" CELLBORDER="0" CELLSPACING="2" COLOR="#1f3557"><TR><TD><TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>OBSERVATION</B></FONT></TD></TR></TABLE></TD></TR></TABLE>>];
+"VINTAGE_DATE" [label=<<TABLE BORDER="2" CELLBORDER="0" CELLSPACING="2" COLOR="#1f3557"><TR><TD><TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#1f3557"><TR><TD BGCOLOR="#1f3557" CELLPADDING="6"><FONT COLOR="white" POINT-SIZE="13"><B>VINTAGE DATE</B></FONT></TD></TR></TABLE></TD></TR></TABLE>>];
+"SOURCE" -> "RELEASE_SOURCE" [arrowtail=teetee, arrowhead=crowtee, label="Publishes", penwidth=1.1, style=solid];
+"RELEASE_SOURCE" -> "RELEASE" [arrowtail=crowtee, arrowhead=teetee, label="Published By", penwidth=1.1, style=solid];
+"RELEASE" -> "RELEASE_DATE" [arrowtail=teetee, arrowhead=crowtee, label="Is Scheduled", penwidth=2.0, style=solid];
+"RELEASE" -> "RELEASE_TABLE_ELEMENT" [arrowtail=teetee, arrowhead=crowodot, label="Structures", penwidth=1.1, style=solid];
+"RELEASE_TABLE_ELEMENT" -> "RELEASE_TABLE_ELEMENT" [arrowtail=teeodot, arrowhead=crowodot, label="Contains", penwidth=1.1, style=solid];
+"RELEASE" -> "SERIES" [arrowtail=teetee, arrowhead=crowtee, label="Contains", penwidth=1.1, style=solid];
+"FREQUENCY" -> "SERIES" [arrowtail=teetee, arrowhead=crowodot, label="Describes", penwidth=1.1, style=solid];
+"UNITS" -> "SERIES" [arrowtail=teetee, arrowhead=crowodot, label="Measures", penwidth=1.1, style=solid];
+"SEASONAL_ADJUSTMENT" -> "SERIES" [arrowtail=teetee, arrowhead=crowodot, label="Adjusts", penwidth=1.1, style=solid];
+"SERIES" -> "SERIES_CATEGORY" [arrowtail=teetee, arrowhead=crowtee, label="Classified In", penwidth=1.1, style=solid];
+"SERIES_CATEGORY" -> "CATEGORY" [arrowtail=crowodot, arrowhead=teetee, label="Holds", penwidth=1.1, style=solid];
+"CATEGORY" -> "CATEGORY" [arrowtail=teeodot, arrowhead=crowodot, label="Parent Of", penwidth=1.1, style=solid];
+"SERIES" -> "SERIES_TAG" [arrowtail=teetee, arrowhead=crowodot, label="Carries", penwidth=1.1, style=solid];
+"SERIES_TAG" -> "TAG" [arrowtail=crowtee, arrowhead=teetee, label="Applied As", penwidth=1.1, style=solid];
+"TAG_GROUP" -> "TAG" [arrowtail=teetee, arrowhead=crowtee, label="Groups", penwidth=1.1, style=solid];
+"SERIES" -> "OBSERVATION" [arrowtail=teetee, arrowhead=crowodot, label="Has", penwidth=2.0, style=solid];
+"SERIES" -> "VINTAGE_DATE" [arrowtail=teetee, arrowhead=crowodot, label="Revised On", penwidth=2.0, style=solid];
+{rank=same; FREQUENCY; UNITS; SEASONAL_ADJUSTMENT;}
+{rank=same; TAG_GROUP; TAG;}
+}

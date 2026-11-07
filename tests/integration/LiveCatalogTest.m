@@ -50,11 +50,12 @@ classdef (TestTags = {'Live'}) LiveCatalogTest < matlab.unittest.TestCase
         end
 
         function structuralCardinalityRulesHold(testCase)
-            % A07-A14: weak entities, the category tree, tag groups, the
-            % document and lineage layers, and key-property drift. Zero rows.
+            % A07-A17: weak entities, the category tree, tag groups, the
+            % document and lineage layers, key-property drift, and the
+            % release table tree. Zero rows.
             testCase.assumeNeo4j();
             testCase.runAudit();
-            for id = "A" + compose("%02d", (7:14)')'
+            for id = "A" + compose("%02d", (7:17)')'
                 rows = testCase.rowsFor(id);
                 testCase.verifyEmpty(rows, sprintf("%s returned %d row(s); first: %s", ...
                     id, numel(rows), jsonencode(rows(1:min(1, end)))));

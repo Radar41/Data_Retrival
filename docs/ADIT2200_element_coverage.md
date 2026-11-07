@@ -12,13 +12,13 @@ The one element that genuinely thins out on the way across is **cardinality**. I
 | Logical design (`docs/design/fred_logical_design.png`, `docs/fred_logical_design.md` §1) | Crow's feet with verbs; identifying (solid) vs non-identifying (dashed); FK columns | The MAPER rules decide where the key migrates |
 | PostgreSQL / MySQL (`docs/design/fred_physical_*.png`, `sql/*/fred_schema.sql`) | `NOT NULL` on the FK column = mandatory one; PK of the join table = many-to-many; `ON DELETE` | The DBMS, on every write |
 | Neo4j (`docs/design/fred_neo4j_*.png`) | Not expressible. A relationship type connects any number of nodes either way; Community edition has no existence or cardinality constraints. The legend says so in one line. | Nothing at write time |
-| Neo4j, compensating | `neo4j/cypher/fred_degree_audit.cypher`: fourteen queries, one per crow's-foot constraint, each expected to return zero rows | A query run after each load |
+| Neo4j, compensating | `neo4j/cypher/fred_degree_audit.cypher`: seventeen queries, one per crow's-foot constraint, each expected to return zero rows | A query run after each load |
 
 So in the graph cardinality is not an afterthought by neglect; it moves from a declaration to a check. That is the Königsberg point from the course map: the connection is the object, and the multiplicity rule becomes a question you ask of the graph.
 
 ### 1.1 What the audit found on 4 Nov 2026
 
-Run against the live graph (Neo4j 2026.07.1, 20 labels, 23 relationship patterns):
+Run against the live graph (Neo4j 2026.07.1; 21 labels and 26 relationship patterns since the release table tree arrived on 7 Nov):
 
 | Rule | Result | Meaning |
 |---|---|---|
@@ -30,6 +30,7 @@ Run against the live graph (Neo4j 2026.07.1, 20 labels, 23 relationship patterns
 | A10–A11 Document → Release, Chunk ← Document | 0 rows | |
 | A12 SeriesVariant | 0 rows | |
 | A13–A14 key-property drift | 0 rows | The FK value kept as a property agrees with the edge |
+| A15–A17 ReleaseTableElement → Release, parent, Series (added 7 Nov) | 0 rows | The release table tree from `release/tables`: 19,982 elements over the four loaded releases, each in exactly one release, each non-section under one parent; 521 `SHOWS` edges, one per series row whose series is in the catalog (the other 16,140 series rows name series the catalog has not loaded, which rule A17 allows) |
 
 A06 stays in the write-up as a teaching example even though it is closed: it was the one place where SQL and Cypher failed in the same way for different reasons. SQL cannot express "at least one row in the join table" without a trigger or a deferred constraint; Neo4j cannot express it at all.
 
@@ -37,8 +38,8 @@ A06 stays in the write-up as a teaching example even though it is closed: it was
 
 | Week / element (from the screenshots) | Relational side | Graph side | Absent on purpose? |
 |---|---|---|---|
-| **W1** kinds of DBMS; business rules | The numbered rules are cited where the model enforces them (`fred_relational_model.m` FK and join-table rows: rules 1, 2, 5, 7, 8, 11) and now stated as requirements CARD.A01–A14 in `requirements/fred_catalog.slreqx`; discussion post of 6 Sep | Rules 1–11 reappear as the relationship rows in `src/+dbdesign/fred_graph_model.m` | – |
-| **W2** ERD: entities, attributes, binary / unary / ternary, associative, weak entities | ERD: 14 entities, 14 relationships; weak: RELEASE_DATE, OBSERVATION; associative: RELEASE_SOURCE, SERIES_CATEGORY, SERIES_TAG; unary: CATEGORY | Weak entities keep their own label (ReleaseDate, Chunk) with the owner's key folded into `rd_key` / `chunk_key`; associative entities disappear into relationship types (`PUBLISHED_BY`, `IN_CATEGORY`, `TAGGED`) because none carries attributes | Associative entities absent: nothing to store on them. The day one gains an attribute (e.g. `SERIES_TAG.added_on`) it becomes a relationship property, not a node |
+| **W1** kinds of DBMS; business rules | The numbered rules are cited where the model enforces them (`fred_relational_model.m` FK and join-table rows: rules 1, 2, 5, 7, 8, 11) and now stated as requirements CARD.A01–A17 in `requirements/fred_catalog.slreqx`; discussion post of 6 Sep | Rules 1–11 reappear as the relationship rows in `src/+dbdesign/fred_graph_model.m` | – |
+| **W2** ERD: entities, attributes, binary / unary / ternary, associative, weak entities | ERD: 16 entities, 17 relationships; weak: RELEASE_DATE, OBSERVATION, VINTAGE_DATE; associative: RELEASE_SOURCE, SERIES_CATEGORY, SERIES_TAG; unary: CATEGORY, RELEASE_TABLE_ELEMENT | Weak entities keep their own label (ReleaseDate, Chunk) with the owner's key folded into `rd_key` / `chunk_key`; associative entities disappear into relationship types (`PUBLISHED_BY`, `IN_CATEGORY`, `TAGGED`) because none carries attributes | Associative entities absent: nothing to store on them. The day one gains an attribute (e.g. `SERIES_TAG.added_on`) it becomes a relationship property, not a node |
 | **W2 rubric** Notation / Entity sets / … | Hoffer crow's foot throughout `docs/design/` | Arrow notation, `:TYPE` labels, as in the Neo4j slides | – |
 | **W3** EERD: supertype / subtype, discriminator, disjoint / complete | **Absent.** The catalog has no specialisation: every series has the same attributes whatever its frequency; tags differ by group, not by attributes. Hoffer's test (subtypes have their own attributes or their own relationships) is not met | Would be a second label, `(:Series:Monthly)`; the course map plans this as the HW2 preamble | Yes. Say so in the write-up: a subtype with no attributes of its own is a `WHERE`, not an entity |
 | **W4** logical design, MAPER steps 1–4, key migration | `docs/fred_logical_design.md` §1–2; `docs/design/fred_logical_design.png`, `fred_table_map.png` | Each label and edge in `fred_neo4j_logical.png` names the table or FK it came from; the legend is the conversion checklist | Key migration absent: a relationship needs no migrated key. The audit (§1) is what replaces it |

@@ -9,7 +9,9 @@
 #
 # Steps, in order:  sample  load  graph  categories  documents
 #   sample     4.1  schema, triggers, sample data, queries, trigger proof, expected values
-#   load       4.2  truncate sample rows, live FRED load, every SQL query must return rows
+#   load       4.2  truncate sample rows, live FRED load (catalog, release table trees,
+#                   vintage dates), every SQL query must return rows
+#                   Later refreshes: src/python/fred_load.py --updates  (series/updates since the watermark)
 #   graph      4.3  docker cp CSVs into the Neo4j import dir, 003, 004, counts vs SQL
 #   categories      full tree from src/fred_category_tree_crawl.m (CRAWL_CSV) into
 #                   PostgreSQL and Neo4j (006); counts and depth must match
@@ -142,7 +144,7 @@ fi
 
 # --- 4.2 real load -----------------------------------------------------------
 if want load; then
-    say "4.2 live FRED load: releases $RELEASES, --max-series $MAX_SERIES (about 25 min)"
+    say "4.2 live FRED load: releases $RELEASES, --max-series $MAX_SERIES (about 45 min: sources and dates for every release, series, the release table trees, vintage dates)"
     q 'TRUNCATE source, release, category, tag_group, tag CASCADE' >/dev/null
     # shellcheck disable=SC2086
     "$PY" src/python/fred_load.py --releases $RELEASES --observations $OBS_SERIES \
