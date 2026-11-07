@@ -51,14 +51,10 @@ The empty `requierments.slreqx` created in the editor on 4 Nov at the project ro
 
 Registered on 4 Nov: `src/`, `tests/`, `sql/`, `neo4j/cypher/`, `neo4j/conf/`, `docs/design/`, `docs/erd/`, `docs/graph_explorer/`, the design documents, `README.md`, `buildfile.m`, `run_all.sh`. Classification labels: Design (code, SQL, Cypher, docs), Test, Artifact (PNG/SVG deliverables), Derived (`.dot`, `fred_graph_data.js`), Convenience (build and shell scripts). Startup file `src/project_startup.m`, shutdown file `src/project_shutdown.m`. Autosaves (`*.asv`), bytecode and the Test Manager databases are excluded.
 
-Still to do in the open project, by hand:
+Done 7 Nov 2026, from the terminal and headless MATLAB:
 
-1. **Project path**: add `requirements` (Project > Project Path) so the link sets resolve the requirement set by name.
-2. **Project checks and the Dependency Analyzer** stop with `fl:filesystem:AccessDenied`: two bind-mount folders owned by the Neo4j container user (uid 7474, mode 700) sit inside the project root. Once, from a terminal:
-   ```bash
-   sudo chmod o+rx neo4j/import data/catalog/neo4j-import
-   ```
-   then **Project > Analyze > Dependency Analyzer** (and Run Checks) work. The analyzer's graph export is the untracked `docs/Dependency Graph.graphml`.
+1. **Project path**: `requirements` is on the project path, so the link sets resolve the requirement set by name.
+2. **Project checks**: all 11 pass (`runChecks`). Two things were needed: the Neo4j bind-mount folders inside the project root are owned by the container user (uid 7474) and were unreadable, fixed once with `sudo chmod -R o+rX neo4j/import data/catalog/neo4j-import` (recursive: the files inside were the blockers, not only the folders); and 28 git-tracked files were not registered in the project (design docs, the requirement set, link sets, compose file, catalog snapshots), now added with their Classification labels. The Dependency Analyzer runs on the same precondition; its graph export is the untracked `docs/Dependency Graph.graphml`.
 3. **Code Quality Dashboard** (MATLAB Test): `codeQualityDashboard` reads the same Code Analyzer and test results per project; it is the MATLAB equivalent of the Simulink dashboard in §5.
 
 ## 5. The dashboard that cannot apply
