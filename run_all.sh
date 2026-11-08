@@ -15,11 +15,11 @@
 #   graph      4.3  docker cp CSVs into the Neo4j import dir, 003, 004, counts vs SQL
 #   categories      full tree from src/fred_category_tree_crawl.m (CRAWL_CSV) into
 #                   PostgreSQL and Neo4j (006); counts and depth must match
-#   documents  5.1  press-release PDFs -> chunks -> embeddings, docker cp, 005
+#   documents  5.1  press-release PDFs + every release's page -> chunks -> embeddings, docker cp, 005
 #
 # Optional environment:
 #   FRED_DB (fred)  MAX_SERIES (100)  RELEASES ("50 10 53 13")  DOC_RELEASES ("50 13")
-#   DOC_LAST (6)  VENV (~/.venvs/fred)  NEO4J_CONTAINER (data_retrival_neo4j)
+#   DOC_LAST (6)  DOC_PAGES (1; 0 skips release pages)  VENV (~/.venvs/fred)  NEO4J_CONTAINER (data_retrival_neo4j)
 #   CRAWL_CSV (data/catalog/fred/crawls/active/all_categories.csv)
 set -euo pipefail
 
@@ -32,6 +32,7 @@ RELEASES="${RELEASES:-50 10 53 13}"
 OBS_SERIES="UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO"
 DOC_RELEASES="${DOC_RELEASES:-50 13}"
 DOC_LAST="${DOC_LAST:-6}"
+DOC_PAGES="${DOC_PAGES:-1}"
 VENV="${VENV:-$HOME/.venvs/fred}"
 NEO4J_CONTAINER="${NEO4J_CONTAINER:-data_retrival_neo4j}"
 CRAWL_CSV="${CRAWL_CSV:-$ROOT/data/catalog/fred/crawls/active/all_categories.csv}"
@@ -208,9 +209,10 @@ fi
 
 # --- 5.1 documents -----------------------------------------------------------
 if want documents; then
-    say "5.1 press releases for releases $DOC_RELEASES (last $DOC_LAST each)"
+    say "5.1 press-release PDFs for releases $DOC_RELEASES (last $DOC_LAST each)$([ "$DOC_PAGES" = 1 ] && echo ' + the release page of every press_release release')"
     # shellcheck disable=SC2086
     "$PY" src/python/fred_load.py --documents --releases $DOC_RELEASES --doc-last "$DOC_LAST" \
+        $([ "$DOC_PAGES" = 1 ] || echo --no-pages) \
         2> "$LOGDIR/documents.stderr" | tee "$LOGDIR/documents.log"
     copy_csvs
     cypher < neo4j/cypher/005_fred_documents_load.cypher > "$LOGDIR/005.log"

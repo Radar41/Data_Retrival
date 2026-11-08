@@ -216,12 +216,15 @@ L = addLabel(L, "Series", "catalog", "series", "fred_series_catalog_key_unique",
 L = addLabel(L, "Document", "documents", "", "document_id_unique", "doc_id", { ...
     "doc_id",      "STRING", 1, "", "<release_key>:<date>"
     "release_key", "STRING", 1, "", "Links to Release and to SQL release_id"
-    "release_date","DATE",   1, "", "Matches a release_date row"
+    "release_date","DATE",   1, "", "Matches a release_date row (a page: latest actual date at fetch)"
+    "kind",        "STRING", 1, "", "press_release_pdf | release_page"
     "title",       "STRING", 1, "", ""
     "source_name", "STRING", 1, "", "Agency"
-    "file_type",   "STRING", 1, "", ""
-    "path",        "STRING", 1, "", "data/raw/documents/<release_id>/<date>.pdf"
-    "sha256",      "STRING", 1, "", ""});
+    "file_type",   "STRING", 1, "", "pdf | html"
+    "path",        "STRING", 1, "", "data/raw/documents/<release_id>/<date>.pdf or page_<date>.<ext>"
+    "sha256",      "STRING", 1, "", ""
+    "source",      "STRING", 1, "", "Final URL fetched, or copied from <path> for a hand-placed file"
+    "retrieved_at","ZONED DATETIME", 1, "", "UTC, from the raw-file manifest"});
 
 L = addLabel(L, "Chunk", "documents", "", "chunk_key", "chunk_key", { ...
     "chunk_key", "STRING",      1, "", "<doc_id>:<seq>"

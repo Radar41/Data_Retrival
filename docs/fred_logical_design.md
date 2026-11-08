@@ -134,9 +134,9 @@ The project description requires one semi-structured and one unstructured source
 
 ### 7.2 Unstructured: agency press releases, held in Neo4j with a file store
 
-**Objects.** The PDF press release for each release date: BLS Employment Situation, BLS CPI, BEA GDP (advance, second, third estimates), Federal Reserve G.17. Each is a `Document` node; the original file is registered unchanged under `data/raw/documents/<release_id>/<release_date>.pdf` with its SHA-256 on the node.
+**Objects.** Two kinds of `Document`, told apart by `kind`. `press_release_pdf` is the agency's dated PDF for a release date (BLS Employment Situation, BLS CPI, Federal Reserve G.17; BEA GDP has no stable URL pattern yet), registered unchanged under `data/raw/documents/<release_id>/<release_date>.pdf`. `release_page` is the page behind FRED's own `release_link` for every release FRED flags `press_release = TRUE`, HTML or PDF, registered as `data/raw/documents/<release_id>/page_<date>.<ext>`. A page is a capture, not an archive: it is the page as it stood after the latest actual release date on or before the fetch, and that date is its `release_date`, so a later run after the next release adds a new capture beside the old one. FRED serves no press-release text itself (only the link and the flag), which is why the catalog has to go to the agencies for it. Every raw file carries its SHA-256 on the node and in `data/raw/documents/manifest.json`.
 
-**Metadata retained.** `docId`, `releaseId` (FK into both stores), `releaseDate`, `fileType`, `source` (agency), `path`, `title`, and descriptive tags. Text is split into `Chunk` nodes (`seq`, `text`, `embedding`) with a full-text index and a vector index.
+**Metadata retained.** `doc_id`, `release_key` (FK into both stores), `release_date`, `kind`, `file_type`, `source_name` (agency), `path`, `title`, `sha256`, `source` (the final URL fetched, or where a hand-placed file was copied from) and `retrieved_at`. Text is split into `Chunk` nodes (`seq`, `text`, `embedding`) with a full-text index and a vector index.
 
 **Linking.** `(:Document)-[:DESCRIBES]->(:Release)` and `releaseDate` matches a `release_date` row. From a Series, the path is Series → Release ← Document → Chunk.
 

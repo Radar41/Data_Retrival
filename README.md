@@ -194,7 +194,7 @@ A relational core in PostgreSQL plus the catalog, provenance and document layers
 
 ```text
 sql/                         PostgreSQL DDL, triggers, sample data, query set (Q01-Q13)
-neo4j/cypher/003..005        catalog graph schema, LOAD CSV import, document layer
+neo4j/cypher/003..005        catalog graph schema, LOAD CSV import, document layer (dated PDFs + every release page)
 neo4j/cypher/fred_queries.cypher   graph versions of the same questions
 src/python/fred_load.py      FRED API -> PostgreSQL + neo4j-import CSVs + raw payload manifest
                              (sources and the date calendar for every release; series per --releases)

@@ -12,7 +12,7 @@ Observations go to PostgreSQL only; they are never exported for the graph.
     export FRED_API_KEY=...
     python fred_load.py --releases 50 10 53 13 --observations UNRATE PAYEMS GDPC1 CPIAUCSL INDPRO --max-series 100
     python fred_load.py --updates                 # what changed since the last load (series/updates)
-    python fred_load.py --documents --releases 50 13 --doc-last 6     # press releases -> 005 CSVs
+    python fred_load.py --documents --releases 50 13 --doc-last 6     # dated PDFs + every release page -> 005 CSVs
     python fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv
     python fred_load.py --observations-all            # every vintage for catalog series with none yet
 
@@ -20,6 +20,8 @@ Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
 """
 import argparse, csv, hashlib, json, os, pathlib, time
+from html.parser import HTMLParser
+from urllib.parse import urlsplit
 import requests
 import psycopg
 
@@ -488,9 +490,116 @@ def fetch_document(rid: int, rdate, local_dir: pathlib.Path | None) -> tuple[pat
     return dest, url
 
 
-def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | None) -> None:
+class _PageText(HTMLParser):
+    """Visible text of an HTML page: drops script/style/nav/header/footer/aside
+    and collapses whitespace. Standard library only."""
+    SKIP = {"script", "style", "noscript", "nav", "header", "footer", "aside", "svg", "form"}
+    BLOCK = {"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "table", "section", "article"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts, self.title, self._skip, self._in_title = [], "", 0, False
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.SKIP: self._skip += 1
+        if tag == "title": self._in_title = True
+        if tag in self.BLOCK: self.parts.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag in self.SKIP and self._skip: self._skip -= 1
+        if tag == "title": self._in_title = False
+        if tag in self.BLOCK: self.parts.append("\n")
+
+    def handle_data(self, data):
+        if self._in_title: self.title += data
+        elif not self._skip: self.parts.append(data)
+
+    def text(self) -> str:
+        t = "".join(self.parts)
+        t = "\n".join(" ".join(line.split()) for line in t.splitlines())
+        while "\n\n\n" in t: t = t.replace("\n\n\n", "\n\n")
+        return t.strip()
+
+
+def html_text(blob: bytes) -> tuple[str, str]:
+    """(title, visible text) of an HTML document; encoding from the bytes."""
+    for enc in ("utf-8", "cp1252", "latin-1"):
+        try:
+            html = blob.decode(enc); break
+        except UnicodeDecodeError:
+            continue
+    p = _PageText(); p.feed(html); p.close()
+    return " ".join(p.title.split()), p.text()
+
+
+def fetch_page(url: str, dest_stem: pathlib.Path, last_hit: dict) -> tuple[pathlib.Path | None, str, str]:
+    """Register the page behind a release_link unchanged as <dest_stem>.html or .pdf.
+    One request per second per host; never overwrites. Returns (path, how, file_type)."""
+    for ext in ("html", "pdf"):
+        dest = dest_stem.with_suffix("." + ext)
+        if dest.exists():
+            return dest, "already registered", ext
+    host = urlsplit(url).netloc
+    wait = 1.0 - (time.monotonic() - last_hit.get(host, 0))
+    if wait > 0: time.sleep(wait)
+    ua = os.environ.get("FRED_DOC_USER_AGENT", "fred-catalog-loader/0.1")
+    try:
+        r = requests.get(url, headers={"User-Agent": ua, "Accept": "text/html,application/pdf;q=0.9,*/*;q=0.5"},
+                         timeout=45, allow_redirects=True)
+    except requests.RequestException as e:
+        return None, f"{type(e).__name__} {url}", ""
+    finally:
+        last_hit[host] = time.monotonic()
+    if r.status_code != 200:
+        return None, f"HTTP {r.status_code} {url}", ""
+    ctype = r.headers.get("content-type", "").split(";")[0].strip().lower()
+    if r.content.startswith(b"%PDF") or ctype == "application/pdf":
+        ext = "pdf"
+    elif ctype in ("text/html", "application/xhtml+xml") or b"<html" in r.content[:2048].lower():
+        ext = "html"
+    else:
+        return None, f"unsupported content-type {ctype or '?'} {url}", ""
+    dest = dest_stem.with_suffix("." + ext)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(r.content)
+    return dest, r.url, ext
+
+
+def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | None, pages: bool = True) -> None:
+    """Document layer (graph only, 005). Two kinds of Document per Release:
+    press_release_pdf  the agency's dated PDF for each of the last N actual release
+                       dates, for releases with a verified URL pattern (DOC_URLS);
+    release_page       the page behind FRED's release_link, for every release FRED
+                       flags press_release = TRUE (--no-pages to skip). It is the
+                       page as it stood after the latest actual release date on or
+                       before the fetch, and is keyed by that date, so a rerun after
+                       the next release registers a new capture and keeps the old one.
+    Raw files are immutable under DOC_ROOT and hashed into DOC_ROOT/manifest.json."""
     from pypdf import PdfReader
     from sentence_transformers import SentenceTransformer
+
+    def pdf_text(path):
+        return "\n".join((pg.extract_text() or "") for pg in PdfReader(path).pages)
+
+    def register(path: pathlib.Path, how: str) -> tuple[str, str]:
+        blob = path.read_bytes()
+        sha = hashlib.sha256(blob).hexdigest()
+        rel = str(path)
+        if rel in manifest and manifest[rel]["sha256"] != sha:
+            raise RuntimeError(f"{rel} changed on disk since it was registered")
+        manifest.setdefault(rel, {"sha256": sha, "bytes": len(blob), "source": how,
+                                  "retrieved_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+        return rel, sha
+
+    def add_doc(doc_id, rid, rdate, kind, ftype, source_name, rel, title, sha, text):
+        m = manifest[rel]
+        url = m["source"].startswith("http")
+        docs.append((doc_id, rid, f"{rdate:%Y-%m-%d}", kind, ftype, source_name, rel, title, sha, m["source"],
+                     m["retrieved_at_utc"]))
+        n = 0
+        for n, piece in enumerate(chunk_text(text), 1):
+            chunks.append([doc_id, n - 1, piece])
+        print(f"  {doc_id}: {len(text)} chars, {n} chunks ({m['source'] if url else 'local'})", flush=True)
 
     manifest_path = DOC_ROOT / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
@@ -508,21 +617,75 @@ def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | Non
                 path, how = fetch_document(rid, rdate, local_dir)
                 if path is None:
                     failures.append(f"release {rid} {rdate}: {how}"); continue
-                blob = path.read_bytes()
-                sha = hashlib.sha256(blob).hexdigest()
-                rel = str(path)
-                if rel in manifest and manifest[rel]["sha256"] != sha:
-                    raise RuntimeError(f"{rel} changed on disk since it was registered")
-                manifest.setdefault(rel, {"sha256": sha, "bytes": len(blob), "source": how,
-                                          "retrieved_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
-                text = "\n".join((pg.extract_text() or "") for pg in PdfReader(path).pages)
-                doc_id = f"fred:release:{rid}:{rdate:%Y-%m-%d}"
+                rel, sha = register(path, how)
                 source_name, title, _ = DOC_URLS[rid]
-                docs.append((doc_id, rid, f"{rdate:%Y-%m-%d}", "pdf", source_name, rel,
-                             f"{title}, {rdate:%B %-d, %Y}", sha))
-                for seq, piece in enumerate(chunk_text(text)):
-                    chunks.append([doc_id, seq, piece])
-                print(f"  {doc_id}: {len(text)} chars, {sum(1 for c in chunks if c[0] == doc_id)} chunks ({how})")
+                add_doc(f"fred:release:{rid}:{rdate:%Y-%m-%d}", rid, rdate, "press_release_pdf", "pdf",
+                        source_name, rel, f"{title}, {rdate:%B %-d, %Y}", sha, pdf_text(path))
+        if pages:
+            cur.execute("""
+                SELECT r.release_id, r.release_name, r.release_link,
+                       (SELECT max(release_date) FROM release_date d
+                         WHERE d.release_id = r.release_id AND d.date_status = 'actual'
+                           AND d.release_date <= CURRENT_DATE) AS latest,
+                       (SELECT string_agg(s.source_name, '; ' ORDER BY s.source_name)
+                          FROM release_source rs JOIN source s USING (source_id)
+                         WHERE rs.release_id = r.release_id) AS agency
+                  FROM release r WHERE r.press_release ORDER BY r.release_id""")
+            releases = cur.fetchall()
+            print(f"release pages: {len(releases)} releases flagged press_release", flush=True)
+            last_hit: dict = {}
+            for rid, rname, link, latest, agency in releases:
+                if not link:
+                    failures.append(f"release {rid} {rname}: press_release but no release_link"); continue
+                if latest is None:
+                    failures.append(f"release {rid} {rname}: no actual release_date on or before today"); continue
+                path, how, ftype = fetch_page(link, DOC_ROOT / str(rid) / f"page_{latest:%Y-%m-%d}", last_hit)
+                if path is None:
+                    failures.append(f"release {rid} {rname}: {how}"); continue
+                rel, sha = register(path, how)
+                if ftype == "pdf":
+                    title, text = "", pdf_text(path)
+                else:
+                    title, text = html_text(path.read_bytes())
+                if len(text) < 200:
+                    failures.append(f"release {rid} {rname}: only {len(text)} chars of text in {rel}"); continue
+                add_doc(f"fred:release:{rid}:{latest:%Y-%m-%d}:page", rid, latest, "release_page", ftype,
+                        agency or "", rel, title or f"{rname}, release page", sha, text)
+        # Every file registered earlier stays a Document: a dated PDF that has left the
+        # last-N window, or a page captured for an earlier release date. The CSV is the
+        # complete document set, so 005 never leaves a stale node behind.
+        cur.execute("""SELECT r.release_id, r.release_name,
+                              (SELECT string_agg(s.source_name, '; ' ORDER BY s.source_name)
+                                 FROM release_source rs JOIN source s USING (source_id)
+                                WHERE rs.release_id = r.release_id) FROM release r""")
+        names = {rid: (rname, agency or "") for rid, rname, agency in cur.fetchall()}
+        have = {d[0] for d in docs}
+        import datetime, re
+        for rel in sorted(manifest):
+            m = re.fullmatch(re.escape(str(DOC_ROOT)) + r"/(\d+)/(page_)?(\d{4}-\d{2}-\d{2})\.(pdf|html)", rel)
+            if not m or int(m[1]) not in names:
+                continue
+            rid, is_page, dstr, ftype = int(m[1]), bool(m[2]), m[3], m[4]
+            doc_id = f"fred:release:{rid}:{dstr}" + (":page" if is_page else "")
+            if doc_id in have:
+                continue
+            path = pathlib.Path(rel)
+            if not path.exists():
+                failures.append(f"{rel}: in the manifest but missing on disk"); continue
+            rdate = datetime.date.fromisoformat(dstr)
+            rel, sha = register(path, manifest[rel]["source"])
+            rname, agency = names[rid]
+            if is_page:
+                title, text = ("", pdf_text(path)) if ftype == "pdf" else html_text(path.read_bytes())
+                if len(text) < 200:
+                    failures.append(f"{rel}: registered earlier but only {len(text)} chars of text"); continue
+                add_doc(doc_id, rid, rdate, "release_page", ftype, agency, rel,
+                        title or f"{rname}, release page", sha, text)
+            else:
+                source_name, title = DOC_URLS[rid][:2] if rid in DOC_URLS else (agency, rname)
+                add_doc(doc_id, rid, rdate, "press_release_pdf", "pdf", source_name, rel,
+                        f"{title}, {rdate:%B %-d, %Y}", sha, pdf_text(path))
+            have.add(doc_id)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, indent=1))
     if chunks:
@@ -531,9 +694,12 @@ def documents(release_ids: list[int], last_n: int, local_dir: pathlib.Path | Non
                             show_progress_bar=False)
         for c, v in zip(chunks, vecs):
             c.append(json.dumps([round(float(x), 6) for x in v]))
-    write_csv("documents", ["doc_id", "release_id", "release_date", "file_type", "source_name", "path", "title", "sha256"], docs)
+    write_csv("documents", ["doc_id", "release_id", "release_date", "kind", "file_type", "source_name", "path",
+                            "title", "sha256", "source", "retrieved_at"], docs)
     write_csv("chunks", ["doc_id", "seq", "text", "embedding"], chunks)
-    print(f"documents: {len(docs)} registered, {len(chunks)} chunks embedded with {EMBED_MODEL}")
+    kinds = {k: sum(1 for d in docs if d[3] == k) for k in ("press_release_pdf", "release_page")}
+    print(f"documents: {len(docs)} registered ({kinds['press_release_pdf']} dated PDFs, {kinds['release_page']} "
+          f"release pages), {len(chunks)} chunks embedded with {EMBED_MODEL}")
     for f in failures:
         print(f"  skipped: {f}")
     print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 005 next)")
@@ -578,6 +744,8 @@ if __name__ == "__main__":
                     help="instead of the catalog load, register press-release PDFs for --releases "
                          "and write documents.csv / chunks.csv for 005")
     ap.add_argument("--doc-last", type=int, default=6, help="with --documents: most recent N actual release dates")
+    ap.add_argument("--no-pages", action="store_true",
+                    help="with --documents: skip the release_link page of every press_release release")
     ap.add_argument("--doc-dir", type=pathlib.Path, default=None,
                     help="with --documents: folder of hand-downloaded PDFs laid out as <release_id>/<YYYY-MM-DD>.pdf")
     ap.add_argument("--category-crawl", type=pathlib.Path, default=None, metavar="CSV",
@@ -602,7 +770,7 @@ if __name__ == "__main__":
         category_crawl(a.category_crawl)
         raise SystemExit(0)
     if a.documents:
-        documents(a.releases, a.doc_last, a.doc_dir)
+        documents(a.releases, a.doc_last, a.doc_dir, not a.no_pages)
         raise SystemExit(0)
     if not KEY:
         raise SystemExit("set FRED_API_KEY")

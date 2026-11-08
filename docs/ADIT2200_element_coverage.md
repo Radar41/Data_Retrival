@@ -27,7 +27,7 @@ Run against the live graph (Neo4j 2026.07.1; 21 labels and 26 relationship patte
 | A07 ReleaseDate ← Release | 0 rows | Weak entity holds |
 | A08 Category → parent | 0 rows | Unary 1:M holds, root is the only orphan |
 | A09 Tag → TagGroup | 0 rows | |
-| A10–A11 Document → Release, Chunk ← Document | 0 rows | |
+| A10–A11 Document → Release, Chunk ← Document | 0 rows | Checked over 164 documents (13 dated PDFs + 151 release pages) and 3,375 chunks after the 8 Nov 2026 load |
 | A12 SeriesVariant | 0 rows | |
 | A13–A14 key-property drift | 0 rows | The FK value kept as a property agrees with the edge |
 | A15–A17 ReleaseTableElement → Release, parent, Series (added 7 Nov) | 0 rows | The release table tree from `release/tables`: 19,982 elements over the four loaded releases, each in exactly one release, each non-section under one parent; 521 `SHOWS` edges, one per series row whose series is in the catalog (the other 16,140 series rows name series the catalog has not loaded, which rule A17 allows) |
@@ -61,4 +61,5 @@ A06 stays in the write-up as a teaching example even though it is closed: it was
 2. HW2 preamble: add the `(:Series:Monthly)` style second label and the matching PostgreSQL supertype/subtype sketch, then write down why the production model does not use it.
 3. HW7 preamble: the `collect()` workaround for window functions in Cypher, next to Q08.
 4. Rerun `neo4j/cypher/fred_degree_audit.cypher` after each load and keep the A-rule table in this file current (the MATLAB test suite does this: `matlab -batch "buildtool"`).
-5. `fred_load.py --updates` refreshes PostgreSQL only (series rows, vintages, vintage dates). The graph's `Series` properties catch up at the next `./run_all.sh load graph`; a graph-side refresh from the same `series/updates` call is the next piece of the self-updating loop, together with the `event` table from `docs/INFERENCE_LAYER_design.md` step 1.
+5. ~~Press-release text for every release~~ Done 8 Nov 2026: `--documents` fetches the page behind `release_link` for every release FRED flags `press_release` (151 of 180; the misses are hosts that refuse non-browser clients, releases with no link, and pages with no extractable text, all named in the documents log). FRED itself serves no press-release text, so this is the catalog's only prose per release besides `series.notes`.
+6. `fred_load.py --updates` refreshes PostgreSQL only (series rows, vintages, vintage dates). The graph's `Series` properties catch up at the next `./run_all.sh load graph`; a graph-side refresh from the same `series/updates` call is the next piece of the self-updating loop, together with the `event` table from `docs/INFERENCE_LAYER_design.md` step 1.
