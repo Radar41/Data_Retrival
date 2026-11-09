@@ -170,3 +170,6 @@ Relational half: Q13 in fred_queries.sql (vintage counts per series and release 
 | vintage_date | series_id, vintage_date | series | ~500 per series |
 
 Column-level metadata (types, lengths, nullability, defaults, checks) is the DDL itself: fred_schema.sql is commented per column.
+
+**Rows actually loaded (PostgreSQL `fred`, 2026-11-09).** The catalog scope is 4 releases capped at 100 series each, plus every release and category FRED publishes (tags are those carried by the loaded series):
+observation 1,368,712 · release_date 119,992 · vintage_date 96,937 · release_table_element 19,982 · series_tag 5,296 · category 5,200 · series_category 416 · series 400 · release_source 383 · release 337 · tag 303 · source 127 · units 27 · tag_group 8 · frequency 6 · seasonal_adjustment 3.

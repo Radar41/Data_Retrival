@@ -2,8 +2,8 @@
 --  FRED Metadata Catalog : Physical Design (DDL)
 --  Adrian Aziza  |  azizaa@bc.edu  |  ADIT2200-01 Database Management, Fall 2026
 --
---  Source model  : approved ERD (14 entities, 3 associative, 2 weak, 1 unary)
---  Target DBMS   : PostgreSQL 16 (script is ANSI SQL; runs unchanged on MySQL 8)
+--  Source model  : approved ERD (16 entities: 3 associative, 3 weak, 2 unary)
+--  Target DBMS   : PostgreSQL 16+ (tested clean on 16.15). MySQL 8 / MariaDB version: sql/mysql/fred_schema.sql
 --  Normal form   : all relations in 3NF/BCNF (see fred_logical_design.md)
 --
 --  Conventions

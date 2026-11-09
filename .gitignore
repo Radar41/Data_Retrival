@@ -61,3 +61,6 @@ derived/
 
 # MATLAB build tool cache
 .buildtool/
+
+# Canvas course download (ADIT2200), private, never pushed
+course/
