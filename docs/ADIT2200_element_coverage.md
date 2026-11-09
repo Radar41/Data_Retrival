@@ -53,7 +53,7 @@ A06 stays in the write-up as a teaching example even though it is closed: it was
 | Lecture slides: declarative vs procedural, PL/SQL vs T-SQL | PL/pgSQL and MySQL/MariaDB dialects side by side in `sql/` and `sql/mysql/`; `fred_triggers.sql` comments name the differences | Cypher is declarative only | – |
 | Neo4j video: labeled property graph, `:RETWEETED` self-relationship, Cypher vs SQL recommendation query | `Category-[:CHILD_OF]->Category` is the project's self-relationship (the one neo4jd3 cannot draw) | Q06 / Q06b (variable-length `CHILD_OF*`) against the recursive CTE in SQL Q06 is the project's version of the slide's "5 lines vs 25" | – |
 | neo4jd3 demo page | – | `docs/graph_explorer/` renders the live schema and six data views | – |
-| Observations (vintages, realtime columns) | OBSERVATION weak entity, 284,430 rows over 103 series (7 Nov, after the first `--updates` run), Q10 | **Absent** | Yes. Dense, append-only, queried by range: a table. `fred_logical_design.md` §6–7 |
+| Observations (vintages, realtime columns) | OBSERVATION weak entity, 1,368,712 rows: every vintage of all 400 catalog series (9 Nov, after `--observations-all`), Q10; read from MATLAB by `fred_series` / `fred_panel` | **Absent** | Yes. Dense, append-only, queried by range: a table. `fred_logical_design.md` §6–7 |
 
 ## 3. What still needs doing for the course pass
 

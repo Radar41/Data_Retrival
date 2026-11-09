@@ -20,7 +20,7 @@ matlab -batch "buildtool"
 
 Default tasks: `check` then `test`. `derived/` and `.buildtool/` are git-ignored; they are rebuilt on every run.
 
-State on 7 Nov 2026 (after the release/sources reload and the release-table and vintage-date tables): `check` 0 errors, 0 warnings; `test` 31 passed, 0 failed, 0 incomplete; `compat` 0 recommendations; `diagrams` regenerated from the 16-table model.
+State on 9 Nov 2026 (after the MATLAB readers and the full observation load): `check` 0 errors, 0 warnings; `test` 44 passed, 0 failed, 0 incomplete (13 of them the new `SeriesReaderSqlTest` and `LiveSeriesReaderTest`); `compat` 0 recommendations; `diagrams` regenerated from the 16-table model; `requirements` 31 requirements, 33 Verify links.
 
 ## 2. Tests (MATLAB Test / unit test framework)
 
@@ -41,9 +41,10 @@ In the project: **Project > Run Tests** or the Test Browser runs the same files;
 |---|---|---|---|
 | CARD | A01–A17, one per cardinality rule | the comment block above each statement in `neo4j/cypher/fred_degree_audit.cypher` | the three audit methods in `LiveCatalogTest` |
 | MODEL | M01–M07, model agreement with DDL, graph, live stores, diagrams, audit file | the generator | `DesignModelTest`, `LiveCatalogTest` |
+| READ | R01–R06, the MATLAB readers return what SQL returns for the same vintage; ids are identifiers | the generator | `LiveSeriesReaderTest`, `SeriesReaderSqlTest` |
 | GDSS | G01, fit-payload contract | the generator | `NaiveAdapterPayloadTest` |
 
-25 requirements, 27 **Verify** links. Each link's source is a line range of the test method (`tests/**/<Test>~m.slmx` holds them; commit those files). Open the set in the Requirements Editor (`slreq.open("requirements/fred_catalog.slreqx")`), then **Traceability Matrix** shows requirement × test, and after a test run **Verification Status** colours each rule by its last result. Do not edit the `.slreqx` by hand: change the audit file or the generator and run `buildtool requirements`.
+31 requirements, 33 **Verify** links. Each link's source is a line range of the test method (`tests/**/<Test>~m.slmx` holds them; commit those files). Open the set in the Requirements Editor (`slreq.open("requirements/fred_catalog.slreqx")`), then **Traceability Matrix** shows requirement × test, and after a test run **Verification Status** colours each rule by its last result. Do not edit the `.slreqx` by hand: change the audit file or the generator and run `buildtool requirements`.
 
 The empty `requierments.slreqx` created in the editor on 4 Nov at the project root is superseded by this set and can be closed without saving and deleted.
 

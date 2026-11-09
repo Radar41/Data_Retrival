@@ -101,6 +101,30 @@ for k = 1:size(m, 1)
     end
 end
 
+%% MATLAB readers
+readTest = fullfile(root, "tests", "integration", "LiveSeriesReaderTest.m");
+sqlTest = fullfile(root, "tests", "unit", "SeriesReaderSqlTest.m");
+reader = add(reqSet, "Id", "READ", "Type", "Container", ...
+    "Summary", "MATLAB reads the catalog with the same as-of semantics as SQL", ...
+    "Description", "src/fred_series.m, fred_panel.m, fred_series_sql.m and fred_pg_query.m: the regression-side entry point to PostgreSQL.");
+rd = { ...
+    "R01", "A vintage read in MATLAB equals value_as_of in SQL", ...
+           "For any series, period and vintage date, fred_series(id, Vintage=d) returns the value value_as_of(id, period, d) returns, and every row's real-time window contains d.", readTest, "asOfValueEqualsTheSqlFunction"
+    "R02", "Today's read is the set of open real-time windows", ...
+           "fred_series(id) and Vintage=""latest"" return one row per period, the rows with realtime_end = 9999-12-31, in date order.", readTest, "currentValuesAreTheOpenWindows"
+    "R03", "The first-published read covers every period exactly once", ...
+           "Vintage=""first"" returns one row per observation_date with the smallest realtime_start.", readTest, "firstPublishedValuesCoverEveryPeriodOnce"
+    "R04", "Series metadata on the timetable comes from the series row", ...
+           "Title, units, frequency, seasonal adjustment and release are read from the catalog, not typed by the caller.", readTest, "metadataComesFromTheSeriesRow"
+    "R05", "A panel is the outer join of its series on observation date", ...
+           "One column per id, union of dates, NaN where a series has no period; frequencies are not reconciled.", readTest, "panelIsTheOuterJoinOfItsSeries"
+    "R06", "Only identifiers reach the SQL statement", ...
+           "A series id is letters, digits, underscore, dot or hyphen; anything else is refused before any query is built.", sqlTest, "onlyIdentifiersReachTheStatement"};
+for k = 1:size(rd, 1)
+    req = add(reader, "Id", rd{k, 1}, "Summary", rd{k, 2}, "Description", rd{k, 3});
+    verifyLink(req, rd{k, 4}, rd{k, 5});
+end
+
 %% GDSS adapter contract
 gdss = add(reqSet, "Id", "GDSS", "Type", "Container", ...
     "Summary", "Forecast adapters honour the fit-payload contract");
@@ -115,7 +139,7 @@ for k = 1:numel(linkSets)
     save(linkSets(k));
 end
 fprintf("Wrote %s: %d requirements, %d links\n", erase(outFile, root + filesep), ...
-    numel(find(reqSet)) - 3, countLinks(reqSet));
+    numel(find(reqSet)) - 4, countLinks(reqSet));
 
 end
 

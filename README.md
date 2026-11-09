@@ -204,6 +204,7 @@ docs/design/                 logical, FD-map, table-map, physical (PostgreSQL, M
 docs/fred_logical_design.md  relations, FDs, normalization, data representation plan
 docs/ADIT2200_course_map.md  course deliverables and dates
 buildfile.m                  MATLAB build plan: check (Code Analyzer, zero warnings), test, compat, diagrams, requirements
+src/fred_series.m, fred_panel.m   read the catalog from MATLAB as timetables, as known on a vintage date (value_as_of semantics)
 tests/unit, tests/integration  design-model tests (no database) and live PostgreSQL/Neo4j tests incl. the degree audit
 requirements/fred_catalog.slreqx  Requirements Toolbox set, A01-A14 cardinality rules + model agreement, Verify-linked to the tests
 docs/MATLAB_project_quality.md    what each MATLAB guard checks, project-side steps, defects found
