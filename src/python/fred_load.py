@@ -15,11 +15,12 @@ Observations go to PostgreSQL only; they are never exported for the graph.
     python fred_load.py --documents --releases 50 13 --doc-last 6     # dated PDFs + every release page -> 005 CSVs
     python fred_load.py --category-crawl data/catalog/fred/crawls/active/all_categories.csv
     python fred_load.py --observations-all            # every vintage for catalog series with none yet
+    python fred_load.py --series-file data/catalog/fred/lists/datalist_369765.tsv   # a FRED data list
 
 Dependencies: requests, psycopg (v3). Neo4j is loaded from the CSVs by running
 003, 004 (and 005) in cypher-shell, so no Neo4j driver is needed here.
 """
-import argparse, csv, hashlib, json, os, pathlib, time
+import argparse, csv, datetime, hashlib, json, os, pathlib, time
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 import requests
@@ -36,6 +37,10 @@ MANIFEST = {}
 PG = os.environ.get("FRED_PG", "dbname=fred")
 
 ALL_VINTAGES = {"realtime_start": "1776-07-04", "realtime_end": "9999-12-31"}
+OPEN_END = "9999-12-31"
+NOT_IN_ALFRED = "does not exist in ALFRED"   # FRED's 400 text for series with no vintage history
+TOO_MANY_VINTAGES = "exceeds the maximum number of vintage dates"   # ALFRED: at most 2,000 per request
+VINTAGE_WINDOW = 1900   # ALFRED counts the window start too; 2000 per window overflowed by one
 
 
 MIN_INTERVAL = 0.55  # seconds between requests: FRED allows 120 req/min
@@ -267,76 +272,12 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
                                "observation_start", "observation_end", "last_updated", "popularity", "notes"],
                series_rows, ["series_id"])
 
-        # --- categories and tags per series ---------------------------------------
-        cats, tags_out, cat_rows, tag_rows = {}, [], [], {}
-        for (sid, *_rest) in series_rows:
-            sc = get("series/categories", series_id=sid); sc["series_id"] = sid; cats[sid] = sc
-            for c in sc["categories"]:
-                cat_rows.append((c["id"], c["name"], c.get("parent_id")))
-            st = get("series/tags", series_id=sid); st["series_id"] = sid; tags_out.append(st)
-            for t in st["tags"]:
-                tag_rows[t["name"]] = (t["name"], t["group_id"], t.get("notes"), t.get("popularity"))
-        save("series_categories", {"items": list(cats.values())}); save("series_tags", {"items": tags_out})
-
-        # walk each category up to the root so every parent_id resolves
-        seen = {c[0] for c in cat_rows}
-        frontier = {c[2] for c in cat_rows if c[2] is not None and c[2] not in seen}
-        while frontier:
-            cid = frontier.pop()
-            c = get("category", category_id=cid)["categories"][0]
-            cat_rows.append((c["id"], c["name"], c.get("parent_id"))); seen.add(c["id"])
-            if c.get("parent_id") is not None and c["parent_id"] not in seen and c["parent_id"] != c["id"]:
-                frontier.add(c["parent_id"])
-        save("categories", {"categories": [{"id": a, "name": b, "parent_id": c} for a, b, c in cat_rows]})
-        # parents before children: FRED's root (0) lists itself as its own parent, so
-        # that becomes NULL; then insert level by level so every FK target exists.
-        cat_rows = [(a, b, None if c == a else c) for a, b, c in {r[0]: r for r in cat_rows}.values()]
-        ordered, placed, pending = [], set(), list(cat_rows)
-        while pending:
-            level = [r for r in pending if r[2] is None or r[2] in placed]
-            if not level:
-                raise RuntimeError(f"category parents missing for {[r[0] for r in pending]}")
-            ordered += level; placed |= {r[0] for r in level}
-            pending = [r for r in pending if r[0] not in placed]
-        upsert(cur, "category", ["category_id", "category_name", "parent_id"], ordered, ["category_id"])
-        upsert(cur, "series_category", ["series_id", "category_id"],
-               [(sid, c["id"]) for sid, sc in cats.items() for c in sc["categories"]], ["series_id", "category_id"])
-
-        groups = {"freq": "Frequency", "gen": "General or Concept", "geo": "Geography", "geot": "Geography Type",
-                  "rls": "Release", "seas": "Seasonal Adjustment", "src": "Source", "cc": "Citation & Copyright"}
-        upsert(cur, "tag_group", ["group_id", "group_name"], list(groups.items()), ["group_id"])
-        upsert(cur, "tag", ["tag_name", "group_id", "tag_notes", "popularity"], list(tag_rows.values()), ["tag_name"])
-        upsert(cur, "series_tag", ["series_id", "tag_name"],
-               [(st["series_id"], t["name"]) for st in tags_out for t in st["tags"]], ["series_id", "tag_name"])
+        categories_and_tags(cur, [r[0] for r in series_rows])
         conn.commit()
 
         tables_and_vintages(conn, release_ids, tables, vintages)
 
-        # --- Neo4j catalog CSVs (no observations) ---------------------------------
-        write_csv("sources", ["source_id", "source_name", "source_link"],
-                  [(s["id"], s["name"], s.get("link") or "") for s in sources["sources"]])
-        write_csv("releases", ["release_id", "release_name", "press_release", "release_link"],
-                  [(r["id"], r["name"], str(bool(r["press_release"])).lower(), r.get("link") or "") for r in releases["releases"]])
-        write_csv("release_sources", ["release_id", "source_id"],
-                  [(rs["release_id"], s["id"]) for rs in rs_payloads for s in rs["sources"]])
-        write_csv("release_dates", ["release_id", "release_date", "date_status"],
-                  [(d["release_id"], d["date"], "actual" if d["date"] <= time.strftime("%Y-%m-%d") else "scheduled")
-                   for rd in rd_payloads for d in rd["release_dates"]])
-        write_csv("series", ["series_id", "title", "release_id", "frequency_code", "frequency_name", "units_code",
-                             "units_name", "sa_code", "sa_name", "observation_start", "observation_end",
-                             "last_updated", "popularity", "notes"],
-                  [(r[0], r[1], r[2], r[3], lookups["frequency"][r[3]], r[4], lookups["units"][r[4]], r[5],
-                    lookups["sa"][r[5]], r[6], r[7], r[8], r[9] or "", r[10] or "") for r in series_rows])
-        write_csv("categories", ["category_id", "category_name", "parent_id"],
-                  [(a, b, "" if c is None else c) for a, b, c in ordered])
-        write_csv("series_categories", ["series_id", "category_id"],
-                  [(sid, c["id"]) for sid, sc in cats.items() for c in sc["categories"]])
-        write_csv("tag_groups", ["group_id", "group_name"], list(groups.items()))
-        write_csv("tags", ["tag_name", "group_id", "tag_notes", "popularity"],
-                  [(n, g, nt or "", p if p is not None else "") for n, g, nt, p in tag_rows.values()])
-        write_csv("series_tags", ["series_id", "tag_name"],
-                  [(st["series_id"], t["name"]) for st in tags_out for t in st["tags"]])
-
+        catalog_csvs(cur)
         conn.commit()
         # --- observations, every vintage (ALFRED), PostgreSQL only ----------------
         load_observations(conn, obs_series)
@@ -346,14 +287,249 @@ def main(release_ids: list[int], obs_series: list[str], max_series: int | None =
     print(f"neo4j CSVs: {NEO_IMPORT.resolve()}  (run 003 then 004 with :param snapshot_id)")
 
 
+def categories_and_tags(cur, series_ids: list[str], tag: str = "") -> None:
+    """series/categories and series/tags for each series, every category walked
+    up to the root so each parent_id resolves, all upserted. `tag` suffixes the
+    raw payload names so a list load does not overwrite the release load's."""
+    cats, tags_out, cat_rows, tag_rows = {}, [], [], {}
+    for sid in series_ids:
+        sc = get("series/categories", series_id=sid); sc["series_id"] = sid; cats[sid] = sc
+        for c in sc["categories"]:
+            cat_rows.append((c["id"], c["name"], c.get("parent_id")))
+        st = get("series/tags", series_id=sid); st["series_id"] = sid; tags_out.append(st)
+        for t in st["tags"]:
+            tag_rows[t["name"]] = (t["name"], t["group_id"], t.get("notes"), t.get("popularity"))
+    save(f"series_categories{tag}", {"items": list(cats.values())}); save(f"series_tags{tag}", {"items": tags_out})
+
+    # walk each category up to the root so every parent_id resolves
+    seen = {c[0] for c in cat_rows}
+    frontier = {c[2] for c in cat_rows if c[2] is not None and c[2] not in seen}
+    while frontier:
+        cid = frontier.pop()
+        c = get("category", category_id=cid)["categories"][0]
+        cat_rows.append((c["id"], c["name"], c.get("parent_id"))); seen.add(c["id"])
+        if c.get("parent_id") is not None and c["parent_id"] not in seen and c["parent_id"] != c["id"]:
+            frontier.add(c["parent_id"])
+    save(f"categories{tag}", {"categories": [{"id": a, "name": b, "parent_id": c} for a, b, c in cat_rows]})
+    # parents before children: FRED's root (0) lists itself as its own parent, so
+    # that becomes NULL; then insert level by level so every FK target exists.
+    cat_rows = [(a, b, None if c == a else c) for a, b, c in {r[0]: r for r in cat_rows}.values()]
+    ordered, placed, pending = [], set(), list(cat_rows)
+    while pending:
+        level = [r for r in pending if r[2] is None or r[2] in placed]
+        if not level:
+            raise RuntimeError(f"category parents missing for {[r[0] for r in pending]}")
+        ordered += level; placed |= {r[0] for r in level}
+        pending = [r for r in pending if r[0] not in placed]
+    upsert(cur, "category", ["category_id", "category_name", "parent_id"], ordered, ["category_id"])
+    upsert(cur, "series_category", ["series_id", "category_id"],
+           [(sid, c["id"]) for sid, sc in cats.items() for c in sc["categories"]], ["series_id", "category_id"])
+
+    groups = {"freq": "Frequency", "gen": "General or Concept", "geo": "Geography", "geot": "Geography Type",
+              "rls": "Release", "seas": "Seasonal Adjustment", "src": "Source", "cc": "Citation & Copyright"}
+    upsert(cur, "tag_group", ["group_id", "group_name"], list(groups.items()), ["group_id"])
+    upsert(cur, "tag", ["tag_name", "group_id", "tag_notes", "popularity"], list(tag_rows.values()), ["tag_name"])
+    upsert(cur, "series_tag", ["series_id", "tag_name"],
+           [(st["series_id"], t["name"]) for st in tags_out for t in st["tags"]], ["series_id", "tag_name"])
+
+
+def catalog_csvs(cur) -> None:
+    """The Neo4j catalog CSVs for 004, read from PostgreSQL, so the graph gets
+    every catalog series whichever load mode put it there (release walk or
+    --series-file). Categories: those any series sits in, plus their ancestors."""
+    q = lambda sql: [tuple("" if v is None else v for v in r) for r in (cur.execute(sql) or cur).fetchall()]
+    write_csv("sources", ["source_id", "source_name", "source_link"],
+              q("SELECT source_id, source_name, source_link FROM source ORDER BY source_id"))
+    write_csv("releases", ["release_id", "release_name", "press_release", "release_link"],
+              q("SELECT release_id, release_name, CASE WHEN press_release THEN 'true' ELSE 'false' END, release_link "
+                "FROM release ORDER BY release_id"))
+    write_csv("release_sources", ["release_id", "source_id"],
+              q("SELECT release_id, source_id FROM release_source ORDER BY 1, 2"))
+    write_csv("release_dates", ["release_id", "release_date", "date_status"],
+              q("SELECT release_id, to_char(release_date, 'YYYY-MM-DD'), "
+                "CASE WHEN release_date <= CURRENT_DATE THEN 'actual' ELSE 'scheduled' END "
+                "FROM release_date ORDER BY 1, 2"))
+    write_csv("series", ["series_id", "title", "release_id", "frequency_code", "frequency_name", "units_code",
+                         "units_name", "sa_code", "sa_name", "observation_start", "observation_end",
+                         "last_updated", "popularity", "notes"],
+              q("SELECT s.series_id, s.title, s.release_id, s.frequency_code, f.frequency_name, s.units_code, "
+                "u.units_name, s.sa_code, a.sa_name, to_char(s.observation_start, 'YYYY-MM-DD'), "
+                "to_char(s.observation_end, 'YYYY-MM-DD'), to_char(s.last_updated, 'YYYY-MM-DD HH24:MI:SS'), "
+                "s.popularity, s.notes FROM series s JOIN frequency f USING (frequency_code) "
+                "JOIN units u USING (units_code) JOIN seasonal_adjustment a USING (sa_code) "
+                "ORDER BY s.popularity DESC NULLS LAST, s.series_id"))
+    write_csv("categories", ["category_id", "category_name", "parent_id"],
+              q("WITH RECURSIVE up AS (SELECT DISTINCT category_id FROM series_category "
+                "  UNION SELECT c.parent_id FROM category c JOIN up USING (category_id) WHERE c.parent_id IS NOT NULL), "
+                "down AS (SELECT category_id, 0 AS depth FROM category WHERE parent_id IS NULL "
+                "  UNION ALL SELECT c.category_id, d.depth + 1 FROM category c JOIN down d ON c.parent_id = d.category_id) "
+                "SELECT c.category_id, c.category_name, c.parent_id FROM category c "
+                "JOIN up USING (category_id) JOIN down USING (category_id) ORDER BY down.depth, c.category_id"))
+    write_csv("series_categories", ["series_id", "category_id"],
+              q("SELECT series_id, category_id FROM series_category ORDER BY 1, 2"))
+    write_csv("tag_groups", ["group_id", "group_name"], q("SELECT group_id, group_name FROM tag_group ORDER BY 1"))
+    write_csv("tags", ["tag_name", "group_id", "tag_notes", "popularity"],
+              q("SELECT tag_name, group_id, tag_notes, popularity FROM tag t "
+                "WHERE EXISTS (SELECT 1 FROM series_tag st WHERE st.tag_name = t.tag_name) ORDER BY 1"))
+    write_csv("series_tags", ["series_id", "tag_name"], q("SELECT series_id, tag_name FROM series_tag ORDER BY 1, 2"))
+    release_table_csv(cur)
+
+
+def series_list(path: pathlib.Path, vintages: bool = True, refresh: bool = False) -> None:
+    """A hand-picked list of series (one id per line, first tab-separated
+    column; '#' lines and a 'series_id' header are skipped), whatever releases
+    they belong to: series + series/release per id, then categories, tags,
+    vintage dates and every vintage of observations for the ids with none yet.
+    Ids FRED does not know are reported and skipped. Ends with the catalog CSVs.
+    Resumable: without refresh, ids already in the series table skip the
+    metadata calls and ids that already have vintage dates skip those."""
+    ids, seen = [], set()
+    for line in path.read_text().splitlines():
+        sid = line.split("\t")[0].strip()
+        if sid and not sid.startswith("#") and sid != "series_id" and sid not in seen:
+            seen.add(sid); ids.append(sid)
+    tag = "_" + path.stem
+    with psycopg.connect(PG) as conn, conn.cursor() as cur:
+        cur.execute("SELECT release_id FROM release"); known = {r[0] for r in cur.fetchall()}
+        cur.execute("SELECT series_id FROM series"); catalogued = {r[0] for r in cur.fetchall()}
+        listed, ids = ids, (ids if refresh else [i for i in ids if i not in catalogued])
+        print(f"{len(listed)} listed, {len(listed) - len(ids)} already catalogued, "
+              f"{len(ids)} to fetch metadata for", flush=True)
+        series_rows, lookups, raw, missing = [], {"frequency": {}, "units": {}, "sa": {}}, [], []
+        for i, sid in enumerate(ids, 1):
+            try:
+                s = get_one("series", series_id=sid)["seriess"][0]
+                r = get_one("series/release", series_id=sid)["releases"][0]
+            except (RuntimeError, IndexError, KeyError) as exc:
+                missing.append(sid); print(f"[{i}/{len(ids)}] {sid}: SKIPPED {exc}", flush=True)
+                continue
+            raw.append({"series": s, "release": r})
+            if r["id"] not in known:   # a release FRED added since the catalog load
+                upsert(cur, "release", ["release_id", "release_name", "press_release", "release_link"],
+                       [(r["id"], r["name"], bool(r["press_release"]), r.get("link"))], ["release_id"])
+                rs = get("release/sources", release_id=r["id"])
+                upsert(cur, "source", ["source_id", "source_name", "source_link"],
+                       [(x["id"], x["name"], x.get("link")) for x in rs["sources"]], ["source_id"])
+                upsert(cur, "release_source", ["release_id", "source_id"],
+                       [(r["id"], x["id"]) for x in rs["sources"]], ["release_id", "source_id"])
+                known.add(r["id"])
+            lookups["frequency"][s["frequency_short"]] = s["frequency"]
+            lookups["units"][s["units_short"]] = s["units"]
+            lookups["sa"][s["seasonal_adjustment_short"]] = s["seasonal_adjustment"]
+            series_rows.append((s["id"], s["title"], r["id"], s["frequency_short"], s["units_short"],
+                                s["seasonal_adjustment_short"], s["observation_start"], s["observation_end"],
+                                s["last_updated"][:19], s.get("popularity"), s.get("notes")))
+            if i % 100 == 0:
+                print(f"series metadata: {i}/{len(ids)}", flush=True)
+        save(f"series{tag}", {"source": str(path), "items": raw, "missing": missing})
+        upsert(cur, "frequency", ["frequency_code", "frequency_name"], list(lookups["frequency"].items()), ["frequency_code"])
+        upsert(cur, "units", ["units_code", "units_name"], list(lookups["units"].items()), ["units_code"])
+        upsert(cur, "seasonal_adjustment", ["sa_code", "sa_name"], list(lookups["sa"].items()), ["sa_code"])
+        upsert(cur, "series", ["series_id", "title", "release_id", "frequency_code", "units_code", "sa_code",
+                               "observation_start", "observation_end", "last_updated", "popularity", "notes"],
+               series_rows, ["series_id"])
+        conn.commit()
+        print(f"series: {len(series_rows)} upserted, {len(missing)} unknown to FRED", flush=True)
+        if series_rows:
+            categories_and_tags(cur, [r[0] for r in series_rows], tag); conn.commit()
+        cur.execute("SELECT series_id FROM series WHERE series_id = ANY(%s)", (listed,))
+        got = sorted({r[0] for r in cur.fetchall()}, key=listed.index)
+        if vintages:
+            cur.execute("SELECT DISTINCT series_id FROM vintage_date WHERE series_id = ANY(%s)", (got,))
+            have = set() if refresh else {r[0] for r in cur.fetchall()}
+            todo_v, vint, fred_only = [x for x in got if x not in have], {}, []
+            print(f"series/vintagedates: {len(todo_v)} to fetch ({len(have)} already have them)", flush=True)
+            for i, sid in enumerate(todo_v, 1):
+                try:
+                    vd = get("series/vintagedates", series_id=sid)
+                except RuntimeError as exc:
+                    if NOT_IN_ALFRED not in str(exc):
+                        raise
+                    fred_only.append(sid); continue
+                vint[sid] = vd["vintage_dates"]
+                upsert(cur, "vintage_date", ["series_id", "vintage_date"],
+                       [(sid, d) for d in vd["vintage_dates"]], ["series_id", "vintage_date"])
+                if i % 100 == 0:
+                    conn.commit(); print(f"series/vintagedates: {i}/{len(todo_v)}", flush=True)
+            save(f"vintage_dates{tag}", {"vintage_dates": vint, "fred_only": fred_only}); conn.commit()
+            print(f"series/vintagedates: {len(vint)} series; {len(fred_only)} FRED-only (no ALFRED history): "
+                  f"{' '.join(fred_only)}", flush=True)
+        catalog_csvs(cur)
+        cur.execute("SELECT s FROM unnest(%s::text[]) s WHERE NOT EXISTS "
+                    "(SELECT 1 FROM observation o WHERE o.series_id = s)", (got,))
+        todo = [r[0] for r in cur.fetchall()]
+        print(f"observations: {len(todo)} of {len(got)} list series have none yet", flush=True)
+        failed = load_observations(conn, todo)
+    (PAYLOADS / "manifest.json").write_text(json.dumps(MANIFEST, indent=1))
+    if missing or failed:
+        print(f"unknown: {' '.join(missing) or '-'}\nobservations failed: {' '.join(failed) or '-'}")
+    raise SystemExit(1 if failed else 0)
+
+
 def fetch_observation_rows(sid: str) -> tuple[dict, list[tuple]]:
     """Every vintage of one series from ALFRED, as observation rows."""
-    ob = get("series/observations", page_size=100000, series_id=sid, **ALL_VINTAGES)
-    rows = [(sid, o["date"], o["realtime_start"], o["realtime_end"],
-             None if o["value"] == "." else o["value"]) for o in ob["observations"]]
+    try:
+        ob = get("series/observations", page_size=100000, series_id=sid, **ALL_VINTAGES)
+        rows = [(sid, o["date"], o["realtime_start"], o["realtime_end"],
+                 None if o["value"] == "." else o["value"]) for o in ob["observations"]]
+    except RuntimeError as exc:
+        if TOO_MANY_VINTAGES in str(exc):
+            return fetch_observation_rows_windowed(sid)
+        if NOT_IN_ALFRED not in str(exc):
+            raise
+        # FRED-only series (mostly third-party market data): no vintage history.
+        # Keep today's values as the one open window, first seen today.
+        ob = get("series/observations", page_size=100000, series_id=sid)
+        ob["alfred"] = False
+        rows = [(sid, o["date"], o["realtime_start"], OPEN_END,
+                 None if o["value"] == "." else o["value"]) for o in ob["observations"]]
     # order by realtime_start so the BEFORE INSERT trigger closes vintages in sequence
     rows.sort(key=lambda r: (r[1], r[2]))
     return ob, rows
+
+
+def fetch_observation_rows_windowed(sid: str) -> tuple[dict, list[tuple]]:
+    """ALFRED refuses one request spanning more than 2,000 vintage dates. Split
+    the real-time axis at every 2,000th vintage date, fetch each window, then
+    stitch: a vintage that spans a window edge comes back clipped in both
+    windows (same value, touching dates), so those pieces are joined again."""
+    vds = get("series/vintagedates", series_id=sid)["vintage_dates"]
+    starts = [ALL_VINTAGES["realtime_start"]] + vds[VINTAGE_WINDOW::VINTAGE_WINDOW]
+    ends = [str(datetime.date.fromisoformat(d) - datetime.timedelta(days=1)) for d in starts[1:]] + [OPEN_END]
+    pieces, payloads = [], []
+    for a, b in zip(starts, ends):
+        ob = get("series/observations", page_size=100000, series_id=sid, realtime_start=a, realtime_end=b)
+        payloads.append({"realtime_start": a, "realtime_end": b, "observations": ob["observations"]})
+        pieces += [(o["date"], o["realtime_start"], o["realtime_end"], None if o["value"] == "." else o["value"])
+                   for o in ob["observations"]]
+    pieces.sort()
+    rows: list[list] = []
+    for d, rs, re_, v in pieces:
+        last = rows[-1] if rows else None
+        if (last and last[1] == d and last[4] == v and
+                datetime.date.fromisoformat(last[3]) + datetime.timedelta(days=1) == datetime.date.fromisoformat(rs)):
+            last[3] = re_                      # same vintage, cut by the window edge
+        elif last and last[1] == d and last[2] == rs:
+            raise RuntimeError(f"{sid} {d}: two windows both start {rs}")
+        else:
+            rows.append([sid, d, rs, re_, v])
+    return {"series_id": sid, "windows": payloads}, [tuple(r) for r in rows]
+
+
+def write_observations(cur, rows: list[tuple]) -> None:
+    """One series in one statement: COPY into a temp table, then a single
+    INSERT ... SELECT, ordered by realtime_start so close_prior_vintage closes
+    vintages in sequence, and refresh_series_range (per statement) fires once."""
+    cur.execute("CREATE TEMP TABLE IF NOT EXISTS obs_stage (series_id text, observation_date date, "
+                "realtime_start date, realtime_end date, value numeric) ON COMMIT DELETE ROWS")
+    with cur.copy("COPY obs_stage FROM STDIN") as cp:
+        for r in rows:
+            cp.write_row(r)
+    cur.execute("INSERT INTO observation (series_id, observation_date, realtime_start, realtime_end, value) "
+                "SELECT series_id, observation_date, realtime_start, realtime_end, value FROM obs_stage "
+                "ORDER BY observation_date, realtime_start "
+                "ON CONFLICT (series_id, observation_date, realtime_start) "
+                "DO UPDATE SET realtime_end = EXCLUDED.realtime_end, value = EXCLUDED.value")
 
 
 def load_observations(conn, series_ids: list[str]) -> list[str]:
@@ -375,8 +551,7 @@ def load_observations(conn, series_ids: list[str]) -> list[str]:
         manifest[path.name] = {"sha256": hashlib.sha256(text.encode()).hexdigest(), "bytes": len(text),
                                "retrieved_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
         with conn.cursor() as cur:
-            upsert(cur, "observation", ["series_id", "observation_date", "realtime_start", "realtime_end", "value"],
-                   rows, ["series_id", "observation_date", "realtime_start"])
+            write_observations(cur, rows)
         conn.commit()
         total += len(rows)
         print(f"[{i}/{len(series_ids)}] {sid}: {len(rows)} vintages  (total {total}, "
@@ -760,6 +935,9 @@ if __name__ == "__main__":
     ap.add_argument("--tables-only", action="store_true",
                     help="instead of the catalog load: release/tables for --releases (skipping releases already "
                          "crawled unless --refresh), series/vintagedates for every catalog series, and the CSV")
+    ap.add_argument("--series-file", type=pathlib.Path, default=None, metavar="FILE",
+                    help="instead of the release walk, catalog the series listed in FILE (first column; e.g. a "
+                         "FRED data list saved as data/catalog/fred/lists/*.tsv) and load their vintages")
     ap.add_argument("--updates", action="store_true",
                     help="instead of the catalog load, refresh the catalog series FRED reports as changed "
                          "since the watermark (series/updates) and reload their vintages")
@@ -774,6 +952,8 @@ if __name__ == "__main__":
         raise SystemExit(0)
     if not KEY:
         raise SystemExit("set FRED_API_KEY")
+    if a.series_file:
+        series_list(a.series_file, not a.no_vintages, a.refresh)
     if a.updates:
         updates(a.since)
         raise SystemExit(0)

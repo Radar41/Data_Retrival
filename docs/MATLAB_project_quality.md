@@ -20,7 +20,7 @@ matlab -batch "buildtool"
 
 Default tasks: `check` then `test`. `derived/` and `.buildtool/` are git-ignored; they are rebuilt on every run.
 
-State on 9 Nov 2026 (after the MATLAB readers and the full observation load): `check` 0 errors, 0 warnings; `test` 44 passed, 0 failed, 0 incomplete (13 of them the new `SeriesReaderSqlTest` and `LiveSeriesReaderTest`); `compat` 0 recommendations; `diagrams` regenerated from the 16-table model; `requirements` 31 requirements, 33 Verify links.
+State on 10 Nov 2026 (after FRED Data List 101: 1,645 series, 11,848,156 observation rows; units_code widened to 80; `refresh_series_range` per statement in PostgreSQL): `check` 0 errors, 0 warnings; `test` 44 passed, 0 failed, 0 incomplete (13 of them the new `SeriesReaderSqlTest` and `LiveSeriesReaderTest`); `compat` 0 recommendations; `diagrams` regenerated from the 16-table model; `requirements` 31 requirements, 33 Verify links.
 
 ## 2. Tests (MATLAB Test / unit test framework)
 

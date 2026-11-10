@@ -44,20 +44,30 @@ FOR EACH ROW EXECUTE FUNCTION trg_close_prior_vintage();
 --  TRIGGER 2 : keep the derived SERIES attributes consistent
 --  observation_start / observation_end are controlled denormalization.
 --  AFTER INSERT on OBSERVATION: widen the series range if needed.
+--  Statement-level with a transition table: one UPDATE per series per INSERT
+--  statement, not one per row. A per-row version updates the same series row
+--  once per vintage; inside one transaction every update leaves a new row
+--  version the next one must step over, so a 1,051,467-row series (ANFCI)
+--  ran for hours. The loader inserts a whole series in one statement.
+--  MySQL has no statement-level triggers; sql/mysql keeps the per-row form.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION trg_refresh_series_range() RETURNS trigger AS $$
 BEGIN
-    UPDATE series
-       SET observation_start = LEAST(COALESCE(observation_start, NEW.observation_date), NEW.observation_date),
-           observation_end   = GREATEST(COALESCE(observation_end, NEW.observation_date), NEW.observation_date)
-     WHERE series_id = NEW.series_id;
-    RETURN NEW;
+    UPDATE series s
+       SET observation_start = LEAST(COALESCE(s.observation_start, n.lo), n.lo),
+           observation_end   = GREATEST(COALESCE(s.observation_end, n.hi), n.hi)
+      FROM (SELECT series_id, MIN(observation_date) AS lo, MAX(observation_date) AS hi
+              FROM new_rows GROUP BY series_id) n
+     WHERE s.series_id = n.series_id;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS refresh_series_range ON observation;
 CREATE TRIGGER refresh_series_range
 AFTER INSERT ON observation
-FOR EACH ROW EXECUTE FUNCTION trg_refresh_series_range();
+REFERENCING NEW TABLE AS new_rows
+FOR EACH STATEMENT EXECUTE FUNCTION trg_refresh_series_range();
 
 
 -- ---------------------------------------------------------------------------

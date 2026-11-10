@@ -1,0 +1,1357 @@
+# FRED data list 369765: Data List - 101 - The most important economic data over 1000 series
+# read 2026-11-10 from https://fredaccount.stlouisfed.org/datalists/369765 (28 pages)
+series_id	title
+T10YIE	10-Year Breakeven Inflation Rate
+T10YIEM	10-Year Breakeven Inflation Rate
+EXPINF10YR	10-Year Expected Inflation
+REAINTRATREARAT10Y	10-Year Real Interest Rate
+T10Y2Y	10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity
+T10Y2YM	10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity
+T10Y3M	10-Year Treasury Constant Maturity Minus 3-Month Treasury Constant Maturity
+T10Y3MM	10-Year Treasury Constant Maturity Minus 3-Month Treasury Constant Maturity
+T10YFF	10-Year Treasury Constant Maturity Minus Federal Funds Rate
+T10YFFM	10-Year Treasury Constant Maturity Minus Federal Funds Rate
+MORTGAGE15US	15-Year Fixed Rate Mortgage Average in the United States
+SOFR180DAYAVG	180-Day Average SOFR
+EXPINF1YR	1-Year Expected Inflation
+REAINTRATREARAT1YE	1-Year Real Interest Rate
+DTB1YR	1-Year Treasury Bill Secondary Market Rate, Discount Basis
+RIFSGFSY01NA	1-Year Treasury Bill Secondary Market Rate, Discount Basis
+TB1YR	1-Year Treasury Bill Secondary Market Rate, Discount Basis
+WTB1YR	1-Year Treasury Bill Secondary Market Rate, Discount Basis
+EXPINF2YR	2-Year Expected Inflation
+SOFR30DAYAVG	30-Day Average SOFR
+T30YIEM	30-year Breakeven Inflation Rate
+EXPINF30YR	30-Year Expected Inflation
+OBMMIFHA30YF	30-Year Fixed Rate FHA Mortgage Index
+OBMMIJUMBO30YF	30-Year Fixed Rate Jumbo Mortgage Index
+MORTGAGE30US	30-Year Fixed Rate Mortgage Average in the United States
+OBMMIVA30YF	30-Year Fixed Rate Veterans Affairs Mortgage Index
+DTB3	3-Month Treasury Bill Secondary Market Rate, Discount Basis
+RIFSGFSM03NA	3-Month Treasury Bill Secondary Market Rate, Discount Basis
+TB3MS	3-Month Treasury Bill Secondary Market Rate, Discount Basis
+WTB3MS	3-Month Treasury Bill Secondary Market Rate, Discount Basis
+IC4WSA	4-Week Moving Average of Initial Claims
+DTB4WK	4-Week Treasury Bill Secondary Market Rate, Discount Basis
+RIFSGFSW04NA	4-Week Treasury Bill Secondary Market Rate, Discount Basis
+TB4WK	4-Week Treasury Bill Secondary Market Rate, Discount Basis
+WTB4WK	4-Week Treasury Bill Secondary Market Rate, Discount Basis
+T5YIFR	5-Year, 5-Year Forward Inflation Expectation Rate
+T5YIFRM	5-Year, 5-Year Forward Inflation Expectation Rate
+T5YIE	5-Year Breakeven Inflation Rate
+T5YIEM	5-Year Breakeven Inflation Rate
+EXPINF5YR	5-Year Expected Inflation
+DTB6	6-Month Treasury Bill Secondary Market Rate, Discount Basis
+RIFSGFSM06NA	6-Month Treasury Bill Secondary Market Rate, Discount Basis
+TB6MS	6-Month Treasury Bill Secondary Market Rate, Discount Basis
+WTB6MS	6-Month Treasury Bill Secondary Market Rate, Discount Basis
+CPF3M	90-Day AA Financial Commercial Paper Interest Rate
+DCPF3M	90-Day AA Financial Commercial Paper Interest Rate
+RIFSPPFAAD90NA	90-Day AA Financial Commercial Paper Interest Rate
+RIFSPPFAAD90NB	90-Day AA Financial Commercial Paper Interest Rate
+WCPF3M	90-Day AA Financial Commercial Paper Interest Rate
+SOFR90DAYAVG	90-Day Average SOFR
+RRSFS	Advance Real Retail and Food Services Sales
+MARTSMPCSM44000USN	Advance Retail Sales: Retail Trade
+MARTSMPCSM44000USS	Advance Retail Sales: Retail Trade
+RSXFS	Advance Retail Sales: Retail Trade
+RSXFSN	Advance Retail Sales: Retail Trade
+MARTSMPCSM44X72USN	Advance Retail Sales: Retail Trade and Food Services
+MARTSMPCSM44X72USS	Advance Retail Sales: Retail Trade and Food Services
+RSAFS	Advance Retail Sales: Retail Trade and Food Services
+RSAFSNA	Advance Retail Sales: Retail Trade and Food Services
+CEU2000000001	All Employees, Construction
+USCONS	All Employees, Construction
+CES9091000001	All Employees, Federal
+CEU9091000001	All Employees, Federal
+CEU9000000001	All Employees, Government
+USGOVT	All Employees, Government
+CEU3000000001	All Employees, Manufacturing
+MANEMP	All Employees, Manufacturing
+TEMPHELPN	All Employees, Temporary Help Services
+TEMPHELPS	All Employees, Temporary Help Services
+PAYEMS	All Employees, Total Nonfarm
+PAYNSA	All Employees, Total Nonfarm
+CEU0500000001	All Employees, Total Private
+USPRIV	All Employees, Total Private
+ATNHPIUS12420Q	All-Transactions House Price Index for Austin-Round Rock-Georgetown, TX (MSA)
+CASTHPI	All-Transactions House Price Index for California
+FLSTHPI	All-Transactions House Price Index for Florida
+NYSTHPI	All-Transactions House Price Index for New York
+USSTHPI	All-Transactions House Price Index for the United States
+SWPT	Assets: Central Bank Liquidity Swaps: Central Bank Liquidity Swaps: Wednesday Level
+WLCFLPCL	Assets: Liquidity and Credit Facilities: Loans: Primary Credit: Wednesday Level
+WSHOMCB	Assets: Securities Held Outright: Mortgage-Backed Securities: Wednesday Level
+TREAST	Assets: Securities Held Outright: U.S. Treasury Securities: All: Wednesday Level
+WALCL	Assets: Total Assets: Total Assets (Less Eliminations from Consolidation): Wednesday Level
+RESPPANWW	Assets: Total Assets: Total Assets: Wednesday Level
+CES0500000003	Average Hourly Earnings of All Employees, Total Private
+CEU0500000003	Average Hourly Earnings of All Employees, Total Private
+AHETPI	Average Hourly Earnings of Production and Nonsupervisory Employees, Total Private
+CEU0500000008	Average Hourly Earnings of Production and Nonsupervisory Employees, Total Private
+APU0000702111	Average Price: Bread, White, Pan (Cost per Pound/453.6 Grams) in U.S. City Average
+APU0000FF1101	Average Price: Chicken Breast, Boneless (Cost per Pound/453.6 Grams) in U.S. City Average
+APU0000717311	Average Price: Coffee, 100%, Ground Roast, All Sizes (Cost per Pound/453.6 Grams) in U.S. City Average
+APU0000708111	Average Price: Eggs, Grade A, Large (Cost per Dozen) in U.S. City Average
+APU000072610	Average Price: Electricity per Kilowatt-Hour in U.S. City Average
+APU000074714	Average Price: Gasoline, Unleaded Regular (Cost per Gallon/3.785 Liters) in U.S. City Average
+APU0000703112	Average Price: Ground Beef, 100% Beef (Cost per Pound/453.6 Grams) in U.S. City Average
+APU0000709112	Average Price: Milk, Fresh, Whole, Fortified (Cost per Gallon/3.8 Liters) in U.S. City Average
+APU0000712311	Average Price: Tomatoes, Field Grown (Cost per Pound/453.6 Grams) in U.S. City Average
+ASPUS	Average Sales Price of Houses Sold for the United States
+AWHAETP	Average Weekly Hours of All Employees, Total Private
+CEU0500000002	Average Weekly Hours of All Employees, Total Private
+USAB6BLTT02STSAQ	Balance of Payments: Current Account: Balance (Revenue Minus Expenditure) for United States
+USAB6DBSE02STSAQ	Balance of Payments: Services: Expenditure for United States
+USAB6DBSE03STSAQ	Balance of Payments: Services: Expenditure for United States
+USAB6CRSE02STSAQ	Balance of Payments: Services: Revenue for United States
+USAB6CRSE03STSAQ	Balance of Payments: Services: Revenue for United States
+IEABC	Balance on current account
+IEABCA	Balance on current account
+IEABCN	Balance on current account
+BC0ACBQ158SBOG	Bank Credit, All Commercial Banks
+H8B1001NCBCAG	Bank Credit, All Commercial Banks
+H8B1001NCBCMG	Bank Credit, All Commercial Banks
+LOANINV	Bank Credit, All Commercial Banks
+LOANINVNSA	Bank Credit, All Commercial Banks
+TOTBKCR	Bank Credit, All Commercial Banks
+TOTBKCRNSA	Bank Credit, All Commercial Banks
+JPNASSETS	Bank of Japan: Total Assets for Japan
+DPRIME	Bank Prime Loan Rate
+MPRIME	Bank Prime Loan Rate
+RIFSPBLPNA	Bank Prime Loan Rate
+RIFSPBLPND	Bank Prime Loan Rate
+WPRIME	Bank Prime Loan Rate
+PRIME	Bank Prime Loan Rate Changes: Historical Dates of Changes and Rates
+AEXBZUS	Brazilian Reals to U.S. Dollar Spot Exchange Rate
+DEXBZUS	Brazilian Reals to U.S. Dollar Spot Exchange Rate
+EXBZUS	Brazilian Reals to U.S. Dollar Spot Exchange Rate
+USABNBUCT02STSAM	Business Tendency Surveys: Business Situation: Economic Activity: All ISIC Activities (Except Industry; Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles): Current for United States
+USABNEMTE02STSAM	Business Tendency Surveys: Employment: Economic Activity: All ISIC Activities (Except Industry; Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles): Tendency for United States
+USABSEMFT02STSAM	Business Tendency Surveys: Employment: Economic Activity: Manufacturing: Future Tendency for United States
+USABSEMFT02STSAQ	Business Tendency Surveys: Employment: Economic Activity: Manufacturing: Future Tendency for United States
+BSXRLV02USM086S	Business Tendency Surveys: Export Order Books or Demand: Economic Activity: Manufacturing: Current for United States
+BSCICP02USM460S	Business Tendency Surveys (Manufacturing): Confidence Indicators: Composite Indicators: National Indicator for United States
+BSCICP02USQ460S	Business Tendency Surveys (Manufacturing): Confidence Indicators: Composite Indicators: National Indicator for United States
+BSOBLV02USM460S	Business Tendency Surveys: Order Books: Economic Activity: Manufacturing: Current for United States
+USABNODTE02STSAM	Business Tendency Surveys: Order Intentions or Demand: Economic Activity: All ISIC Activities (Except Industry; Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles): Tendency for United States
+BSOITE02USM460S	Business Tendency Surveys: Orders Inflow: Economic Activity: Manufacturing: Tendency for United States
+BSPRTE02USM460S	Business Tendency Surveys: Production: Economic Activity: Manufacturing: Tendency for United States
+BSCURT02USM160S	Business Tendency Surveys: Rate of Capacity Utilisation: Economic Activity: Manufacturing: Current for United States
+BSCURT02USQ160S	Business Tendency Surveys: Rate of Capacity Utilisation: Economic Activity: Manufacturing: Current for United States
+USABNRMTE02STSAM	Business Tendency Surveys: Raw Material Stocks: Economic Activity: All ISIC Activities (Except Industry; Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles): Tendency for United States
+AEXCAUS	Canadian Dollars to U.S. Dollar Spot Exchange Rate
+DEXCAUS	Canadian Dollars to U.S. Dollar Spot Exchange Rate
+EXCAUS	Canadian Dollars to U.S. Dollar Spot Exchange Rate
+CAPUTLB50001A	Capacity Utilization: Total Index
+CAPUTLB50001SQ	Capacity Utilization: Total Index
+TCU	Capacity Utilization: Total Index
+FRGSHPUSM649NCIS	Cass Freight Index: Shipments
+OVXCLS	CBOE Crude Oil ETF Volatility Index
+GVZCLS	CBOE Gold ETF Volatility Index
+VXNCLS	CBOE NASDAQ 100 Volatility Index
+VXVCLS	CBOE S&P 500 3-Month Volatility Index
+VIXCLS	CBOE Volatility Index: VIX
+ECBASSETSW	Central Bank Assets for Euro Area (11-19 Countries)
+CORCCACBN	Charge-Off Rate on Credit Card Loans, All Commercial Banks
+CORCCACBS	Charge-Off Rate on Credit Card Loans, All Commercial Banks
+ANFCI	Chicago Fed Adjusted National Financial Conditions Index
+NFCI	Chicago Fed National Financial Conditions Index
+AEXCHUS	Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate
+DEXCHUS	Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate
+EXCHUS	Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate
+CLF16OV	Civilian Labor Force Level
+LNU01000000	Civilian Labor Force Level
+CBBTCUSD	Coinbase Bitcoin
+ACILACB	Commercial and Industrial Loans, All Commercial Banks
+BUSLOANS	Commercial and Industrial Loans, All Commercial Banks
+BUSLOANSNSA	Commercial and Industrial Loans, All Commercial Banks
+CILACBQ158SBOG	Commercial and Industrial Loans, All Commercial Banks
+H8B1023NCBCAG	Commercial and Industrial Loans, All Commercial Banks
+H8B1023NCBCMG	Commercial and Industrial Loans, All Commercial Banks
+TOTCI	Commercial and Industrial Loans, All Commercial Banks
+TOTCINSA	Commercial and Industrial Loans, All Commercial Banks
+TERMCBCCALLNS	Commercial Bank Interest Rate on Credit Card Plans, All Accounts
+COMREPUSQ159N	Commercial Real Estate Prices for United States
+USALOLITONOSTSAM	Composite Leading Indicators: Composite Leading Indicator (CLI) Normalized for United States
+USALOLITOTRSTSAM	Composite Leading Indicators: Composite Leading Indicator (CLI) Trend Restored for United States
+USALORSGPNOSTSAM	Composite Leading Indicators: Reference Series (GDP) Normalized for United States
+USALORSGPRTSTSAM	Composite Leading Indicators: Reference Series (GDP) Ratio to Trend for United States
+USALORSGPTDSTSAM	Composite Leading Indicators: Reference Series (GDP) Trend for United States
+CCLACBM027NBOG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+CCLACBM027SBOG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+CCLACBQ158SBOG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+CCLACBW027NBOG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+CCLACBW027SBOG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+H8B1247NCBCAG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+H8B1247NCBCMG	Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks
+USACSCICP02STSAM	Consumer Opinion Surveys: Composite Consumer Confidence for United States
+CSINFT02USM460S	Consumer Opinion Surveys: Consumer Prices: Future Tendency for United States
+USACSESFT02STSAM	Consumer Opinion Surveys: Economic Situation: Future Tendency for United States
+CPALCY01USM661N	Consumer Price Index: All Items: City: Total for United States
+CPALCY01USQ661N	Consumer Price Index: All Items: City: Total for United States
+CPALTT01USA657N	Consumer Price Index: All Items: Total for United States
+CPALTT01USM657N	Consumer Price Index: All Items: Total for United States
+CPALTT01USQ657N	Consumer Price Index: All Items: Total for United States
+USACPALTT01IXNBM	Consumer Price Index: All Items: Total for United States
+USACPALTT01IXNBQ	Consumer Price Index: All Items: Total for United States
+CPALWE01USM661N	Consumer Price Index: All Items: Wage Earners: Total for United States
+CPALWE01USQ661N	Consumer Price Index: All Items: Wage Earners: Total for United States
+CUSR0000SETG01	Consumer Price Index for All Urban Consumers: Airline Fares in U.S. City Average
+CUUR0000SETG01	Consumer Price Index for All Urban Consumers: Airline Fares in U.S. City Average
+CPIAUCNS	Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
+CPIAUCSL	Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
+CUUS0000SA0	Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
+CPILFENS	Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average
+CPILFESL	Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average
+CUUS0000SA0L1E	Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average
+CPIENGNS	Consumer Price Index for All Urban Consumers: Energy in U.S. City Average
+CPIENGSL	Consumer Price Index for All Urban Consumers: Energy in U.S. City Average
+CUUS0000SA0E	Consumer Price Index for All Urban Consumers: Energy in U.S. City Average
+CUSR0000SAF11	Consumer Price Index for All Urban Consumers: Food at Home in U.S. City Average
+CUUR0000SAF11	Consumer Price Index for All Urban Consumers: Food at Home in U.S. City Average
+CUUS0000SAF11	Consumer Price Index for All Urban Consumers: Food at Home in U.S. City Average
+CUSR0000SEFV	Consumer Price Index for All Urban Consumers: Food Away from Home in U.S. City Average
+CUUR0000SEFV	Consumer Price Index for All Urban Consumers: Food Away from Home in U.S. City Average
+CUUS0000SEFV	Consumer Price Index for All Urban Consumers: Food Away from Home in U.S. City Average
+CPIUFDNS	Consumer Price Index for All Urban Consumers: Food in U.S. City Average
+CPIUFDSL	Consumer Price Index for All Urban Consumers: Food in U.S. City Average
+CUUS0000SAF1	Consumer Price Index for All Urban Consumers: Food in U.S. City Average
+CUSR0000SETB01	Consumer Price Index for All Urban Consumers: Gasoline (All Types) in U.S. City Average
+CUUR0000SETB01	Consumer Price Index for All Urban Consumers: Gasoline (All Types) in U.S. City Average
+CUUS0000SETB01	Consumer Price Index for All Urban Consumers: Gasoline (All Types) in U.S. City Average
+CPIMEDNS	Consumer Price Index for All Urban Consumers: Medical Care in U.S. City Average
+CPIMEDSL	Consumer Price Index for All Urban Consumers: Medical Care in U.S. City Average
+CUUS0000SAM	Consumer Price Index for All Urban Consumers: Medical Care in U.S. City Average
+CUSR0000SETD	Consumer Price Index for All Urban Consumers: Motor Vehicle Maintenance and Repair in U.S. City Average
+CUUR0000SETD	Consumer Price Index for All Urban Consumers: Motor Vehicle Maintenance and Repair in U.S. City Average
+CUUS0000SETD	Consumer Price Index for All Urban Consumers: Motor Vehicle Maintenance and Repair in U.S. City Average
+CUSR0000SETA01	Consumer Price Index for All Urban Consumers: New Vehicles in U.S. City Average
+CUUR0000SETA01	Consumer Price Index for All Urban Consumers: New Vehicles in U.S. City Average
+CUUS0000SETA01	Consumer Price Index for All Urban Consumers: New Vehicles in U.S. City Average
+CUUR0000SA0R	Consumer Price Index for All Urban Consumers: Purchasing Power of the Consumer Dollar in U.S. City Average
+CUSR0000SEHA	Consumer Price Index for All Urban Consumers: Rent of Primary Residence in U.S. City Average
+CUUR0000SEHA	Consumer Price Index for All Urban Consumers: Rent of Primary Residence in U.S. City Average
+CUUS0000SEHA	Consumer Price Index for All Urban Consumers: Rent of Primary Residence in U.S. City Average
+CUSR0000SAH1	Consumer Price Index for All Urban Consumers: Shelter in U.S. City Average
+CUUR0000SAH1	Consumer Price Index for All Urban Consumers: Shelter in U.S. City Average
+CUUS0000SAH1	Consumer Price Index for All Urban Consumers: Shelter in U.S. City Average
+CUSR0000SEEB	Consumer Price Index for All Urban Consumers: Tuition, Other School Fees, and Childcare in U.S. City Average
+CUUR0000SEEB	Consumer Price Index for All Urban Consumers: Tuition, Other School Fees, and Childcare in U.S. City Average
+CUSR0000SETA02	Consumer Price Index for All Urban Consumers: Used Cars and Trucks in U.S. City Average
+CUUR0000SETA02	Consumer Price Index for All Urban Consumers: Used Cars and Trucks in U.S. City Average
+CUUS0000SETA02	Consumer Price Index for All Urban Consumers: Used Cars and Trucks in U.S. City Average
+CWSR0000SA0	Consumer Price Index for All Urban Wage Earners and Clerical Workers: All Items in U.S. City Average
+CWUR0000SA0	Consumer Price Index for All Urban Wage Earners and Clerical Workers: All Items in U.S. City Average
+USACP040100IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Actual Rentals for Housing for United States
+USACP040100IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Actual Rentals for Housing for United States
+USACP020000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Alcoholic Beverages, Tobacco and Narcotics for United States
+USACP020000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Alcoholic Beverages, Tobacco and Narcotics for United States
+USACPHP0200IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Alcoholic Beverages, Tobacco and Narcotics for United States
+USACPGRLE01IXOBSAM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: All Items Non-Food Non-Energy for United States
+USACPGRLE01IXOBSAQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: All Items Non-Food Non-Energy for United States
+USACPICORMINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: All Items Non-Food Non-Energy for United States
+USACPICORQINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: All Items Non-Food Non-Energy for United States
+USACP030000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Clothing and Footwear for United States
+USACP030000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Clothing and Footwear for United States
+USACPHP0300IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Clothing and Footwear for United States
+USACP080000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Communication for United States
+USACP080000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Communication for United States
+USACPHP0800IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Communication for United States
+USACP100000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Education for United States
+USACP100000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Education for United States
+USACPHP1000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Education for United States
+USACP040500IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Electricity, Gas and Other Fuels for United States
+USACP040500IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Electricity, Gas and Other Fuels for United States
+USACPIENGMINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Energy for United States
+USACPIENGQINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Energy for United States
+USACP010000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Food and Non-Alcoholic Beverages for United States
+USACP010000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Food and Non-Alcoholic Beverages for United States
+USACPHP0100IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Food and Non-Alcoholic Beverages for United States
+USACP070200GYM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Fuels and Lubricants for Personal Transport Equipment for United States
+USACP070200GYQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Fuels and Lubricants for Personal Transport Equipment for United States
+USACP050000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Furnishings, Household Equipment and Routine Household Maintenance for United States
+USACP050000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Furnishings, Household Equipment and Routine Household Maintenance for United States
+USACPHP0500IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Furnishings, Household Equipment and Routine Household Maintenance for United States
+USACPGRGO01IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Goods for United States
+USACPGRGO01IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Goods for United States
+USACP060000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Health for United States
+USACP060000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Health for United States
+USACPHP0600IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Health for United States
+USACPGRHO01IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Housing for United States
+USACPGRHO01IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Housing for United States
+USACP040000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Housing, Water, Electricity, Gas and Other Fuels for United States
+USACP040000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Housing, Water, Electricity, Gas and Other Fuels for United States
+USACPHP0400IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Housing, Water, Electricity, Gas and Other Fuels for United States
+USACP040200IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Imputed Rentals for Housing for United States
+USACP040200IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Imputed Rentals for Housing for United States
+USACP040300IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Maintenance and Repair of the Dwelling for United States
+USACP040300IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Maintenance and Repair of the Dwelling for United States
+USACP120000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Miscellaneous Goods and Services for United States
+USACP120000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Miscellaneous Goods and Services for United States
+USACPHP1200IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Miscellaneous Goods and Services for United States
+USACP090000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Recreation and Culture for United States
+USACP090000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Recreation and Culture for United States
+USACPHP0900IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Recreation and Culture for United States
+USACP110000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Restaurants and Hotels for United States
+USACP110000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Restaurants and Hotels for United States
+USACPHP1100IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Restaurants and Hotels for United States
+USACPGRSE01IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Services for United States
+USACPGRSE01IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Services for United States
+USACPGRLH01IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Services Less Housing for United States
+USACPGRLH01IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Services Less Housing for United States
+CHNCPIALLAINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CHNCPIALLMINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CHNCPIALLQINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CPALTT01CNA659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CPALTT01CNM659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CPALTT01CNQ659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China
+CPALTT01USA659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPALTT01USA661S	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPALTT01USM659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPALTT01USM661S	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPALTT01USQ659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPALTT01USQ661S	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPHPTT01USA659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+CPHPTT01USM659N	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPALTT01CTGYM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPIALLAINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPIALLMINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPIALLQINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPIHICAINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACPIHICMINMEI	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United States
+USACP070000IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Transport for United States
+USACP070000IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Transport for United States
+USACPHP0700IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Transport for United States
+USACP040400IXOBM	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Water Supply and Miscellaneous Services Relating to the Dwelling for United States
+USACP040400IXOBQ	Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Water Supply and Miscellaneous Services Relating to the Dwelling for United States
+CCNSA	Continued Claims (Insured Unemployment)
+CCSA	Continued Claims (Insured Unemployment)
+CP	Corporate Profits After Tax (without IVA and CCAdj)
+SPDYNCBRTINUSA	Crude Birth Rate for the United States
+ACOILBRENTEU	Crude Oil Prices: Brent - Europe
+DCOILBRENTEU	Crude Oil Prices: Brent - Europe
+MCOILBRENTEU	Crude Oil Prices: Brent - Europe
+WCOILBRENTEU	Crude Oil Prices: Brent - Europe
+ACOILWTICO	Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma
+DCOILWTICO	Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma
+MCOILWTICO	Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma
+WCOILWTICO	Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma
+CCEUSP01USM651N	Currency Conversions: EURO Exchange Rate: Spot, End of Period: EUR: National Currency for United States
+CCEUSP01USQ651N	Currency Conversions: EURO Exchange Rate: Spot, End of Period: EUR: National Currency for United States
+CURRCIR	Currency in Circulation (DISCONTINUED)
+IUDSOIA	Daily Sterling Overnight Index Average (SONIA) Rate
+JHDUSRGDPBR	Dates of U.S. recessions as inferred by GDP-based recession indicator
+DRALACBN	Delinquency Rate on All Loans, All Commercial Banks
+DRALACBS	Delinquency Rate on All Loans, All Commercial Banks
+DRBLACBN	Delinquency Rate on Business Loans, All Commercial Banks
+DRBLACBS	Delinquency Rate on Business Loans, All Commercial Banks
+DRCRELEXFACBN	Delinquency Rate on Commercial Real Estate Loans (Excluding Farmland), Booked in Domestic Offices, All Commercial Banks
+DRCRELEXFACBS	Delinquency Rate on Commercial Real Estate Loans (Excluding Farmland), Booked in Domestic Offices, All Commercial Banks
+DRCLACBN	Delinquency Rate on Consumer Loans, All Commercial Banks
+DRCLACBS	Delinquency Rate on Consumer Loans, All Commercial Banks
+DRCCLACBN	Delinquency Rate on Credit Card Loans, All Commercial Banks
+DRCCLACBS	Delinquency Rate on Credit Card Loans, All Commercial Banks
+DRSFRMACBN	Delinquency Rate on Single-Family Residential Mortgages, Booked in Domestic Offices, All Commercial Banks
+DRSFRMACBS	Delinquency Rate on Single-Family Residential Mortgages, Booked in Domestic Offices, All Commercial Banks
+DPSACBM027NBOG	Deposits, All Commercial Banks
+DPSACBM027SBOG	Deposits, All Commercial Banks
+DPSACBQ158SBOG	Deposits, All Commercial Banks
+DPSACBW027NBOG	Deposits, All Commercial Banks
+DPSACBW027SBOG	Deposits, All Commercial Banks
+H8B1058NCBCAG	Deposits, All Commercial Banks
+H8B1058NCBCMG	Deposits, All Commercial Banks
+DPCREDIT	Discount Window Primary Credit Rate
+MPCREDIT	Discount Window Primary Credit Rate
+RIFSRPF02NA	Discount Window Primary Credit Rate
+RIFSRPF02ND	Discount Window Primary Credit Rate
+WPCREDIT	Discount Window Primary Credit Rate
+A067RC1A027NBEA	Disposable personal income
+A067RP1A027NBEA	Disposable Personal Income
+A067RP1Q027SBEA	Disposable Personal Income
+DPI	Disposable Personal Income
+DSPI	Disposable Personal Income
+DAUPNSA	Domestic Auto Production
+DAUPSA	Domestic Auto Production
+DJIA	Dow Jones Industrial Average
+ECBDFR	ECB Deposit Facility Rate for Euro Area
+ECOMNSA	E-Commerce Retail Sales
+ECOMSA	E-Commerce Retail Sales
+ECOMPCTNSA	E-Commerce Retail Sales as a Percent of Total Sales
+ECOMPCTSA	E-Commerce Retail Sales as a Percent of Total Sales
+USEPUINDXD	Economic Policy Uncertainty Index for United States
+USEPUINDXM	Economic Policy Uncertainty Index for United States
+EFFR	Effective Federal Funds Rate
+LES1252881500Q	Employed full time: Median usual weekly nominal earnings (second quartile): Wage and salary workers: 16 years and over
+LEU0252881500A	Employed full time: Median usual weekly nominal earnings (second quartile): Wage and salary workers: 16 years and over
+LEU0252881500Q	Employed full time: Median usual weekly nominal earnings (second quartile): Wage and salary workers: 16 years and over
+LES1252881600Q	Employed full time: Median usual weekly real earnings: Wage and salary workers: 16 years and over
+LEU0252881600A	Employed full time: Median usual weekly real earnings: Wage and salary workers: 16 years and over
+LEU0252881600Q	Employed full time: Median usual weekly real earnings: Wage and salary workers: 16 years and over
+ECIWAG	Employment Cost Index: Wages and Salaries: Private Industry Workers
+CE16OV	Employment Level
+LNU02000000	Employment Level
+EMRATIO	Employment-Population Ratio
+LNU02300000	Employment-Population Ratio
+LNS12300060	Employment-Population Ratio - 25-54 Yrs.
+EXHOSLUSM495N	Existing Home Sales
+EXHOSLUSM495S	Existing Home Sales
+HOSINVUSM495N	Existing Home Sales: Housing Inventory
+IEAXGS	Exports of goods and services
+IEAXGSA	Exports of goods and services
+IEAXGSN	Exports of goods and services
+EXPGS	Exports of Goods and Services
+EXPGSA	Exports of Goods and Services
+NA000352Q	Exports of Goods and Services
+NC000352Q	Exports of Goods and Services
+FDHBFIN	Federal Debt Held by Foreign and International Investors
+FYGFGDQ188S	Federal Debt Held by the Public as Percent of Gross Domestic Product
+GFDEBTN	Federal Debt: Total Public Debt
+GFDEGDQ188S	Federal Debt: Total Public Debt as Percent of Gross Domestic Product
+DFF	Federal Funds Effective Rate
+FEDFUNDS	Federal Funds Effective Rate
+FF	Federal Funds Effective Rate
+RIFSPFFNA	Federal Funds Effective Rate
+RIFSPFFNB	Federal Funds Effective Rate
+RIFSPFFNBWAW	Federal Funds Effective Rate
+DFEDTARL	Federal Funds Target Range - Lower Limit
+DFEDTARU	Federal Funds Target Range - Upper Limit
+FGEXPND	Federal Government: Current Expenditures
+NA000283Q	Federal Government: Current Expenditures
+A091RC1Q027SBEA	Federal government current expenditures: Interest payments
+NA000308Q	Federal government current expenditures: Interest payments
+NA000327Q	Federal government current tax receipts
+W006RC1A027NBEA	Federal government current tax receipts
+W006RC1Q027SBEA	Federal government current tax receipts
+FYONGDA188S	Federal Net Outlays as Percent of Gross Domestic Product
+FYOIGDA188S	Federal Outlays: Interest as Percent of Gross Domestic Product
+FYFRGDA188S	Federal Receipts as Percent of Gross Domestic Product
+FYFSD	Federal Surplus or Deficit [-]
+MTSDS133FMS	Federal Surplus or Deficit [-]
+FYFSDFYGDP	Federal Surplus or Deficit [-] as Percent of Gross Domestic Product
+FYFSGDA188S	Federal Surplus or Deficit [-] as Percent of Gross Domestic Product
+CCRETT01USM661N	Financial Market: Real Effective Exchange Rates: CPI Based for United States
+CCRETT01USQ661N	Financial Market: Real Effective Exchange Rates: CPI Based for United States
+CCRETT02USQ661N	Financial Market: Real Effective Exchange Rates: Unit Labor Costs Based for United States
+SPASTT01USQ661N	Financial Market: Share Prices for United States
+FEDTARMD	FOMC Summary of Economic Projections for the Fed Funds Rate, Median
+TSIFRGHT	Freight Transportation Services Index
+TSIFRGHTC	Freight Transportation Services Index
+GDPNOW	GDPNow
+SIPOVGINIUSA	GINI Index for the United States
+GEPUCURRENT	Global Economic Policy Uncertainty Index: Current Price Adjusted GDP
+PALLFNFINDEXA	Global Price Index of All Commodities
+PALLFNFINDEXM	Global Price Index of All Commodities
+PALLFNFINDEXQ	Global Price Index of All Commodities
+PALUMUSDA	Global price of Aluminum
+PALUMUSDM	Global price of Aluminum
+PALUMUSDQ	Global price of Aluminum
+POILBREUSDA	Global price of Brent Crude
+POILBREUSDM	Global price of Brent Crude
+POILBREUSDQ	Global price of Brent Crude
+PCOCOUSDA	Global price of Cocoa
+PCOCOUSDM	Global price of Cocoa
+PCOCOUSDQ	Global price of Cocoa
+PCOFFOTMUSDA	Global price of Coffee, Other Mild Arabica
+PCOFFOTMUSDM	Global price of Coffee, Other Mild Arabica
+PCOFFOTMUSDQ	Global price of Coffee, Other Mild Arabica
+PCOPPUSDA	Global price of Copper
+PCOPPUSDM	Global price of Copper
+PCOPPUSDQ	Global price of Copper
+PMAIZMTUSDA	Global price of Corn
+PMAIZMTUSDM	Global price of Corn
+PMAIZMTUSDQ	Global price of Corn
+PNRGINDEXA	Global price of Energy index
+PNRGINDEXM	Global price of Energy index
+PNRGINDEXQ	Global price of Energy index
+PFISHUSDA	Global price of Fish Meal
+PFISHUSDM	Global price of Fish Meal
+PFISHUSDQ	Global price of Fish Meal
+PIORECRUSDA	Global price of Iron Ore
+PIORECRUSDM	Global price of Iron Ore
+PIORECRUSDQ	Global price of Iron Ore
+PNGASJPUSDA	Global price of LNG, Asia
+PNGASJPUSDM	Global price of LNG, Asia
+PNGASJPUSDQ	Global price of LNG, Asia
+PNGASEUUSDA	Global price of Natural gas, EU
+PNGASEUUSDM	Global price of Natural gas, EU
+PNGASEUUSDQ	Global price of Natural gas, EU
+PNICKUSDA	Global price of Nickel
+PNICKUSDM	Global price of Nickel
+PNICKUSDQ	Global price of Nickel
+POLVOILUSDA	Global price of Olive Oil
+POLVOILUSDM	Global price of Olive Oil
+POLVOILUSDQ	Global price of Olive Oil
+PPOILUSDA	Global price of Palm Oil
+PPOILUSDM	Global price of Palm Oil
+PPOILUSDQ	Global price of Palm Oil
+PURANUSDA	Global price of Uranium
+PURANUSDM	Global price of Uranium
+PURANUSDQ	Global price of Uranium
+PWHEAMTUSDA	Global price of Wheat
+PWHEAMTUSDM	Global price of Wheat
+PWHEAMTUSDQ	Global price of Wheat
+POILWTIUSDA	Global price of WTI Crude
+POILWTIUSDM	Global price of WTI Crude
+POILWTIUSDQ	Global price of WTI Crude
+A191RP1A027NBEA	Gross Domestic Product
+A191RP1Q027SBEA	Gross Domestic Product
+FYGDP	Gross Domestic Product
+GDP	Gross Domestic Product
+GDPA	Gross Domestic Product
+NA000334Q	Gross Domestic Product
+NC000334Q	Gross Domestic Product
+MKTGDPCNA646NWDB	Gross Domestic Product for China
+JPNNGDP	Gross Domestic Product for Japan
+MKTGDPJPA646NWDB	Gross Domestic Product for Japan
+A191RI1A225NBEA	Gross Domestic Product: Implicit Price Deflator
+A191RI1Q225SBEA	Gross Domestic Product: Implicit Price Deflator
+GDPDEF	Gross Domestic Product: Implicit Price Deflator
+A939RC0A052NBEA	Gross domestic product per capita
+A939RC0Q052SBEA	Gross domestic product per capita
+GFDGDPA188S	Gross Federal Debt as Percent of Gross Domestic Product
+GPDI	Gross Private Domestic Investment
+GPDIA	Gross Private Domestic Investment
+NA000335Q	Gross Private Domestic Investment
+NC000335Q	Gross Private Domestic Investment
+CP0000EZ19M086NEST	Harmonized Index of Consumer Prices: Total for Euro Area (19 Countries)
+AHHNGSP	Henry Hub Natural Gas Spot Price
+DHHNGSP	Henry Hub Natural Gas Spot Price
+MHHNGSP	Henry Hub Natural Gas Spot Price
+WHHNGSP	Henry Hub Natural Gas Spot Price
+JTSHIL	Hires: Total Nonfarm
+JTSHIR	Hires: Total Nonfarm
+JTUHIL	Hires: Total Nonfarm
+JTUHIR	Hires: Total Nonfarm
+RHORUSQ156N	Homeownership Rate in the United States
+RSAHORUSQ156S	Homeownership Rate in the United States
+HOHWMN02USM065N	Hours: Hours Worked: Manufacturing: Weekly for United States
+HOHWMN02USM065S	Hours: Hours Worked: Manufacturing: Weekly for United States
+HOOVMN02USM065N	Hours: Overtime Hours: Manufacturing: Weekly for United States
+HOOVMN02USM065S	Hours: Overtime Hours: Manufacturing: Weekly for United States
+TDSP	Household Debt Service Payments as a Percent of Disposable Personal Income
+HDTGPDUSQ163N	Household Debt to GDP for United States
+BOGZ1FL153064486A	Households and Nonprofit Organizations; Directly and Indirectly Held Corporate Equities as a Percentage of Financial Assets; Assets, Level
+BOGZ1FL153064486Q	Households and Nonprofit Organizations; Directly and Indirectly Held Corporate Equities as a Percentage of Financial Assets; Assets, Level
+BOGZ1FL192090005A	Households; Net Worth, Level
+BOGZ1FL192090005Q	Households; Net Worth, Level
+BOGZ1FL155035065A	Households; Owners' Equity in Real Estate, Level
+OEHRENWBSHNO	Households; Owners' Equity in Real Estate, Level
+FIXHAI	Housing Affordability Index (Fixed)
+ACTLISCOUFL	Housing Inventory: Active Listing Count in Florida
+ACTLISCOUUS	Housing Inventory: Active Listing Count in the United States
+ETOTALUSQ176N	Housing Inventory Estimate: Total Housing Units in the United States
+MEDDAYONMARUS	Housing Inventory: Median Days on Market in the United States
+BAMLC0A1CAAAEY	ICE BofA AAA US Corporate Index Effective Yield
+BAMLC0A1CAAA	ICE BofA AAA US Corporate Index Option-Adjusted Spread
+BAMLC0A2CAAEY	ICE BofA AA US Corporate Index Effective Yield
+BAMLC0A2CAA	ICE BofA AA US Corporate Index Option-Adjusted Spread
+BAMLC0A4CBBBEY	ICE BofA BBB US Corporate Index Effective Yield
+BAMLC0A4CBBB	ICE BofA BBB US Corporate Index Option-Adjusted Spread
+BAMLH0A1HYBBEY	ICE BofA BB US High Yield Index Effective Yield
+BAMLH0A1HYBB	ICE BofA BB US High Yield Index Option-Adjusted Spread
+BAMLH0A3HYCEY	ICE BofA CCC & Lower US High Yield Index Effective Yield
+BAMLH0A3HYC	ICE BofA CCC & Lower US High Yield Index Option-Adjusted Spread
+BAMLEMCBPIOAS	ICE BofA Emerging Markets Corporate Plus Index Option-Adjusted Spread
+BAMLHE00EHYIEY	ICE BofA Euro High Yield Index Effective Yield
+BAMLHE00EHYIOAS	ICE BofA Euro High Yield Index Option-Adjusted Spread
+BAMLC0A3CAEY	ICE BofA Single-A US Corporate Index Effective Yield
+BAMLC0A3CA	ICE BofA Single-A US Corporate Index Option-Adjusted Spread
+BAMLH0A2HYBEY	ICE BofA Single-B US High Yield Index Effective Yield
+BAMLH0A2HYB	ICE BofA Single-B US High Yield Index Option-Adjusted Spread
+BAMLC0A0CMEY	ICE BofA US Corporate Index Effective Yield
+BAMLC0A0CM	ICE BofA US Corporate Index Option-Adjusted Spread
+BAMLCC0A0CMTRIV	ICE BofA US Corporate Index Total Return Index Value
+BAMLH0A0HYM2EY	ICE BofA US High Yield Index Effective Yield
+BAMLH0A0HYM2	ICE BofA US High Yield Index Option-Adjusted Spread
+BAMLHYH0A0HYM2TRIV	ICE BofA US High Yield Index Total Return Index Value
+IR	Import Price Index (End Use): All Commodities
+IEAMGS	Imports of goods and services
+IEAMGSA	Imports of goods and services
+IEAMGSN	Imports of goods and services
+IMPGS	Imports of Goods and Services
+IMPGSA	Imports of Goods and Services
+NA000342Q	Imports of Goods and Services
+NC000342Q	Imports of Goods and Services
+AEXINUS	Indian Rupees to U.S. Dollar Spot Exchange Rate
+DEXINUS	Indian Rupees to U.S. Dollar Spot Exchange Rate
+EXINUS	Indian Rupees to U.S. Dollar Spot Exchange Rate
+IPGMFA	Industrial Production: Manufacturing (NAICS)
+IPGMFN	Industrial Production: Manufacturing (NAICS)
+IPGMFNQ	Industrial Production: Manufacturing (NAICS)
+IPGMFSQ	Industrial Production: Manufacturing (NAICS)
+IPMAN	Industrial Production: Manufacturing (NAICS)
+INDPRO	Industrial Production: Total Index
+IPB50001A	Industrial Production: Total Index
+IPB50001N	Industrial Production: Total Index
+IPB50001NQ	Industrial Production: Total Index
+IPB50001SQ	Industrial Production: Total Index
+FPCPITOTLZGUSA	Inflation, consumer prices for the United States
+LREMTTFEUSM156N	Infra-Annual Labor Statistics: Employment Rate Female: 15 Years or over for United States
+LREMTTFEUSM156S	Infra-Annual Labor Statistics: Employment Rate Female: 15 Years or over for United States
+LREMTTFEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: 15 Years or over for United States
+LREM24FEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 24 Years for United States
+LREM64FEUSM156N	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 64 Years for United States
+LREM64FEUSM156S	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 64 Years for United States
+LREM64FEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 64 Years for United States
+LREM74FEUSM156N	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 74 Years for United States
+LREM74FEUSM156S	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 74 Years for United States
+LREM74FEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: From 15 to 74 Years for United States
+LREM25FEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: From 25 to 54 Years for United States
+LREM55FEUSQ156N	Infra-Annual Labor Statistics: Employment Rate Female: From 55 to 64 Years for United States
+LREMTTMAUSM156N	Infra-Annual Labor Statistics: Employment Rate Male: 15 Years or over for United States
+LREMTTMAUSM156S	Infra-Annual Labor Statistics: Employment Rate Male: 15 Years or over for United States
+LREMTTMAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: 15 Years or over for United States
+LREM24MAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 24 Years for United States
+LREM64MAUSM156N	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 64 Years for United States
+LREM64MAUSM156S	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 64 Years for United States
+LREM64MAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 64 Years for United States
+LREM74MAUSM156N	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 74 Years for United States
+LREM74MAUSM156S	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 74 Years for United States
+LREM74MAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: From 15 to 74 Years for United States
+LREM25MAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: From 25 to 54 Years for United States
+LREM55MAUSQ156N	Infra-Annual Labor Statistics: Employment Rate Male: From 55 to 64 Years for United States
+LREMTTTTUSM156N	Infra-Annual Labor Statistics: Employment Rate Total: 15 Years or over for United States
+LREMTTTTUSM156S	Infra-Annual Labor Statistics: Employment Rate Total: 15 Years or over for United States
+LREMTTTTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: 15 Years or over for United States
+LREM24TTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 24 Years for United States
+LREM64TTUSM156N	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 64 Years for United States
+LREM64TTUSM156S	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 64 Years for United States
+LREM64TTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 64 Years for United States
+LREM74TTUSM156N	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 74 Years for United States
+LREM74TTUSM156S	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 74 Years for United States
+LREM74TTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: From 15 to 74 Years for United States
+LREM25TTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: From 25 to 54 Years for United States
+LREM55TTUSM156N	Infra-Annual Labor Statistics: Employment Rate Total: From 55 to 64 Years for United States
+LREM55TTUSQ156N	Infra-Annual Labor Statistics: Employment Rate Total: From 55 to 64 Years for United States
+LRINTTFEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: 15 Years or over for United States
+LRIN24FEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: From 15 to 24 Years for United States
+LRIN64FEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: From 15 to 64 Years for United States
+LRIN74FEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: From 15 to 74 Years for United States
+LRIN25FEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: From 25 to 54 Years for United States
+LRIN55FEUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Female: From 55 to 64 Years for United States
+LRINTTMAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: 15 Years or over for United States
+LRIN24MAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: From 15 to 24 Years for United States
+LRIN64MAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: From 15 to 64 Years for United States
+LRIN74MAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: From 15 to 74 Years for United States
+LRIN25MAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: From 25 to 54 Years for United States
+LRIN55MAUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Male: From 55 to 64 Years for United States
+LRINTTTTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: 15 Years or over for United States
+LRIN24TTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: From 15 to 24 Years for United States
+LRIN64TTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: From 15 to 64 Years for United States
+LRIN74TTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: From 15 to 74 Years for United States
+LRIN25TTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: From 25 to 54 Years for United States
+LRIN55TTUSM156S	Infra-Annual Labor Statistics: Inactivity Rate Total: From 55 to 64 Years for United States
+LRACTTFEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: 15 Years or over for United States
+LRAC24FEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: From 15 to 24 Years for United States
+LRAC64FEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: From 15 to 64 Years for United States
+LRAC74FEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: From 15 to 74 Years for United States
+LRAC25FEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: From 25 to 54 Years for United States
+LRAC55FEUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Female: From 55 to 64 Years for United States
+LRACTTMAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: 15 Years or over for United States
+LRAC24MAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: From 15 to 24 Years for United States
+LRAC64MAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: From 15 to 64 Years for United States
+LRAC74MAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: From 15 to 74 Years for United States
+LRAC25MAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: From 25 to 54 Years for United States
+LRAC55MAUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Male: From 55 to 64 Years for United States
+LRACTTTTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: 15 Years or over for United States
+LRAC24TTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: From 15 to 24 Years for United States
+LRAC64TTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: From 15 to 64 Years for United States
+LRAC74TTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: From 15 to 74 Years for United States
+LRAC25TTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: From 25 to 54 Years for United States
+LRAC55TTUSQ156N	Infra-Annual Labor Statistics: Labor Force Participation Rate Total: From 55 to 64 Years for United States
+LRHUTTFEUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 15 Years or over for United States
+LRHUTTFEUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 15 Years or over for United States
+LRHUTTFEUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 15 Years or over for United States
+LRHUADFEUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 25 Years or over for United States
+LRHUADFEUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 25 Years or over for United States
+LRHUADFEUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: 25 Years or over for United States
+LRHU24FEUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: From 15 to 24 Years for United States
+LRHU24FEUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: From 15 to 24 Years for United States
+LRHU24FEUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Female: From 15 to 24 Years for United States
+LRHUTTMAUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 15 Years or over for United States
+LRHUTTMAUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 15 Years or over for United States
+LRHUTTMAUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 15 Years or over for United States
+LRHUADMAUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 25 Years or over for United States
+LRHUADMAUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 25 Years or over for United States
+LRHUADMAUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: 25 Years or over for United States
+LRHU24MAUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: From 15 to 24 Years for United States
+LRHU24MAUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: From 15 to 24 Years for United States
+LRHU24MAUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Male: From 15 to 24 Years for United States
+LRHUTTTTUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 15 Years or over for United States
+LRHUTTTTUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 15 Years or over for United States
+LRHUTTTTUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 15 Years or over for United States
+LRHUADTTUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 25 Years or over for United States
+LRHUADTTUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 25 Years or over for United States
+LRHUADTTUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 25 Years or over for United States
+LRHU24TTUSM156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: From 15 to 24 Years for United States
+LRHU24TTUSM156S	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: From 15 to 24 Years for United States
+LRHU24TTUSQ156N	Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: From 15 to 24 Years for United States
+LRUNTTFEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: 15 Years or over for United States
+LRUNTTFEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: 15 Years or over for United States
+LRUNTTFEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: 15 Years or over for United States
+LRUN24FEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 24 Years for United States
+LRUN24FEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 24 Years for United States
+LRUN24FEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 24 Years for United States
+LRUN64FEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 64 Years for United States
+LRUN64FEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 64 Years for United States
+LRUN64FEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 64 Years for United States
+LRUN74FEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 74 Years for United States
+LRUN74FEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 74 Years for United States
+LRUN74FEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 15 to 74 Years for United States
+LRUN25FEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 25 to 54 Years for United States
+LRUN25FEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: From 25 to 54 Years for United States
+LRUN25FEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 25 to 54 Years for United States
+LRUN55FEUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 55 to 64 Years for United States
+LRUN55FEUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Female: From 55 to 64 Years for United States
+LRUN55FEUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Female: From 55 to 64 Years for United States
+LRUNTTMAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: 15 Years or over for United States
+LRUNTTMAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: 15 Years or over for United States
+LRUNTTMAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: 15 Years or over for United States
+LRUN24MAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 24 Years for United States
+LRUN24MAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 24 Years for United States
+LRUN24MAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 24 Years for United States
+LRUN64MAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 64 Years for United States
+LRUN64MAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 64 Years for United States
+LRUN64MAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 64 Years for United States
+LRUN74MAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 74 Years for United States
+LRUN74MAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 74 Years for United States
+LRUN74MAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 15 to 74 Years for United States
+LRUN25MAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 25 to 54 Years for United States
+LRUN25MAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: From 25 to 54 Years for United States
+LRUN25MAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 25 to 54 Years for United States
+LRUN55MAUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 55 to 64 Years for United States
+LRUN55MAUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Male: From 55 to 64 Years for United States
+LRUN55MAUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Male: From 55 to 64 Years for United States
+LRUNTTTTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: 15 Years or over for United States
+LRUNTTTTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: 15 Years or over for United States
+LRUNTTTTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: 15 Years or over for United States
+LRUN24TTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 24 Years for United States
+LRUN24TTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 24 Years for United States
+LRUN24TTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 24 Years for United States
+LRUN64TTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 64 Years for United States
+LRUN64TTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 64 Years for United States
+LRUN64TTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 64 Years for United States
+LRUN74TTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 74 Years for United States
+LRUN74TTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 74 Years for United States
+LRUN74TTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 15 to 74 Years for United States
+LRUN25TTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 25 to 54 Years for United States
+LRUN25TTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: From 25 to 54 Years for United States
+LRUN25TTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 25 to 54 Years for United States
+LRUN55TTUSM156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 55 to 64 Years for United States
+LRUN55TTUSM156S	Infra-Annual Labor Statistics: Unemployment Rate Total: From 55 to 64 Years for United States
+LRUN55TTUSQ156N	Infra-Annual Labor Statistics: Unemployment Rate Total: From 55 to 64 Years for United States
+ICNSA	Initial Claims
+ICSA	Initial Claims
+IORB	Interest Rate on Reserve Balances (IORB Rate)
+IR3TCD01USM156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Certificates of Deposit: Total for United States
+IR3TCD01USQ156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Certificates of Deposit: Total for United States
+IR3TED01USM156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Eurodollar Deposits: Total for United States
+IR3TED01USQ156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Eurodollar Deposits: Total for United States
+IR3TIB01USM156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Interbank Rates: Total for United States
+IR3TIB01USQ156N	Interest Rates: 3-Month or 90-Day Rates and Yields: Interbank Rates: Total for United States
+IRSTCI01USM156N	Interest Rates: Immediate Rates (< 24 Hours): Call Money/Interbank Rate: Total for United States
+IRSTCI01USQ156N	Interest Rates: Immediate Rates (< 24 Hours): Call Money/Interbank Rate: Total for United States
+IRSTFR01USM156N	Interest Rates: Immediate Rates (< 24 Hours): Federal Funds Rate: Total for United States
+IRSTFR01USQ156N	Interest Rates: Immediate Rates (< 24 Hours): Federal Funds Rate: Total for United States
+IRSTPI01USM156N	Interest Rates: Immediate Rates (< 24 Hours): Prime Rates: Total for United States
+IRSTPI01USQ156N	Interest Rates: Immediate Rates (< 24 Hours): Prime Rates: Total for United States
+IRLTLT01DEA156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Germany
+IRLTLT01DEM156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Germany
+IRLTLT01DEQ156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Germany
+IRLTLT01JPA156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Japan
+IRLTLT01JPM156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Japan
+IRLTLT01JPQ156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for Japan
+IRLTLT01GBA156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United Kingdom
+IRLTLT01GBM156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United Kingdom
+IRLTLT01GBQ156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United Kingdom
+IRLTLT01USA156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United States
+IRLTLT01USM156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United States
+IRLTLT01USQ156N	Interest Rates: Long-Term Government Bond Yields: 10-Year: Main (Including Benchmark) for United States
+IRLTCT01USM156N	Interest Rates: Long-Term Government Bond Yields: Combined Terms: Total for United States
+IRLTCT01USQ156N	Interest Rates: Long-Term Government Bond Yields: Combined Terms: Total for United States
+XTEXVA01USQ188S	International Trade: Exports: Value (Goods): Total for United States
+XTIMVA01USQ188S	International Trade: Imports: Value (Goods): Total for United States
+USAXTNTVA01STSAQ	International Trade: Net Trade: Value (Goods): Total for United States
+AEXJPUS	Japanese Yen to U.S. Dollar Spot Exchange Rate
+DEXJPUS	Japanese Yen to U.S. Dollar Spot Exchange Rate
+EXJPUS	Japanese Yen to U.S. Dollar Spot Exchange Rate
+JTSJOL	Job Openings: Total Nonfarm
+JTSJOR	Job Openings: Total Nonfarm
+JTUJOL	Job Openings: Total Nonfarm
+JTUJOR	Job Openings: Total Nonfarm
+IHLIDXDE	Job Postings on Indeed in Germany
+IHLIDXNSADE	Job Postings on Indeed in Germany
+IHLIDXNSAUS	Job Postings on Indeed in the United States
+IHLIDXUS	Job Postings on Indeed in the United States
+AJFUELUSGULF	Kerosene-Type Jet Fuel Prices: U.S. Gulf Coast
+DJFUELUSGULF	Kerosene-Type Jet Fuel Prices: U.S. Gulf Coast
+MJFUELUSGULF	Kerosene-Type Jet Fuel Prices: U.S. Gulf Coast
+WJFUELUSGULF	Kerosene-Type Jet Fuel Prices: U.S. Gulf Coast
+LCEAMN01USM189N	Labor Compensation: Earnings: Manufacturing: Hourly for United States
+LCEAMN01USQ189N	Labor Compensation: Earnings: Manufacturing: Hourly for United States
+CIVPART	Labor Force Participation Rate
+LNU01300000	Labor Force Participation Rate
+LNS11300060	Labor Force Participation Rate - 25-54 Yrs.
+LNU01300060	Labor Force Participation Rate - 25-54 Yrs.
+LNS11300001	Labor Force Participation Rate - Men
+LNU01300001	Labor Force Participation Rate - Men
+LNS11300002	Labor Force Participation Rate - Women
+LNU01300002	Labor Force Participation Rate - Women
+JTSLDL	Layoffs and Discharges: Total Nonfarm
+JTSLDR	Layoffs and Discharges: Total Nonfarm
+JTULDL	Layoffs and Discharges: Total Nonfarm
+JTULDR	Layoffs and Discharges: Total Nonfarm
+USSLIND	Leading Index for the United States
+USALOCOBSNOSTSAM	Leading Indicators OECD: Component Series: Business Tendencies Survey: Business Situation: Normalised for United States
+USALOCOCINOSTSAM	Leading Indicators OECD: Component Series: Confidence Indicator: Normalised for United States
+USALOCODWNOSTSAM	Leading Indicators OECD: Component Series: Construction: Normalised for United States
+USALOCOHSNOSTSAM	Leading Indicators OECD: Component Series: Hours: Normalised for United States
+USALOCOSINOSTSAM	Leading Indicators OECD: Component Series: Interest Rate Spread: Normalised for United States
+USALOCOSIORSTM	Leading Indicators OECD: Component Series: Interest Rate Spread: Original Series for United States
+USALOCOODNOSTSAM	Leading Indicators OECD: Component Series: Orders: Normalised for United States
+USALOCOSPNOSTSAM	Leading Indicators OECD: Component Series: Share Prices: Normalised for United States
+USALOCOSPORIXOBM	Leading Indicators OECD: Component Series: Share Prices: Original Series for United States
+USALOLITOAASTSAM	Leading Indicators OECD: Leading Indicators: Composite Leading Indicator: Amplitude Adjusted for United States
+D2WLTGAL	Liabilities and Capital: Liabilities: Deposits: U.S. Treasury General Account: Wednesday Level in Federal Reserve District 2: New York
+WDTGAL	Liabilities and Capital: Liabilities: Deposits with F.R. Banks, Other Than Reserve Balances: U.S. Treasury, General Account: Wednesday Level
+WTREGEN	Liabilities and Capital: Liabilities: Deposits with F.R. Banks, Other Than Reserve Balances: U.S. Treasury, General Account: Week Average
+WLRRAL	Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Wednesday Level
+WRBWFRBL	Liabilities and Capital: Other Factors Draining Reserve Balances: Reserve Balances with Federal Reserve Banks: Wednesday Level
+WRESBAL	Liabilities and Capital: Other Factors Draining Reserve Balances: Reserve Balances with Federal Reserve Banks: Week Average
+ALTSALES	Light Weight Vehicle Sales: Autos and Light Trucks
+H8B1020NCBCAG	Loans and Leases in Bank Credit, All Commercial Banks
+H8B1020NCBCMG	Loans and Leases in Bank Credit, All Commercial Banks
+LLBACBQ158SBOG	Loans and Leases in Bank Credit, All Commercial Banks
+LOANS	Loans and Leases in Bank Credit, All Commercial Banks
+LOANSNSA	Loans and Leases in Bank Credit, All Commercial Banks
+TOTLL	Loans and Leases in Bank Credit, All Commercial Banks
+TOTLLNSA	Loans and Leases in Bank Credit, All Commercial Banks
+M1NS	M1
+M1SL	M1
+WM1NS	M1
+M2NS	M2
+M2SL	M2
+WM2NS	M2
+MYAGM2USM052N	M2 for United States
+MYAGM2USM052S	M2 for United States
+DGORDER	Manufacturers' New Orders: Durable Goods
+UMDMNO	Manufacturers' New Orders: Durable Goods
+NEWORDER	Manufacturers' New Orders: Nondefense Capital Goods Excluding Aircraft
+UNXANO	Manufacturers' New Orders: Nondefense Capital Goods Excluding Aircraft
+AMTMNO	Manufacturers' New Orders: Total Manufacturing
+UMTMNO	Manufacturers' New Orders: Total Manufacturing
+DGS10	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis
+GS10	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY10NA	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis
+WGS10YR	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis
+DFII10	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+FII10	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+RIFLGFCY10XIINA	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+WFII10	Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+DGS1MO	Market Yield on U.S. Treasury Securities at 1-Month Constant Maturity, Quoted on an Investment Basis
+GS1M	Market Yield on U.S. Treasury Securities at 1-Month Constant Maturity, Quoted on an Investment Basis
+RIFLGFCM01NA	Market Yield on U.S. Treasury Securities at 1-Month Constant Maturity, Quoted on an Investment Basis
+WGS1MO	Market Yield on U.S. Treasury Securities at 1-Month Constant Maturity, Quoted on an Investment Basis
+DGS1	Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis
+GS1	Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY01NA	Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis
+WGS1YR	Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis
+DGS20	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis
+GS20	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY20NA	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis
+WGS20YR	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis
+DFII20	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+FII20	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+RIFLGFCY20XIINA	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+WFII20	Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+DGS2	Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis
+GS2	Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY02NA	Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis
+WGS2YR	Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis
+DGS30	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis
+GS30	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY30NA	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis
+WGS30YR	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis
+DFII30	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+FII30	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+RIFLGFCY30XIINA	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+WFII30	Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+DGS3MO	Market Yield on U.S. Treasury Securities at 3-Month Constant Maturity, Quoted on an Investment Basis
+GS3M	Market Yield on U.S. Treasury Securities at 3-Month Constant Maturity, Quoted on an Investment Basis
+RIFLGFCM03NA	Market Yield on U.S. Treasury Securities at 3-Month Constant Maturity, Quoted on an Investment Basis
+WGS3MO	Market Yield on U.S. Treasury Securities at 3-Month Constant Maturity, Quoted on an Investment Basis
+DGS3	Market Yield on U.S. Treasury Securities at 3-Year Constant Maturity, Quoted on an Investment Basis
+GS3	Market Yield on U.S. Treasury Securities at 3-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY03NA	Market Yield on U.S. Treasury Securities at 3-Year Constant Maturity, Quoted on an Investment Basis
+WGS3YR	Market Yield on U.S. Treasury Securities at 3-Year Constant Maturity, Quoted on an Investment Basis
+DGS5	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis
+GS5	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY05NA	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis
+WGS5YR	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis
+DFII5	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+FII5	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+RIFLGFCY05XIINA	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+WFII5	Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed
+DGS6MO	Market Yield on U.S. Treasury Securities at 6-Month Constant Maturity, Quoted on an Investment Basis
+GS6M	Market Yield on U.S. Treasury Securities at 6-Month Constant Maturity, Quoted on an Investment Basis
+RIFLGFCM06NA	Market Yield on U.S. Treasury Securities at 6-Month Constant Maturity, Quoted on an Investment Basis
+WGS6MO	Market Yield on U.S. Treasury Securities at 6-Month Constant Maturity, Quoted on an Investment Basis
+DGS7	Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis
+GS7	Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis
+RIFLGFCY07NA	Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis
+WGS7YR	Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis
+MEDCPIM094SFRBCLE	Median Consumer Price Index
+MEDCPIM157SFRBCLE	Median Consumer Price Index
+MEDCPIM158SFRBCLE	Median Consumer Price Index
+MEDCPIM159SFRBCLE	Median Consumer Price Index
+MEHOINUSA646N	Median Household Income in the United States
+MEPAINUSA646N	Median Personal Income in the United States
+MSPNHSUS	Median Sales Price for New Houses Sold in the United States
+MSPNHSUSA	Median Sales Price for New Houses Sold in the United States
+HOSMEDUSM052N	Median Sales Price of Existing Homes
+MSPUS	Median Sales Price of New Houses Sold for the United States
+AEXMXUS	Mexican Pesos to U.S. Dollar Spot Exchange Rate
+DEXMXUS	Mexican Pesos to U.S. Dollar Spot Exchange Rate
+EXMXUS	Mexican Pesos to U.S. Dollar Spot Exchange Rate
+WFRBLTP1311	Minimum Wealth Cutoff for the Top 0.1% (99.9th to 100th Wealth Percentiles)
+MABMM301USA189S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MABMM301USA657S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MABMM301USM189S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MABMM301USM657S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MABMM301USQ189S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MABMM301USQ657S	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+USAMABMM301GYSAM	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+USAMABMM301GYSAQ	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+USAMABMM301IXOBSAM	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+USAMABMM301IXOBSAQ	Monetary Aggregates and Their Components: Broad Money and Components: M3 for United States
+MANMM101USM189S	Monetary Aggregates and Their Components: Narrow Money and Components: M1 and Components: M1 for United States
+MANMM101USQ189S	Monetary Aggregates and Their Components: Narrow Money and Components: M1 and Components: M1 for United States
+MBCURRCIR	Monetary Base: Currency in Circulation
+BOGMBASE	Monetary Base: Total
+MMMFFAA027N	Money Market Funds; Total Financial Assets, Level
+MMMFFAQ027S	Money Market Funds; Total Financial Assets, Level
+MSACSR	Monthly Supply of New Houses in the United States
+MSACSRNSA	Monthly Supply of New Houses in the United States
+AAA	Moody's Seasoned Aaa Corporate Bond Yield
+DAAA	Moody's Seasoned Aaa Corporate Bond Yield
+WAAA	Moody's Seasoned Aaa Corporate Bond Yield
+AAA10Y	Moody's Seasoned Aaa Corporate Bond Yield Relative to Yield on 10-Year Treasury Constant Maturity
+AAA10YM	Moody's Seasoned Aaa Corporate Bond Yield Relative to Yield on 10-Year Treasury Constant Maturity
+BAA	Moody's Seasoned Baa Corporate Bond Yield
+DBAA	Moody's Seasoned Baa Corporate Bond Yield
+WBAA	Moody's Seasoned Baa Corporate Bond Yield
+BAA10Y	Moody's Seasoned Baa Corporate Bond Yield Relative to Yield on 10-Year Treasury Constant Maturity
+BAA10YM	Moody's Seasoned Baa Corporate Bond Yield Relative to Yield on 10-Year Treasury Constant Maturity
+HTRUCKSNSA	Motor Vehicle Retail Sales: Heavy Weight Trucks
+HTRUCKSSA	Motor Vehicle Retail Sales: Heavy Weight Trucks
+HTRUCKSSAAR	Motor Vehicle Retail Sales: Heavy Weight Trucks
+M12MTVUSM227NFWA	Moving 12-Month Total Vehicle Miles Traveled
+M12MTVUSM227SFWA	Moving 12-Month Total Vehicle Miles Traveled
+NASDAQ100	NASDAQ-100
+NASDAQCOM	NASDAQ Composite
+NAEXKP05USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Changes in Inventories and Net Acquisition of Valuables for United States
+NAEXKP06USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Exports of Goods and Services for United States
+NAEXKP03USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Government Final Consumption Expenditure for United States
+NAEXKP01USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Gross Domestic Product: Total for United States
+NAEXKP04USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Gross Fixed Capital Formation for United States
+NAEXKP07USQ652S	National Accounts: GDP by Expenditure: Constant Prices: Less: Imports of Goods and Services for United States
+NAEXKP02USQ189S	National Accounts: GDP by Expenditure: Constant Prices: Private Final Consumption Expenditure for United States
+USACINSQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Changes in Inventories and Net Acquisition of Valuables for United States
+USAEXPORTQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Exports of Goods and Services for United States
+USAGFCEQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Government Final Consumption Expenditure for United States
+USAGDPNQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Gross Domestic Product: Total for United States
+USAGFCFQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Gross Fixed Capital Formation for United States
+USAIMPORTQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Less: Imports of Goods and Services for United States
+USAPFCEQDSMEI	National Accounts: GDP by Expenditure: Current Prices: Private Final Consumption Expenditure for United States
+USAGDPDEFQISMEI	National Accounts: National Accounts Deflators: Gross Domestic Product: GDP Deflator for United States
+USANAGICE01IXOBSAQ	National Accounts: National Accounts Deflators: Private Consumption Expenditure Deflator: Implicit Price Deflator Total for United States
+USREC	NBER based Recession Indicators for the United States from the Period following the Peak through the Trough
+USRECD	NBER based Recession Indicators for the United States from the Period following the Peak through the Trough
+USRECQ	NBER based Recession Indicators for the United States from the Period following the Peak through the Trough
+DRTSCILM	Net Percentage of Domestic Banks Tightening Standards for Commercial and Industrial Loans to Large and Middle-Market Firms
+WFRBLB50107	Net Worth Held by the Bottom 50% (1st to 50th Wealth Percentiles)
+WFRBLTP1246	Net Worth Held by the Top 0.1% (99.9th to 100th Wealth Percentiles)
+HSN1F	New One Family Houses Sold: United States
+HSN1FA	New One Family Houses Sold: United States
+HSN1FNSA	New One Family Houses Sold: United States
+PERMIT	New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Total Units
+PERMITNSA	New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Total Units
+HOUST1F	New Privately-Owned Housing Units Started: Single-Family Units
+HOUST1FNSA	New Privately-Owned Housing Units Started: Single-Family Units
+HOUST	New Privately-Owned Housing Units Started: Total Units
+HOUSTNSA	New Privately-Owned Housing Units Started: Total Units
+HOUST5F	New Privately-Owned Housing Units Started: Units in Buildings with 5 Units or More
+HOUST5FNSA	New Privately-Owned Housing Units Started: Units in Buildings with 5 Units or More
+NIKKEI225	Nikkei Stock Average, Nikkei 225
+DTWEXAFEGS	Nominal Advanced Foreign Economies U.S. Dollar Index
+TWEXAFEGSANL	Nominal Advanced Foreign Economies U.S. Dollar Index
+TWEXAFEGSMTH	Nominal Advanced Foreign Economies U.S. Dollar Index
+DTWEXBGS	Nominal Broad U.S. Dollar Index
+TWEXBGSANL	Nominal Broad U.S. Dollar Index
+TWEXBGSMTH	Nominal Broad U.S. Dollar Index
+NGDPNSAXDCUSQ	Nominal Gross Domestic Product (GDP) for United States
+NGDPSAXDCUSQ	Nominal Gross Domestic Product (GDP) for United States
+NGDPXDCUSA	Nominal Gross Domestic Product (GDP) for United States
+NROU	Noncyclical Rate of Unemployment
+HOANBS	Nonfarm Business Sector: Hours Worked for All Workers
+PRS85006031	Nonfarm Business Sector: Hours Worked for All Workers
+PRS85006032	Nonfarm Business Sector: Hours Worked for All Workers
+OPHNFB	Nonfarm Business Sector: Labor Productivity (Output per Hour) for All Workers
+PRS85006091	Nonfarm Business Sector: Labor Productivity (Output per Hour) for All Workers
+PRS85006092	Nonfarm Business Sector: Labor Productivity (Output per Hour) for All Workers
+PRS85006171	Nonfarm Business Sector: Labor Share for All Workers
+PRS85006172	Nonfarm Business Sector: Labor Share for All Workers
+PRS85006173	Nonfarm Business Sector: Labor Share for All Workers
+BCNSDODNS	Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+BOGZ1FL104104005A	Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+BOGZ1LA104104005A	Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+TCMILBSNNCB	Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+LNU03008636	Number Unemployed for 27 Weeks & over
+UEMP27OV	Number Unemployed for 27 Weeks & over
+LNU03008396	Number Unemployed for Less Than 5 Weeks
+UEMPLT5	Number Unemployed for Less Than 5 Weeks
+OBFR	Overnight Bank Funding Rate
+RPONTTLD	Overnight Repurchase Agreements: Total Securities Purchased by the Federal Reserve in the Temporary Open Market Operations
+RPONTSYD	Overnight Repurchase Agreements: Treasury Securities Purchased by the Federal Reserve in the Temporary Open Market Operations
+RRPONTSYAWARD	Overnight Reverse Repurchase Agreements Award Rate
+RRPONTTLD	Overnight Reverse Repurchase Agreements: Total Securities Sold by the Federal Reserve in the Temporary Open Market Operations
+RRPONTSYD	Overnight Reverse Repurchase Agreements: Treasury Securities Sold by the Federal Reserve in the Temporary Open Market Operations
+NA000349Q	Personal Consumption Expenditures
+NC000349Q	Personal Consumption Expenditures
+PCE	Personal Consumption Expenditures
+PCEC	Personal Consumption Expenditures
+PCECA	Personal Consumption Expenditures
+DPCERG3A086NBEA	Personal Consumption Expenditures: Chain-type Price Index
+PCECTPI	Personal Consumption Expenditures: Chain-type Price Index
+PCEPI	Personal Consumption Expenditures: Chain-type Price Index
+NA000346Q	Personal Consumption Expenditures: Durable Goods
+NC000346Q	Personal Consumption Expenditures: Durable Goods
+PCDG	Personal Consumption Expenditures: Durable Goods
+PCDGA	Personal Consumption Expenditures: Durable Goods
+PCEDG	Personal Consumption Expenditures: Durable Goods
+DPCCRG3A086NBEA	Personal consumption expenditures excluding food and energy (chain-type price index)
+BPCCRO1Q156NBEA	Personal Consumption Expenditures Excluding Food and Energy (Chain-Type Price Index)
+PCEPILFE	Personal Consumption Expenditures Excluding Food and Energy (Chain-Type Price Index)
+DPCCRV1A225NBEA	Personal Consumption Expenditures (PCE) Excluding Food and Energy (chain-type price index)
+DPCCRV1Q225SBEA	Personal Consumption Expenditures (PCE) Excluding Food and Energy (Chain-Type Price Index)
+A065RC1A027NBEA	Personal income
+PI	Personal Income
+PINCOME	Personal Income
+A792RC0A052NBEA	Personal income per capita
+A792RC0Q052SBEA	Personal income per capita
+A071RC1A027NBEA	Personal saving
+PMSAVE	Personal Saving
+PSAVE	Personal Saving
+PSAVERT	Personal Saving Rate
+B230RC0A052NBEA	Population
+B230RC0Q173SBEA	Population
+POPTHM	Population
+POPTOTUS52647NWDB	Population, Total for United States
+POPTOTUSA647NWDB	Population, Total for United States
+PPIACO	Producer Price Index by Commodity: All Commodities
+WPS061	Producer Price Index by Commodity: Chemicals and Allied Products: Industrial Chemicals
+WPU061	Producer Price Index by Commodity: Chemicals and Allied Products: Industrial Chemicals
+PPIFID	Producer Price Index by Commodity: Final Demand
+PPIFIS	Producer Price Index by Commodity: Final Demand
+WPSFD49207	Producer Price Index by Commodity: Final Demand: Finished Goods
+WPUFD49207	Producer Price Index by Commodity: Final Demand: Finished Goods
+WPSFD4131	Producer Price Index by Commodity: Final Demand: Finished Goods Less Foods and Energy
+WPUFD4131	Producer Price Index by Commodity: Final Demand: Finished Goods Less Foods and Energy
+WPS081	Producer Price Index by Commodity: Lumber and Wood Products: Lumber
+WPU081	Producer Price Index by Commodity: Lumber and Wood Products: Lumber
+WPS101707	Producer Price Index by Commodity: Metals and Metal Products: Cold Rolled Steel Sheet and Strip
+WPS10170710	Producer Price Index by Commodity: Metals and Metal Products: Cold Rolled Steel Sheet and Strip
+WPU101707	Producer Price Index by Commodity: Metals and Metal Products: Cold Rolled Steel Sheet and Strip
+WPU10170710	Producer Price Index by Commodity: Metals and Metal Products: Cold Rolled Steel Sheet and Strip
+WPS101	Producer Price Index by Commodity: Metals and Metal Products: Iron and Steel
+WPU101	Producer Price Index by Commodity: Metals and Metal Products: Iron and Steel
+WPU10170674	Producer Price Index by Commodity: Metals and Metal Products: Steel Pipe and Tube, Stainless Steel
+WPU091405	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Corrugated Paperboard in Sheets and Rolls, Lined and Unlined
+WPU09140551	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Corrugated Paperboard in Sheets and Rolls, Lined and Unlined
+WPS0911	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Wood Pulp
+WPS091105	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Wood Pulp
+WPU0911	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Wood Pulp
+WPU091105	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Wood Pulp
+WPU09110501	Producer Price Index by Commodity: Pulp, Paper, and Allied Products: Wood Pulp
+WPU0711	Producer Price Index by Commodity: Rubber and Plastic Products: Synthetic Rubber, Including Styrene-Butadiene Rubber (SBR) and Ethylene Propylene
+WPU07110224	Producer Price Index by Commodity: Rubber and Plastic Products: Synthetic Rubber, Including Styrene-Butadiene Rubber (SBR) and Ethylene Propylene
+WPUSI012011	Producer Price Index by Commodity: Special Indexes: Construction Materials
+PCU3364133641	Producer Price Index by Industry: Aerospace Product and Parts Manufacturing
+PCU33643364	Producer Price Index by Industry: Aerospace Product and Parts Manufacturing
+PCU32733273	Producer Price Index by Industry: Cement and Concrete Product Manufacturing
+PCU325325	Producer Price Index by Industry: Chemical Manufacturing
+PCU3353133531	Producer Price Index by Industry: Electrical Equipment Manufacturing
+PCU33533353	Producer Price Index by Industry: Electrical Equipment Manufacturing
+PCU335311335311	Producer Price Index by Industry: Electric Power and Specialty Transformer Manufacturing
+PCU335311335311P	Producer Price Index by Industry: Electric Power and Specialty Transformer Manufacturing: Primary Products
+PCU484121484121	Producer Price Index by Industry: General Freight Trucking, Long-Distance Truckload
+PCU2122212122210	Producer Price Index by Industry: Gold Ore and Silver Ore Mining: Gold Ores
+PCU325211325211	Producer Price Index by Industry: Plastics Material and Resin Manufacturing
+PCU3344133441	Producer Price Index by Industry: Semiconductor and Other Electronic Component Manufacturing
+PCU33443344	Producer Price Index by Industry: Semiconductor and Other Electronic Component Manufacturing
+PCUOMFGOMFG	Producer Price Index by Industry: Total Manufacturing Industries
+PIEAEN01USM661N	Producer Prices Index: Economic Activities: Energy: Total for United States
+PIEAEN01USQ661N	Producer Prices Index: Economic Activities: Energy: Total for United States
+PIEAFD01USM661N	Producer Prices Index: Economic Activities: Manufacture of Food Products: Total for United States
+PIEAFD01USQ661N	Producer Prices Index: Economic Activities: Manufacture of Food Products: Total for United States
+USAPPDMMINMEI	Producer Prices Index: Economic Activities: Manufacturing: Domestic for United States
+USAPPDMQINMEI	Producer Prices Index: Economic Activities: Manufacturing: Domestic for United States
+PIEAMP01USM661N	Producer Prices Index: Economic Activities: Manufacturing: Total for United States
+PIEAMP01USQ661N	Producer Prices Index: Economic Activities: Manufacturing: Total for United States
+PIEAMI01USM661N	Producer Prices Index: Economic Activities: Mining and Quarrying Activities: Total for United States
+PIEAMI01USQ661N	Producer Prices Index: Economic Activities: Mining and Quarrying Activities: Total for United States
+PISPFG01USM661N	Producer Prices Index: Stage of Processing: Finished Goods: Total for United States
+PISPFG01USQ661N	Producer Prices Index: Stage of Processing: Finished Goods: Total for United States
+PISPIG01USM661N	Producer Prices Index: Stage of Processing: Intermediate Goods: Total for United States
+PISPIG01USQ661N	Producer Prices Index: Stage of Processing: Intermediate Goods: Total for United States
+PISPPR01USM661N	Producer Prices Index: Stage of Processing: Primary Products: Total for United States
+PISPPR01USQ661N	Producer Prices Index: Stage of Processing: Primary Products: Total for United States
+PITGCG01USM661N	Producer Prices Index: Type of Goods: Consumer Goods: Total for United States
+PITGCG01USQ661N	Producer Prices Index: Type of Goods: Consumer Goods: Total for United States
+PITGCD01USM661N	Producer Prices Index: Type of Goods: Durable Consumer Goods: Total for United States
+PITGCD01USQ661N	Producer Prices Index: Type of Goods: Durable Consumer Goods: Total for United States
+PITGIG01USM661N	Producer Prices Index: Type of Goods: Intermediate Goods: Total for United States
+PITGIG01USQ661N	Producer Prices Index: Type of Goods: Intermediate Goods: Total for United States
+PITGVG01USM661N	Producer Prices Index: Type of Goods: Investments Goods: Total for United States
+PITGVG01USQ661N	Producer Prices Index: Type of Goods: Investments Goods: Total for United States
+PITGND01USM661N	Producer Prices Index: Type of Goods: Non-Durable Consumer Goods: Total for United States
+PITGND01USQ661N	Producer Prices Index: Type of Goods: Non-Durable Consumer Goods: Total for United States
+USAPRMNCG01IXOBM	Production: Manufacturing: Consumer Goods: Total for United States
+USAPRMNCG01IXOBSAM	Production: Manufacturing: Consumer Goods: Total for United States
+USAPRMNIG01IXOBM	Production: Manufacturing: Intermediate Goods: Total for United States
+USAPRMNIG01IXOBSAM	Production: Manufacturing: Intermediate Goods: Total for United States
+USAWSCNDW01IXOBSAM	Production, Sales, Work Started and Orders: Construction Work Started on Dwellings: Economic Activity: Construction of Buildings for United States
+USASACRMISMEI	Production, Sales, Work Started and Orders: Passenger Car Registrations: Economic Activity: Wholesale and Retail Trade and Repair of Motor Vehicles and Motorcycles for United States
+USAPRCNTO01IXOBM	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Construction for United States
+USAPRCNTO01IXOBSAM	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Construction for United States
+USAPRINTO01IXOBM	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Industry (Except Construction) for United States
+USAPROINDMISMEI	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Industry (Except Construction) for United States
+USAPRMNTO01IXOBM	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Manufacturing for United States
+USAPROMANMISMEI	Production, Sales, Work Started and Orders: Production Volume: Economic Activity: Manufacturing for United States
+USASARTMISMEI	Production, Sales, Work Started and Orders: Retail Trade Volume: Economic Activity: Retail Trade, Except of Motor Vehicles and Motorcycles for United States
+JTSQUL	Quits: Total Nonfarm
+JTSQUR	Quits: Total Nonfarm
+JTUQUL	Quits: Total Nonfarm
+JTUQUR	Quits: Total Nonfarm
+RTWEXBGS	Real Broad Dollar Index
+RBUSBIS	Real Broad Effective Exchange Rate for United States
+A067RX1A020NBEA	Real disposable personal income
+A067RL1A156NBEA	Real Disposable Personal Income
+A067RL1Q156SBEA	Real Disposable Personal Income
+A067RO1Q156NBEA	Real Disposable Personal Income
+DPIC96	Real Disposable Personal Income
+DSPIC96	Real Disposable Personal Income
+A229RX0	Real Disposable Personal Income: Per Capita
+A229RX0A048NBEA	Real Disposable Personal Income: Per Capita
+A229RX0Q048SBEA	Real Disposable Personal Income: Per Capita
+CREACBM027NBOG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+CREACBM027SBOG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+CREACBQ158SBOG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+CREACBW027NBOG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+CREACBW027SBOG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+H8B3219NCBCAG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+H8B3219NCBCMG	Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks
+A191RL1A225NBEA	Real Gross Domestic Product
+A191RL1Q225SBEA	Real Gross Domestic Product
+A191RO1Q156NBEA	Real Gross Domestic Product
+GDPC1	Real Gross Domestic Product
+GDPCA	Real Gross Domestic Product
+NB000334Q	Real Gross Domestic Product
+ND000334Q	Real Gross Domestic Product
+OB000334Q	Real Gross Domestic Product
+CARGSP	Real Gross Domestic Product: All Industry Total in California
+CARQGSP	Real Gross Domestic Product: All Industry Total in California
+CLVMNACNSAB1GQDE	Real Gross Domestic Product for Germany
+CLVMNACSCAB1GQDE	Real Gross Domestic Product for Germany
+JPNRGDPEXP	Real Gross Domestic Product for Japan
+NGDPRSAXDCCAQ	Real Gross Domestic Product (GDP) for Canada
+NGDPRXDCCAA	Real Gross Domestic Product (GDP) for Canada
+NGDPRNSAXDCDEQ	Real Gross Domestic Product (GDP) for Germany
+NGDPRSAXDCDEQ	Real Gross Domestic Product (GDP) for Germany
+NGDPRXDCDEA	Real Gross Domestic Product (GDP) for Germany
+NGDPRNSAXDCJPQ	Real Gross Domestic Product (GDP) for Japan
+NGDPRSAXDCJPQ	Real Gross Domestic Product (GDP) for Japan
+NGDPRXDCJPA	Real Gross Domestic Product (GDP) for Japan
+A939RX0Q048SBEA	Real gross domestic product per capita
+A006RL1A225NBEA	Real Gross Private Domestic Investment
+A006RL1Q225SBEA	Real Gross Private Domestic Investment
+B006RO1Q156NBEA	Real Gross Private Domestic Investment
+GPDIC1	Real Gross Private Domestic Investment
+GPDICA	Real Gross Private Domestic Investment
+NB000335Q	Real Gross Private Domestic Investment
+ND000335Q	Real Gross Private Domestic Investment
+OB000335Q	Real Gross Private Domestic Investment
+M2REAL	Real M2 Money Stock
+MEHOINUSA672N	Real Median Household Income in the United States
+MEPAINUSA672N	Real Median Personal Income in the United States
+DPCERAM1M225NBEA	Real Personal Consumption Expenditures
+DPCERL1A225NBEA	Real Personal Consumption Expenditures
+DPCERL1Q225SBEA	Real Personal Consumption Expenditures
+DPCERO1Q156NBEA	Real Personal Consumption Expenditures
+NB000349Q	Real Personal Consumption Expenditures
+ND000349Q	Real Personal Consumption Expenditures
+OB000349Q	Real Personal Consumption Expenditures
+PCEC96	Real Personal Consumption Expenditures
+PCECC96	Real Personal Consumption Expenditures
+PCECCA	Real Personal Consumption Expenditures
+GDPPOT	Real Potential Gross Domestic Product
+QAUR368BIS	Real Residential Property Prices for Australia
+QAUR628BIS	Real Residential Property Prices for Australia
+QCAR368BIS	Real Residential Property Prices for Canada
+QCAR628BIS	Real Residential Property Prices for Canada
+QCNR368BIS	Real Residential Property Prices for China
+QCNR628BIS	Real Residential Property Prices for China
+QUSR368BIS	Real Residential Property Prices for United States
+QUSR628BIS	Real Residential Property Prices for United States
+SAHMREALTIME	Real-time Sahm Rule Recession Indicator
+RRVRUSQ156N	Rental Vacancy Rate in the United States
+TOTRESNS	Reserves of Depository Institutions: Total
+QJPN368BIS	Residential Property Prices for Japan
+QJPN628BIS	Residential Property Prices for Japan
+CAPOP	Resident Population in California
+RMFNS	Retail Money Market Funds
+RMFSL	Retail Money Market Funds
+WRMFNS	Retail Money Market Funds
+MRTSMPCSM44000USN	Retail Sales: Retail Trade
+MRTSMPCSM44000USS	Retail Sales: Retail Trade
+MRTSSM44000USN	Retail Sales: Retail Trade
+MRTSSM44000USS	Retail Sales: Retail Trade
+REVOLNS	Revolving Consumer Credit Owned and Securitized
+REVOLSL	Revolving Consumer Credit Owned and Securitized
+SAHMCURRENT	Sahm Rule Recession Indicator
+USASLRTTO02IXOBSAM	Sales: Retail Trade: Total Retail Trade: Value for United States
+SOFR	Secured Overnight Financing Rate
+SOFRVOL	Secured Overnight Financing Volume
+LABSHPUSA156NRUG	Share of Labour Compensation in GDP at Current National Prices for United States
+WFRBST01134	Share of Net Worth Held by the Top 1% (99th to 100th Wealth Percentiles)
+DPCERE1A156NBEA	Shares of gross domestic product: Personal consumption expenditures
+DPCERE1Q156NBEA	Shares of gross domestic product: Personal consumption expenditures
+STMNIS01USQ163N	Short Term Statistics: Stocks: Manufacturing: Inventories to Shipments: Total for United States
+STMNIS01USQ163S	Short Term Statistics: Stocks: Manufacturing: Inventories to Shipments: Total for United States
+USASTMNIS01STM	Short Term Statistics: Stocks: Manufacturing: Inventories to Shipments: Total for United States
+USASTMNIS01STSAM	Short Term Statistics: Stocks: Manufacturing: Inventories to Shipments: Total for United States
+RECPROUSM156N	Smoothed U.S. Recession Probabilities
+SOFRINDEX	SOFR Index
+IHLIDXCATPSOFTDEVE	Software Development Job Postings on Indeed in Canada
+IHLIDXDETPSOFTDEVE	Software Development Job Postings on Indeed in Germany
+IHLIDXUSTPSOFTDEVE	Software Development Job Postings on Indeed in the United States
+AEXKOUS	South Korean Won to U.S. Dollar Spot Exchange Rate
+DEXKOUS	South Korean Won to U.S. Dollar Spot Exchange Rate
+EXKOUS	South Korean Won to U.S. Dollar Spot Exchange Rate
+SP500	S&P 500
+SPCS20RNSA	S&P Cotality Case-Shiller 20-City Composite Home Price Index
+SPCS20RSA	S&P Cotality Case-Shiller 20-City Composite Home Price Index
+CSUSHPINSA	S&P Cotality Case-Shiller U.S. National Home Price Index
+CSUSHPISA	S&P Cotality Case-Shiller U.S. National Home Price Index
+WTISPLC	Spot Crude Oil Price: West Texas Intermediate (WTI)
+CORESTICKM157SFRBATL	Sticky Price Consumer Price Index less Food and Energy
+CORESTICKM158SFRBATL	Sticky Price Consumer Price Index less Food and Energy
+CORESTICKM159SFRBATL	Sticky Price Consumer Price Index less Food and Energy
+CORESTICKM679SFRBATL	Sticky Price Consumer Price Index less Food and Energy
+STLENI	St. Louis Fed Economic News Index: Real GDP Nowcast
+STLFSI4	St. Louis Fed Financial Stress Index
+DDDM01USA156NWDB	Stock Market Capitalization to GDP for United States
+AEXSZUS	Swiss Francs to U.S. Dollar Spot Exchange Rate
+DEXSZUS	Swiss Francs to U.S. Dollar Spot Exchange Rate
+EXSZUS	Swiss Francs to U.S. Dollar Spot Exchange Rate
+TEDRATE	TED Spread (DISCONTINUED)
+THREEFYTP10	Term Premium on a 10 Year Zero Coupon Bond
+AEXTHUS	Thai Baht to U.S. Dollar Spot Exchange Rate
+DEXTHUS	Thai Baht to U.S. Dollar Spot Exchange Rate
+EXTHUS	Thai Baht to U.S. Dollar Spot Exchange Rate
+H8B1151NCBCAG	Total Assets, All Commercial Banks
+H8B1151NCBCMG	Total Assets, All Commercial Banks
+TLAACBM027NBOG	Total Assets, All Commercial Banks
+TLAACBM027SBOG	Total Assets, All Commercial Banks
+TLAACBQ158SBOG	Total Assets, All Commercial Banks
+TLAACBW027NBOG	Total Assets, All Commercial Banks
+TLAACBW027SBOG	Total Assets, All Commercial Banks
+BORROW	Total Borrowings from the Federal Reserve
+BUSINV	Total Business Inventories
+TOTBUSIMNSA	Total Business Inventories
+TOTBUSMPCIMNSA	Total Business Inventories
+TOTBUSMPCIMSA	Total Business Inventories
+ISRATIO	Total Business: Inventories to Sales Ratio
+TOTBUSIRNSA	Total Business: Inventories to Sales Ratio
+MPCT20IXS	Total Construction Spending: Manufacturing in the United States
+TLMFGCON	Total Construction Spending: Manufacturing in the United States
+TLMFGCONS	Total Construction Spending: Manufacturing in the United States
+MPCTNRXXS	Total Construction Spending: Nonresidential in the United States
+TLNRESCON	Total Construction Spending: Nonresidential in the United States
+TLNRESCONS	Total Construction Spending: Nonresidential in the United States
+MPCT00XXS	Total Construction Spending: Residential in the United States
+TLRESCON	Total Construction Spending: Residential in the United States
+TLRESCONS	Total Construction Spending: Residential in the United States
+MPCTXXXXS	Total Construction Spending: Total Construction in the United States
+TTLCON	Total Construction Spending: Total Construction in the United States
+TTLCONS	Total Construction Spending: Total Construction in the United States
+TOTALNS	Total Consumer Credit Owned and Securitized
+TOTALSL	Total Consumer Credit Owned and Securitized
+TTLHH	Total Households
+H8B1152NCBCAG	Total Liabilities, All Commercial Banks
+H8B1152NCBCMG	Total Liabilities, All Commercial Banks
+TLBACBM027NBOG	Total Liabilities, All Commercial Banks
+TLBACBM027SBOG	Total Liabilities, All Commercial Banks
+TLBACBQ158SBOG	Total Liabilities, All Commercial Banks
+TLBACBW027NBOG	Total Liabilities, All Commercial Banks
+TLBACBW027SBOG	Total Liabilities, All Commercial Banks
+ADPMNUSNERNSA	Total Nonfarm Private Payroll Employment
+ADPMNUSNERSA	Total Nonfarm Private Payroll Employment
+ADPWNUSNERNSA	Total Nonfarm Private Payroll Employment
+ADPWNUSNERSA	Total Nonfarm Private Payroll Employment
+U6RATE	Total Unemployed, Plus All Persons Marginally Attached to the Labor Force, Plus Total Employed Part Time for Economic Reasons, as a Percent of the Civilian Labor Force Plus All Persons Marginally Attached to the Labor Force (U-6)
+U6RATENSA	Total Unemployed, Plus All Persons Marginally Attached to the Labor Force, Plus Total Employed Part Time for Economic Reasons, as a Percent of the Civilian Labor Force Plus All Persons Marginally Attached to the Labor Force (U-6)
+TOTALNSA	Total Vehicle Sales
+TOTALSA	Total Vehicle Sales
+BOPGSTB	Trade Balance: Goods and Services, Balance of Payments Basis
+PCETRIM12M159SFRBDAL	Trimmed Mean PCE Inflation Rate
+PCETRIM1M158SFRBDAL	Trimmed Mean PCE Inflation Rate
+PCETRIM6M680SFRBDAL	Trimmed Mean PCE Inflation Rate
+TRUCKD11	Truck Tonnage Index
+LNU03000000	Unemployment Level
+UNEMPLOY	Unemployment Level
+UNRATE	Unemployment Rate
+UNRATENSA	Unemployment Rate
+LNS14024887	Unemployment Rate - 16-24 Yrs.
+LNU04024887	Unemployment Rate - 16-24 Yrs.
+LNS14000006	Unemployment Rate - Black or African American
+LNU04000006	Unemployment Rate - Black or African American
+ALUR	Unemployment Rate in Alabama
+ALURN	Unemployment Rate in Alabama
+LAUST010000000000003A	Unemployment Rate in Alabama
+CAUR	Unemployment Rate in California
+CAURN	Unemployment Rate in California
+LAUST060000000000003A	Unemployment Rate in California
+ULQECU01USQ661S	Unit Labor Costs: Early Estimate of Quarterly Unit Labor Costs (ULC) Indicators: Labor Compensation per Unit of Labor Input: Total for United States
+ULQELP01USQ661S	Unit Labor Costs: Early Estimate of Quarterly Unit Labor Costs (ULC) Indicators: Labor Productivity: Total for United States
+ULQEUL01USQ661S	Unit Labor Costs: Early Estimate of Quarterly Unit Labor Costs (ULC) Indicators: Unit Labor Costs: Total for United States
+UMCSENT	University of Michigan: Consumer Sentiment
+MICH	University of Michigan: Inflation Expectation
+GASDESA	US Diesel Sales Price
+GASDESM	US Diesel Sales Price
+GASDESW	US Diesel Sales Price
+AEXUSAL	U.S. Dollars to Australian Dollar Spot Exchange Rate
+DEXUSAL	U.S. Dollars to Australian Dollar Spot Exchange Rate
+EXUSAL	U.S. Dollars to Australian Dollar Spot Exchange Rate
+AEXUSEU	U.S. Dollars to Euro Spot Exchange Rate
+DEXUSEU	U.S. Dollars to Euro Spot Exchange Rate
+EXUSEU	U.S. Dollars to Euro Spot Exchange Rate
+AEXUSUK	U.S. Dollars to U.K. Pound Sterling Spot Exchange Rate
+DEXUSUK	U.S. Dollars to U.K. Pound Sterling Spot Exchange Rate
+EXUSUK	U.S. Dollars to U.K. Pound Sterling Spot Exchange Rate
+GASREGA	US Regular All Formulations Gas Price
+GASREGM	US Regular All Formulations Gas Price
+GASREGW	US Regular All Formulations Gas Price
+GASREGCOVA	US Regular Conventional Gas Price
+GASREGCOVM	US Regular Conventional Gas Price
+GASREGCOVW	US Regular Conventional Gas Price
+TRFVOLUSM227NFWA	Vehicle Miles Traveled
+TRFVOLUSM227SFWA	Vehicle Miles Traveled
+VMT	Vehicle Miles Traveled
+VMTD11	Vehicle Miles Traveled
+M1V	Velocity of M1 Money Stock
+M2V	Velocity of M2 Money Stock
+WEI	Weekly Economic Index (Lewis-Mertens-Stock)
+WUIGLOBALWEIGHTAVG	World Uncertainty Index: Global: GDP Weighted Average
+USAUCSFRCONDOSMSAMID	Zillow Home Value Index (ZHVI) for All Homes Including Single-Family Residences, Condos, and CO-OPs in the United States of America

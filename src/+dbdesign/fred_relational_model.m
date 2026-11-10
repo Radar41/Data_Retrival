@@ -30,7 +30,7 @@ T = addTable(T, "frequency", "FREQUENCY", "strong", "lookup", ...
 
 T = addTable(T, "units", "UNITS", "strong", "lookup", ...
     "Unit of measure", "units_code", { ...
-    "units_code", "VARCHAR(40)",  "NN", "", "", "FRED units_short"
+    "units_code", "VARCHAR(80)",  "NN", "", "", "FRED units_short"
     "units_name", "VARCHAR(120)", "NN", "", "", "Percent, Billions of Dollars, ..."});
 
 T = addTable(T, "seasonal_adjustment", "SEASONAL_ADJUSTMENT", "strong", "lookup", ...
@@ -97,7 +97,7 @@ T = addTable(T, "series", "SERIES", "strong", "series", ...
     "title",             "VARCHAR(300)", "NN", "", "",        ""
     "release_id",        "INTEGER",      "NN", "", "",        ""
     "frequency_code",    "VARCHAR(4)",   "NN", "", "",        ""
-    "units_code",        "VARCHAR(40)",  "NN", "", "",        ""
+    "units_code",        "VARCHAR(80)",  "NN", "", "",        ""
     "sa_code",           "VARCHAR(8)",   "NN", "", "",        ""
     "observation_start", "DATE",         "",   "", "DERIVED", "MIN(observation_date), kept by trigger"
     "observation_end",   "DATE",         "",   "", "DERIVED", "MAX(observation_date), kept by trigger"
@@ -242,7 +242,7 @@ model.indexes = IX;
 rt = {
     "close_prior_vintage",  "trigger",   "BEFORE INSERT ON observation", pgOnly,  "Rule 11: close the open vintage before a new one is added"
     "add_vintage",          "procedure", "CALL instead of INSERT",       "mysql", "Rule 11 in MySQL: a trigger may not update its own table (error 1442)"
-    "refresh_series_range", "trigger",   "AFTER INSERT ON observation",  both,    "Keeps series.observation_start/end consistent"
+    "refresh_series_range", "trigger",   "AFTER INSERT ON observation",  both,    "Keeps series.observation_start/end consistent; per statement (transition table) in PostgreSQL, per row in MySQL"
     "value_as_of",          "function",  "(series, obs_date, as_of)",    both,    "Value of a series as it was known on a date"
     "post_release",         "procedure", "(release_id, date)",           both,    "Marks a release date actual"};
 

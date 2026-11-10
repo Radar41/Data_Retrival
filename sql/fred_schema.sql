@@ -31,7 +31,7 @@ CREATE TABLE frequency (
 
 -- UNITS : unit of measure (FRED units_short values)
 CREATE TABLE units (
-    units_code       VARCHAR(40)   NOT NULL,            -- '%', 'Bil. of $', 'Index 1982-84=100'
+    units_code       VARCHAR(80)   NOT NULL,            -- '%', 'Bil. of $', 'Index 1982-84=100'
     units_name       VARCHAR(120)  NOT NULL,            -- 'Percent', 'Billions of Dollars', ...
     CONSTRAINT pk_units PRIMARY KEY (units_code)
 );
@@ -167,7 +167,7 @@ CREATE TABLE series (
     title             VARCHAR(300)  NOT NULL,
     release_id        INTEGER       NOT NULL,
     frequency_code    VARCHAR(4)    NOT NULL,
-    units_code        VARCHAR(40)   NOT NULL,
+    units_code        VARCHAR(80)   NOT NULL,
     sa_code           VARCHAR(8)    NOT NULL,
     observation_start DATE,                             -- derived: MIN(observation_date)
     observation_end   DATE,                             -- derived: MAX(observation_date)
