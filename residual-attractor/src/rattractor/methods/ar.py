@@ -41,6 +41,17 @@ class AR(Method):
         F = float(np.arcsin(p1)) if p2 == 0.0 else None  # AR(1) face: g = 1/(1-phi^2), F = arcsin
         return metric, F
 
+    def psi(self, theta, H):
+        # psi_0 = 1, psi_1 = phi1, psi_j = phi1 psi_{j-1} + phi2 psi_{j-2}; the running mean is treated as known.
+        p1, p2 = theta["phi1"], theta["phi2"]
+        p = np.zeros(H)
+        p[0] = 1.0
+        if H > 1:
+            p[1] = p1
+        for j in range(2, H):
+            p[j] = p1 * p[j - 1] + p2 * p[j - 2]
+        return p
+
     def _running_mean(self, y: np.ndarray) -> np.ndarray:
         rule = self.cfg["methods.ar.mean_window"]
         c = np.cumsum(y)

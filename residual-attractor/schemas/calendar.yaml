@@ -1,0 +1,7 @@
+artifact: calendar
+description: one row per (series, t); maps the integer step back to the period it describes
+primary_key: [series_id, t]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: t, dtype: int32, nullable: false, unit: step}
+  - {name: period, dtype: string, nullable: false, notes: "ISO date of the period start (FRED observation_date convention)"}

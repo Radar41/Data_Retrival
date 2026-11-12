@@ -1,0 +1,26 @@
+artifact: steps
+description: "one row per (series, configuration, origin, ladder, h): the node table. Forward = issued at the origin; backward = issued H steps earlier, landing on the origin."
+primary_key: [series_id, config_id, origin, ladder, h]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: origin, dtype: int32, nullable: false, unit: step, notes: base point o}
+  - {name: ladder, dtype: category, values: [backward, forward], nullable: false}
+  - {name: h, dtype: int16, nullable: false, unit: step, notes: "1..H steps after issuance"}
+  - {name: issued, dtype: int32, nullable: false, unit: step, notes: "o forward, o - H backward"}
+  - {name: t_target, dtype: int32, nullable: false, unit: step, notes: "issued + h; forward rows past N - 1 are truncated"}
+  - {name: yhat, dtype: float64, nullable: false, unit: series}
+  - {name: y, dtype: float64, nullable: false, unit: series}
+  - {name: e, dtype: float64, nullable: false, unit: series, notes: y - yhat}
+  - {name: sigma, dtype: float64, nullable: false, unit: series, notes: "one-step residual sd over the W_sigma steps ending at issuance, floored"}
+  - {name: sigma_h, dtype: float64, nullable: false, unit: series, notes: "decision 1: model-implied h-step sd, sigma x sqrt(sum psi_j^2, j < h)"}
+  - {name: tau, dtype: float32, nullable: false, notes: "h/H forward, (h - H)/H backward"}
+  - {name: u_f, dtype: float32, nullable: false, notes: (yhat - y) / sigma}
+  - {name: r, dtype: float32, nullable: false, notes: "|u_f|"}
+  - {name: r_h, dtype: float32, nullable: false, notes: "|e| / sigma_h (decision 2: recorded beside r)"}
+  - {name: u_s, dtype: float32, nullable: false, notes: (s1 - y) / sigma}
+  - {name: v_s, dtype: float32, nullable: false, notes: "s2 / sigma2(M), sigma2 over the training span of this series"}
+  - {name: s1, dtype: float64, nullable: false, unit: series}
+  - {name: s2, dtype: float64, nullable: false, unit: method}
+  - {name: window_spans_break, dtype: boolean, nullable: true, notes: "decision 3; <NA> while sigma.break_detector = none"}
+  - {name: cell_id, dtype: string, nullable: true, notes: "decision 11, reserved; <NA> until the classifier lands"}

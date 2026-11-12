@@ -1,0 +1,3 @@
+# The seeded six-regime sample series (spec milestone 1). Uses fixture.* from the config.
+name: fixture_six_regime
+source: fixture

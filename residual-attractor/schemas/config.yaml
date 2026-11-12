@@ -26,3 +26,5 @@ seed:                     {type: int}
 fixture.regime_length:    {type: int, min: 8}
 fixture.noise_sd:         {type: float, min: 0.0}
 fixture.test_fraction:    {type: float, min: 0.0, max: 1.0}
+sigma.ddof:               {type: int, min: 0, max: 1}  # sd divisor N - ddof over the W_sigma window
+sigma.break_detector:     {type: str, values: [none]}  # decision 3: no detector yet, window_spans_break stays <NA>

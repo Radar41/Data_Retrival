@@ -54,6 +54,21 @@ class Method(ABC):
     def stratum(self, theta: dict) -> str:
         return self.name
 
+    @abstractmethod
+    def psi(self, theta: dict, H: int) -> np.ndarray:
+        """MA(infinity) weights psi_0 = 1, psi_1 .. psi_{H-1} of the forecast error.
+
+        The model-implied h-step error sd is sigma * sqrt(sum_{j<h} psi_j^2)
+        (spec decision 1: sigma_h stored beside the one-step sigma).
+        """
+
+    def sigma_h_factor(self, theta: dict, H: int) -> np.ndarray:
+        """sqrt(cumsum psi^2): sigma_h / sigma at h = 1..H."""
+        p = self.psi(theta, H)
+        if p.shape != (H,) or p[0] != 1.0:
+            raise ValueError(f"{self.name}: psi must have shape ({H},) with psi_0 = 1")
+        return np.sqrt(np.cumsum(p * p))
+
     # ---- recursion ---------------------------------------------------------
     @abstractmethod
     def fit(self, y: np.ndarray, theta: dict) -> Fitted: ...
@@ -66,7 +81,9 @@ class Method(ABC):
         """(s1, s2) the forecast equation carries at steps h = 1..H from origin o."""
 
     def forecast(self, fitted: Fitted, o: int, H: int) -> np.ndarray:
-        s1, s2 = self.state_forward(fitted, o, H)
+        return self.forecast_from_state(*self.state_forward(fitted, o, H))
+
+    def forecast_from_state(self, s1: np.ndarray, s2: np.ndarray) -> np.ndarray:
         if self.forecast_is == "s1":
             return s1
         if self.forecast_is == "s1_plus_s2":

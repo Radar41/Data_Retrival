@@ -44,13 +44,35 @@ def empty_frame(artifact: str) -> pd.DataFrame:
     cols = {}
     for c in schema["columns"]:
         d = c["dtype"]
-        if d == "string":
-            cols[c["name"]] = pd.Series([], dtype="string")
+        if d in ("string", "boolean"):
+            cols[c["name"]] = pd.Series([], dtype=d)
         elif d == "category":
             cols[c["name"]] = pd.Categorical([], categories=c["values"])
         else:
             cols[c["name"]] = pd.Series([], dtype=_NUMPY[d])
     return pd.DataFrame(cols)
+
+
+def from_columns(data: dict, artifact: str) -> pd.DataFrame:
+    """Build a frame for `artifact` from raw column arrays, typing each column as the schema says.
+
+    This is the one place a stage's arrays become an artifact; the result is validated,
+    so a wrong value (a null in a non-null column, a stray category) still fails.
+    """
+    schema = load_schema(artifact)
+    names = [c["name"] for c in schema["columns"]]
+    if set(data) != set(names):
+        raise ContractError(f"{artifact}: columns {sorted(data)} != schema {sorted(names)}")
+    cols = {}
+    for c in schema["columns"]:
+        name, d, v = c["name"], c["dtype"], data[c["name"]]
+        if d in ("string", "boolean"):
+            cols[name] = pd.array(v, dtype=d)
+        elif d == "category":
+            cols[name] = pd.Categorical(v, categories=c["values"])
+        else:
+            cols[name] = np.asarray(v).astype(_NUMPY[d], copy=False)
+    return validate(pd.DataFrame(cols), artifact)
 
 
 def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
@@ -68,6 +90,9 @@ def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
         if d == "string":
             if not isinstance(col.dtype, pd.StringDtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema string")
+        elif d == "boolean":
+            if not isinstance(col.dtype, pd.BooleanDtype):
+                raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema boolean")
         elif d == "category":
             if not isinstance(col.dtype, pd.CategoricalDtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema category")
@@ -105,13 +130,16 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
     """Read Parquet and validate; no casting beyond Arrow's own round trip."""
     table = pq.read_table(path)
     df = table.to_pandas()
-    # Arrow round-trips pandas "string" as object unless told; restore exactly,
-    # but only for columns the schema declares string, and refuse anything else.
+    # Arrow can hand back pandas "string" / "boolean" as object (an all-null
+    # column has no Arrow type to carry them). Restore exactly, only for columns
+    # the schema declares that way, and refuse values of any other type.
     schema = load_schema(artifact)
+    kinds = {"string": str, "boolean": (bool, np.bool_)}
     for c in schema["columns"]:
-        if c["dtype"] == "string" and c["name"] in df and df[c["name"]].dtype == object:
+        d = c["dtype"]
+        if d in kinds and c["name"] in df and df[c["name"]].dtype == object:
             vals = df[c["name"]]
-            if not vals.map(lambda v: v is None or isinstance(v, str)).all():
-                raise ContractError(f"{artifact}.{c['name']}: non-string values on read")
-            df[c["name"]] = vals.astype("string")
+            if not vals.map(lambda v: v is None or v is pd.NA or isinstance(v, kinds[d])).all():
+                raise ContractError(f"{artifact}.{c['name']}: values not of type {d} on read")
+            df[c["name"]] = vals.astype(d)
     return validate(df, artifact)

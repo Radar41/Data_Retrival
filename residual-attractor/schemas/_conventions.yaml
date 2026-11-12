@@ -6,10 +6,11 @@ dtypes:
   float64: numpy float64; NaN is the null when nullable
   string: pandas "string" dtype; <NA> is the null when nullable
   bool: numpy bool, no nulls
+  boolean: pandas nullable "boolean"; <NA> is the null
   category: pandas categorical whose categories equal `values` exactly, in order
 rules:
   - Column list and order are exact. Extra, missing or reordered columns fail.
   - Dtypes are exact. Nothing is cast on read or write.
   - primary_key columns are non-null and unique together.
-  - Every artifact written by a build also carries build_id (added at write time, stage 1 onward).
+  - Every artifact a build writes is listed in manifest.json with build_id, rows and SHA-256.
 time_axis: t is an integer step 0..N-1, contiguous per series. Calendar dates live in the catalog, not here.

@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Nothing in this document is built yet. It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.5 (univariate SES/AR/Holt; the GDSS families, exog sets and fit status fields are still to come); run spec 0 builds through stage 4 on the 10 of its series that are in the catalog. It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|
@@ -94,7 +94,7 @@ Follows the spec's milestones (contracts → methods → fit/forecast → cadenc
 | 1.9 | **Storage**: run, registry and step metadata in PostgreSQL (`forecast` schema); step and fiber arrays as Parquet per build, loaded into DuckDB downstream. | GDSS appraisal; rdiag |
 | 1.10 | **Export to rdiag**: R[k, i, t], `config_structure`, `provenance` (`data_cutoff`, `release_date`, `vintage_id` come straight from the catalog's vintages). | rdiag `schemas/00_input.yaml` |
 | 1.11 | **Tests**: the spec's known answers and seven invariants, leakage test, conformance per method, round-trip export. | spec validation plan |
-| 1.12 | **Load missing series**: IMPMANUS and EXPMANUS (in run spec 0, absent from the catalog files). | coverage |
+| 1.12 | **Load missing series**: PCU333611333611, WPU1197, IMPMANUS and EXPMANUS (in run spec 0, absent from the catalog). | coverage |
 
 **Blocking before code** (the spec says so itself): decisions 1–3. They decide which σ scales failure at horizon h, what that implies for integrated methods, and how the σ window behaves across regime changes.
 

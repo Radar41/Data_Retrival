@@ -33,6 +33,13 @@ class Holt(Method):
             return None, F
         return None, None  # spec decision 12: numerical metric not yet implemented
 
+    def psi(self, theta, H):
+        # Error-correction form of Holt: psi_j = alpha (1 + j beta), j >= 1.
+        j = np.arange(H, dtype=np.float64)
+        p = theta["alpha"] * (1.0 + j * theta["beta"])
+        p[0] = 1.0
+        return p
+
     def fit(self, y, theta) -> Fitted:
         y = self._check(y, theta)
         if self.cfg["methods.holt.init"] != "first_value_zero_trend":

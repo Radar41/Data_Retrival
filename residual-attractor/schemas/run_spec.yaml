@@ -1,0 +1,14 @@
+# Keys of a run specification (runs/*.yaml): which series a build runs on and
+# how they are read. The machinery never depends on which series are named.
+# Keys under `catalog` are required when source = catalog and refused otherwise.
+name:            {type: str}
+source:          {type: str, values: [catalog, fixture]}
+catalog:
+  dsn:           {type: str}                                   # libpq connection string, e.g. "dbname=fred"
+  series:        {type: list}                                  # FRED series_id values, any length >= 1
+  as_of:         {type: str}                                   # YYYY-MM-DD: the vintage, realtime_start <= as_of <= realtime_end
+  frequency:     {type: str, values: [M, Q, A]}               # target frequency every series is put on
+  aggregate:     {type: str, values: [mean, last, sum]}        # rule for series observed more often than the target
+  missing:       {type: str, values: [fail, longest_run]}      # interior gaps: refuse, or keep the longest gap-free run
+  transform:     {type: str, values: [level, log, diff, log_diff]}
+  test_start:    {type: str}                                   # YYYY-MM-DD: first period of the test split

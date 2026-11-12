@@ -84,14 +84,5 @@ def build_registry(grids: list[dict], cfg: dict) -> pd.DataFrame:
                 "admissible": ok,
             })
 
-    schema = contracts.load_schema("registry")
-    df = pd.DataFrame(rows)
-    for c in schema["columns"]:
-        name, d = c["name"], c["dtype"]
-        if d == "string":
-            df[name] = df[name].astype("string")
-        elif d == "category":
-            df[name] = pd.Categorical(df[name], categories=c["values"])
-        else:
-            df[name] = df[name].astype(d)
-    return contracts.validate(df[[c["name"] for c in schema["columns"]]], "registry")
+    cols = {k: [row[k] for row in rows] for k in rows[0]}
+    return contracts.from_columns(cols, "registry")

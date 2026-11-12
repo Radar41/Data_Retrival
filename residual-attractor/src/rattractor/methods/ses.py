@@ -29,6 +29,11 @@ class SES(Method):
             return None, None
         return np.array([[1.0 / (1.0 - m * m)]]), float(np.arcsin(m))
 
+    def psi(self, theta, H):
+        p = np.full(H, float(theta["alpha"]))
+        p[0] = 1.0
+        return p
+
     def fit(self, y, theta) -> Fitted:
         y = self._check(y, theta)
         if self.cfg["methods.ses.init"] != "first_value":

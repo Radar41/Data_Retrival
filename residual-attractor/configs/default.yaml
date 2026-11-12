@@ -7,6 +7,8 @@ sigma.floor_factor: 1.0e-6
 sigma.failure_scale: one_step          # spec decision 1, proposed default (to confirm)
 sigma.store_h_step: true               # spec decision 1: sigma_h stored beside sigma
 sigma.break_policy: fixed_window_flag_breaks   # spec decision 3, proposed default (to confirm)
+sigma.ddof: 1
+sigma.break_detector: none            # no break detector chosen yet; flags stay <NA>
 thresholds: [1, 2, 3, 4]
 cadence.steady_ratio: 1.5
 cadence.oscillation_drop: 0.5
