@@ -1,0 +1,8 @@
+artifact: series
+description: one row per observation, after preprocessing
+primary_key: [series_id, t]
+columns:
+  - {name: series_id, dtype: string, nullable: false, notes: opaque index label; names are looked up outside the build}
+  - {name: t, dtype: int32, nullable: false, unit: step, notes: "0..N-1, contiguous"}
+  - {name: y, dtype: float64, nullable: false, unit: series, notes: raw value after preprocessing}
+  - {name: split, dtype: category, values: [train, test], nullable: false}

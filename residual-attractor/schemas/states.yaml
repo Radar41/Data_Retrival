@@ -1,0 +1,11 @@
+artifact: states
+description: one row per (series, configuration, t), in-sample; every value uses data at or before t only
+primary_key: [series_id, config_id, t]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: t, dtype: int32, nullable: false, unit: step}
+  - {name: yhat1, dtype: float64, nullable: true, unit: series, notes: one-step forecast of y_t made at t-1; NaN at t = 0}
+  - {name: e1, dtype: float64, nullable: true, unit: series, notes: y_t - yhat1; NaN at t = 0}
+  - {name: s1, dtype: float64, nullable: false, unit: series}
+  - {name: s2, dtype: float64, nullable: false, unit: method}

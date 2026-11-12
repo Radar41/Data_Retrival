@@ -1,0 +1,7 @@
+# AR(2) grid; AR(1) is the phi2 = 0 face. Cells outside the stationarity
+# triangle are registered with admissible = false and never fitted.
+method: ar
+grid_axes: [phi1, phi2]
+params:
+  phi1: [-0.9, -0.6, -0.3, 0.0, 0.3, 0.6, 0.9]
+  phi2: [-0.6, -0.3, 0.0, 0.3, 0.6]

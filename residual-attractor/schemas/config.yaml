@@ -1,0 +1,28 @@
+# Every key the build reads. The loader refuses a config that is missing any of
+# them or carries one not listed here. No default lives in code.
+# type: int | float | str | bool | list | path ; optional range or values.
+
+horizon.H:                {type: int, min: 1}
+sigma.window:             {type: int, min: 2}          # W_sigma
+sigma.floor_factor:       {type: float, min: 0.0}      # sigma floor = factor x training-span std of the series
+sigma.failure_scale:      {type: str, values: [one_step]}          # decision 1, spec default
+sigma.store_h_step:       {type: bool}                              # decision 1: sigma_h stored beside
+sigma.break_policy:       {type: str, values: [fixed_window_flag_breaks]}  # decision 3, spec default
+thresholds:               {type: list}                 # crossing levels in sigma
+cadence.steady_ratio:     {type: float, min: 1.0}
+cadence.oscillation_drop: {type: float, min: 0.0}
+lagcorr.K:                {type: int, min: 1}
+lagcorr.window:           {type: int, min: 2}          # W_rho
+lagcorr.min_pairs:        {type: int, min: 2}
+lagcorr.smoothing:        {type: str, values: [none, mean3]}
+base.closed:              {type: bool}
+origins.stride:           {type: int, min: 1}
+registry.files:           {type: list}                 # paths under configs/registry/
+methods.ar.mean_window:   {type: str}                  # "expanding" or an integer as text
+methods.holt.init:        {type: str, values: [first_value_zero_trend]}
+methods.ses.init:         {type: str, values: [first_value]}
+graph.mode:               {type: str, values: [analysis, predictive]}
+seed:                     {type: int}
+fixture.regime_length:    {type: int, min: 8}
+fixture.noise_sd:         {type: float, min: 0.0}
+fixture.test_fraction:    {type: float, min: 0.0, max: 1.0}

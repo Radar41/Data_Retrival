@@ -1,0 +1,18 @@
+artifact: registry
+description: one row per configuration
+primary_key: [config_id]
+columns:
+  - {name: config_id, dtype: string, nullable: false, notes: "hash(method, theta_spec, params, exog_set_id)"}
+  - {name: core_spec_id, dtype: string, nullable: false, notes: "hash(method, theta_spec, params); nesting is read within one core_spec_id"}
+  - {name: exog_set_id, dtype: string, nullable: false, notes: "empty string = univariate"}
+  - {name: method, dtype: string, nullable: false}
+  - {name: theta_spec, dtype: category, values: [fixed, estimated], nullable: false}
+  - {name: params, dtype: string, nullable: false, notes: canonical JSON of the parameter vector}
+  - {name: ell, dtype: float64, nullable: true, notes: "standardized Fisher coordinate in [0, 1]; NaN where ell_status says why"}
+  - {name: ell_status, dtype: category, values: [closed_form, numerical, not_defined_multiparameter, not_admissible], nullable: false}
+  - {name: s1_name, dtype: string, nullable: false}
+  - {name: s2_name, dtype: string, nullable: false}
+  - {name: grid_axes, dtype: string, nullable: false, notes: JSON list of the two axis parameter names}
+  - {name: grid_i, dtype: int16, nullable: false}
+  - {name: grid_j, dtype: int16, nullable: false}
+  - {name: admissible, dtype: bool, nullable: false, notes: false = registered, never fitted}
