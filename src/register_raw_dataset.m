@@ -58,7 +58,7 @@ end
 
 fileInfo = dir(destinationFile);
 
-sha256 = compute_sha256(destinationFile);
+sha256 = file_sha256(destinationFile);
 
 manifest = struct( ...
     "provider_id", providerID, ...
@@ -87,34 +87,6 @@ fprintf("Dataset ID: %s\n", datasetID);
 fprintf("Raw file: %s\n", destinationFile);
 fprintf("Manifest: %s\n", manifestFile);
 fprintf("SHA-256: %s\n", sha256);
-
-end
-
-function hash = compute_sha256(filename)
-
-import java.security.MessageDigest
-import java.io.FileInputStream
-import java.io.BufferedInputStream
-
-digest = MessageDigest.getInstance("SHA-256");
-
-inputStream = BufferedInputStream(FileInputStream(char(filename)));
-cleanup = onCleanup(@() inputStream.close());
-
-buffer = zeros(1, 8192, "int8");
-
-while true
-    bytesRead = inputStream.read(buffer, 0, numel(buffer));
-
-    if bytesRead == -1
-        break
-    end
-
-    digest.update(buffer(1:bytesRead));
-end
-
-hashBytes = typecast(digest.digest(), "uint8");
-hash = lower(reshape(dec2hex(hashBytes, 2).', 1, []));
 
 end
 

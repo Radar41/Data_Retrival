@@ -70,7 +70,7 @@ for k = 1:nMembers
 
     sourceInfo = dir(sourcePath);
     sourceBytes(k) = sourceInfo.bytes;
-    sourceSHA256(k) = compute_sha256(sourcePath);
+    sourceSHA256(k) = file_sha256(sourcePath);
 
     sourceTable = readtable( ...
         sourcePath, ...
@@ -107,7 +107,7 @@ for k = 1:nMembers
     writetable(normalizedTable, outputPaths(k));
 
     outputRowCounts(k) = height(normalizedTable);
-    outputSHA256(k) = compute_sha256(outputPaths(k));
+    outputSHA256(k) = file_sha256(outputPaths(k));
 end
 
 memberManifest = table( ...
@@ -307,33 +307,6 @@ if isfield(structure, fieldName)
 else
     value = missing;
 end
-end
-
-function hash = compute_sha256(filename)
-
-import java.security.MessageDigest
-import java.io.FileInputStream
-import java.io.BufferedInputStream
-
-digest = MessageDigest.getInstance("SHA-256");
-
-inputStream = BufferedInputStream(FileInputStream(char(filename)));
-cleanup = onCleanup(@() inputStream.close());
-
-buffer = zeros(1, 8192, "int8");
-
-while true
-    bytesRead = inputStream.read(buffer, 0, numel(buffer));
-
-    if bytesRead == -1
-        break
-    end
-
-    digest.update(buffer(1:bytesRead));
-end
-
-hashBytes = typecast(digest.digest(), "uint8");
-hash = lower(reshape(dec2hex(hashBytes, 2).', 1, []));
 end
 
 function write_text_file(filename, text)
