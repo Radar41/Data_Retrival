@@ -63,11 +63,6 @@ def load_registry_grids(cfg: dict) -> list[dict]:
     for name in cfg["registry.files"]:
         path = CONFIG_DIR / "registry" / name
         grid = yaml.safe_load(path.read_text())
-        if "members" in grid:  # a fusion rule
-            if set(grid) != {"method", "members"}:
-                raise ContractError(f"{path}: a fusion rule has exactly the keys method and members")
-            grids.append(grid)
-            continue
         for key in ("method", "grid_axes", "params"):
             if key not in grid:
                 raise ContractError(f"{path}: missing {key}")

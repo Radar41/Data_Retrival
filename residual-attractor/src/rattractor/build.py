@@ -132,7 +132,7 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "split_boundary": ingest.split_boundary(series),
         "origins_per_series": n_origins,
         "configurations": {"registered": len(reg), "admissible": int(reg["admissible"].sum())},
-        "fiber": {"coordinates": len(index), "fused_k": [int(k) for k in index.loc[index["is_fused"], "k"]]},
+        "fiber": {"coordinates": len(index)},
         "stages_passed": ["ingest", "register", "fit", "forecast", "fibers"],
         "artifacts": artifacts,
         "libraries": _versions(),

@@ -3,12 +3,16 @@
 For every admissible configuration c and base origin o in the test split:
   forward ladder  (c, o, h = 1..H):      issued at o, landing on o + h (rows past N - 1 truncated)
   backward ladder (c, o - H, h = 1..H):  issued H steps earlier, the last step landing on o
-Each row is scaled by sigma at its issuance, so it uses data at or before issuance only:
-  sigma(c, iss)  sd of the one-step residuals e1 over the W_sigma steps ending at iss, floored
-  sigma_h        sigma x sqrt(sum psi_j^2, j < h): model-implied h-step sd (decision 1, stored beside)
-  u_f = (yhat - y)/sigma, r = |u_f|, r_h = |e|/sigma_h, u_s = (s1 - y)/sigma, v_s = s2/sigma2(M)
-  sigma2(M)      RMS of in-sample s2 over every configuration of method M on the training span of this
-                 series (decision 13: per series), floored like sigma.
+Every scale belongs to one configuration and one series; nothing pools residuals across
+configurations. Each row is scaled at its issuance, so it uses data at or before issuance only:
+  sigma(c, iss)  sd of the configuration's one-step residuals e1 over the W_sigma steps ending at iss, floored
+  sigma_h        sigma x sqrt(sum psi_j^2, j < h): model-implied h-step sd (stored beside)
+  sigma_g        sigma x g_c(h): the configuration's own training-span growth of error spread with h
+                 (decision 1, decided 2026-11-12; the scale cadence reads, sigma.failure_scale)
+  g_c(h)         sd of its h-step errors over training issuances W..ts-1-H divided by the sd of its one-step
+                 errors there; every target falls before the test split
+  u_f = (yhat - y)/sigma, r = |u_f|, r_h = |e|/sigma_h, r_g = |e|/sigma_g, u_s = (s1 - y)/sigma, v_s = s2/sigma2(c)
+  sigma2(c)      RMS of the configuration's own in-sample s2 on the training span of this series, floored like sigma
 Origins run from o_min = test start + max(W_sigma, W_rho, H) (decision 14) to N - 1, every origins.stride.
 """
 
@@ -29,11 +33,18 @@ def origins(n: int, test_start: int, cfg: dict) -> np.ndarray:
 
 
 def series_floor(y_train: np.ndarray, cfg: dict) -> float:
-    """sigma.floor = floor_factor x training-span sd; a flat training span uses its level (or 1) instead."""
+    """sigma.floor = floor_factor x training-span sd of the series.
+
+    A span whose sd is at or below floor_factor x its level (or 1) is flat to working precision
+    (rounding leaves ~1e-16, never an exact zero, at levels binary floats cannot store); it uses
+    its level instead, so r is defined on flat stretches.
+    """
+    ff = cfg["sigma.floor_factor"]
+    level = max(abs(float(np.mean(y_train))), 1.0) if y_train.size else 1.0
     scale = float(np.std(y_train, ddof=cfg["sigma.ddof"])) if y_train.size > cfg["sigma.ddof"] else 0.0
-    if scale == 0.0:
-        scale = max(abs(float(np.mean(y_train))), 1.0)
-    return cfg["sigma.floor_factor"] * scale
+    if scale <= ff * level:
+        scale = level
+    return ff * scale
 
 
 def rolling_sigma(e1: np.ndarray, cfg: dict, floor: float) -> np.ndarray:
@@ -46,6 +57,21 @@ def rolling_sigma(e1: np.ndarray, cfg: dict, floor: float) -> np.ndarray:
     if e1.size >= W:
         out[W - 1 :] = np.lib.stride_tricks.sliding_window_view(e1, W).std(axis=1, ddof=cfg["sigma.ddof"])
     return np.maximum(out, floor)  # NaN stays NaN
+
+
+def growth_factor(sid: str, cid: str, meth, f: Fitted, ts: int, cfg: dict, floor: float) -> np.ndarray:
+    """g_c(h) for h = 1..H from the configuration's own errors at training issuances W..ts-1-H."""
+    H, W, ddof = cfg["horizon.H"], cfg["sigma.window"], cfg["sigma.ddof"]
+    issues = np.arange(W, ts - H)  # the last target, issues[-1] + H, is ts - 1
+    if issues.size < W:
+        raise AcceptanceError("forecast", f"{sid}: the training span gives {issues.size} issuances for the growth factor; it needs at least W_sigma = {W}")
+    E = np.empty((issues.size, H))
+    for j, i in enumerate(issues):
+        E[j] = f.y[i + 1 : i + H + 1] - meth.forecast(f, int(i), H)
+    sd = E.std(axis=0, ddof=ddof)
+    if sd[0] <= floor:  # one-step training errors at or below the sigma floor carry no growth information
+        return np.ones(H)
+    return sd / sd[0]
 
 
 def _verify_states(sid: str, fs: dict[str, Fitted], states: pd.DataFrame) -> None:
@@ -79,10 +105,6 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
     _verify_states(sid, fs, states)
     cl = configs(registry)
     floor = series_floor(y[:ts], cfg)
-    sigma2 = {}
-    for m in {m for _, m, _ in cl}:
-        s2 = np.concatenate([fs[c].s2[:ts] for c, mm, _ in cl if mm == m])
-        sigma2[m] = max(float(np.sqrt(np.mean(s2 * s2))), floor)
 
     # Row layout, shared by every configuration: forward then backward per origin.
     h = np.arange(1, H + 1)
@@ -101,7 +123,7 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
     yt = y[t_target]
     rows_per = origin.size
 
-    out = {k: [] for k in ("config_id", "yhat", "e", "sigma", "sigma_h", "u_f", "r", "r_h", "u_s", "v_s", "s1", "s2")}
+    out = {k: [] for k in ("config_id", "yhat", "e", "sigma", "sigma_h", "sigma_g", "u_f", "r", "r_h", "r_g", "u_s", "v_s", "s1", "s2")}
     for cid, m, theta in cl:
         meth, f = get_method(m, cfg), fs[cid]
         S1 = np.empty((iss_all.size, H))
@@ -112,10 +134,13 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
         yhat, s1, s2 = Y[pos, hh - 1], S1[pos, hh - 1], S2[pos, hh - 1]
         sig = rolling_sigma(f.e1, cfg, floor)[issuance]
         sig_h = sig * meth.sigma_h_factor(theta, H)[hh - 1]
+        sig_g = np.maximum(sig * growth_factor(sid, cid, meth, f, ts, cfg, floor)[hh - 1], floor)
+        sigma2 = max(float(np.sqrt(np.mean(f.s2[:ts] ** 2))), floor)
         e = yt - yhat
         out["config_id"].append(np.full(rows_per, cid, dtype=object))
-        for k, v in (("yhat", yhat), ("e", e), ("sigma", sig), ("sigma_h", sig_h), ("u_f", -e / sig), ("r", np.abs(e) / sig),
-                     ("r_h", np.abs(e) / sig_h), ("u_s", (s1 - yt) / sig), ("v_s", s2 / sigma2[m]), ("s1", s1), ("s2", s2)):
+        for k, v in (("yhat", yhat), ("e", e), ("sigma", sig), ("sigma_h", sig_h), ("sigma_g", sig_g), ("u_f", -e / sig),
+                     ("r", np.abs(e) / sig), ("r_h", np.abs(e) / sig_h), ("r_g", np.abs(e) / sig_g), ("u_s", (s1 - yt) / sig),
+                     ("v_s", s2 / sigma2), ("s1", s1), ("s2", s2)):
             out[k].append(v)
 
     k = len(cl)

@@ -1,7 +1,6 @@
 artifact: fiber_index
-description: one row per fiber coordinate k, mapping each position of fibers.x, u and w to its configuration
+description: one row per fiber coordinate k, mapping each position of fibers.x to its configuration
 primary_key: [k]
 columns:
-  - {name: k, dtype: int16, nullable: false, notes: "0..|C|-1, registry order of admissible configurations, fused last"}
+  - {name: k, dtype: int16, nullable: false, notes: "0..|C|-1, registry order of admissible configurations"}
   - {name: config_id, dtype: string, nullable: false}
-  - {name: is_fused, dtype: bool, nullable: false, notes: "decision 16: the fused coordinate is flagged here"}

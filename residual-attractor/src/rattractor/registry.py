@@ -3,8 +3,8 @@
 config_id = hash(method, theta_spec, params, exog_set_id)
 core_spec_id = hash(method, theta_spec, params)
 Grid placement is for display only; no stage reads it as adjacency.
-A fusion rule (a grid file with `members`) adds one fused configuration over the
-admissible parameter configurations; it has its own core_spec_id and no ell.
+Every configuration produces its own residuals; nothing combines configurations
+before the residual archive is complete.
 """
 
 from __future__ import annotations
@@ -36,15 +36,10 @@ def config_id(method: str, theta_spec: str, params: dict, exog_set_id: str = "")
     return _hash({"method": method, "theta_spec": theta_spec, "params": params, "exog_set_id": exog_set_id})
 
 
-FUSION_RULES = ("all_admissible",)
-
-
 def build_registry(grids: list[dict], cfg: dict) -> pd.DataFrame:
-    """Parameter grids in file order, then fusion rules (so fused rows come last, as the fiber needs)."""
+    """Parameter grids in file order; one row per grid point."""
     rows = []
     for grid in grids:
-        if "members" in grid:
-            continue
         method = get_method(grid["method"], cfg)
         names = list(grid["params"])
         if set(names) != set(method.param_names):
@@ -92,39 +87,6 @@ def build_registry(grids: list[dict], cfg: dict) -> pd.DataFrame:
                 "admissible": ok,
             })
 
-    plain = list(rows)
-    for grid in (g for g in grids if "members" in g):
-        method = get_method(grid["method"], cfg)
-        if not method.is_fusion:
-            raise ValueError(f"grid with members names {method.name}, which is not a fusion method")
-        if grid["members"] not in FUSION_RULES:
-            raise ValueError(f"fusion members rule {grid['members']!r} not in {FUSION_RULES}")
-        members = [{"method": r["method"], "params": json.loads(r["params"])} for r in plain if r["admissible"]]
-        # Members are a set: store them sorted by their own config_id, so the fused identity does not
-        # depend on the order of registry.files or of the grid values.
-        members.sort(key=lambda m: config_id(m["method"], "fixed", m["params"]))
-        theta = {"members": members}
-        rows.append({
-            "config_id": config_id(method.name, "fixed", theta),
-            "core_spec_id": core_spec_id(method.name, "fixed", theta),
-            "exog_set_id": "",
-            "method": method.name,
-            "theta_spec": "fixed",
-            "params": _canonical(theta),
-            "ell": np.nan,
-            "ell_status": "not_applicable",
-            "s1_name": method.state_names[0],
-            "s2_name": method.state_names[1],
-            "grid_axes": _canonical([]),
-            "grid_i": 0,
-            "grid_j": 0,
-            "admissible": method.admissible(theta),
-        })
-
     cols = {k: [row[k] for row in rows] for k in rows[0]}
     return contracts.from_columns(cols, "registry")
 
-
-def fused_member_ids(params_json: str) -> list[str]:
-    """config_ids of a fused configuration's members, in stored order (sorted by config_id)."""
-    return [config_id(m["method"], "fixed", m["params"]) for m in json.loads(params_json)["members"]]

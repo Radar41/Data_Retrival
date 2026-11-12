@@ -34,7 +34,6 @@ class Method(ABC):
     param_names: tuple[str, ...]
     state_names: tuple[str, str]
     forecast_is: str  # "s1" or "s1_plus_s2": how forecast relates to state_forward
-    is_fusion: bool = False  # true for a combination of other configurations (no parameter space, no ell)
 
     def __init__(self, cfg: dict):
         self.cfg = cfg

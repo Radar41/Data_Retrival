@@ -23,8 +23,7 @@ def test_fixture_build_and_manifest(cfg, tmp_path):
     assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers"]
     assert {"fiber_index.parquet", "steps/fixture_six_regime.parquet", "fibers/fixture_six_regime.parquet"} <= set(m["artifacts"])
     idx = contracts.read(out / "fiber_index.parquet", "fiber_index")
-    assert int(idx["is_fused"].sum()) == 1
-    assert m["fiber"] == {"coordinates": len(idx), "fused_k": [len(idx) - 1]}
+    assert m["fiber"] == {"coordinates": len(idx)} and len(idx) == m["configurations"]["admissible"]
     a = m["artifacts"]
     assert a["fibers/fixture_six_regime.parquet"]["rows"] * len(idx) == a["steps/fixture_six_regime.parquet"]["rows"]
     assert build(spec, cfg, tmp_path).name == out.name  # same inputs, same build_id
@@ -59,7 +58,7 @@ def test_failed_fibers_check_writes_its_rows(cfg, tmp_path, monkeypatch):
     assert len(reports) == 1
     rows = pd.read_parquet(reports[0])
     n_coords = int(rows["config_id"].nunique())
-    assert n_coords == 55 and len(rows) == n_coords * rows["issuance"].nunique()
+    assert n_coords == 54 and len(rows) == n_coords * rows["issuance"].nunique()
     assert not list((tmp_path / "builds").glob("*/manifest.json"))
 
 

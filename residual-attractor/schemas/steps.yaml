@@ -13,13 +13,15 @@ columns:
   - {name: y, dtype: float64, nullable: false, unit: series}
   - {name: e, dtype: float64, nullable: false, unit: series, notes: y - yhat}
   - {name: sigma, dtype: float64, nullable: false, unit: series, notes: "one-step residual sd over the W_sigma steps ending at issuance, floored"}
-  - {name: sigma_h, dtype: float64, nullable: false, unit: series, notes: "decision 1: model-implied h-step sd, sigma x sqrt(sum psi_j^2, j < h)"}
+  - {name: sigma_h, dtype: float64, nullable: false, unit: series, notes: "model-implied h-step sd, sigma x sqrt(sum psi_j^2, j < h)"}
+  - {name: sigma_g, dtype: float64, nullable: false, unit: series, notes: "decision 1: sigma x g_c(h), the configuration's own training-span growth of error spread, floored"}
   - {name: tau, dtype: float32, nullable: false, notes: "h/H forward, (h - H)/H backward"}
   - {name: u_f, dtype: float32, nullable: false, notes: (yhat - y) / sigma}
   - {name: r, dtype: float32, nullable: false, notes: "|u_f|"}
-  - {name: r_h, dtype: float32, nullable: false, notes: "|e| / sigma_h (decision 2: recorded beside r)"}
+  - {name: r_h, dtype: float32, nullable: false, notes: "|e| / sigma_h"}
+  - {name: r_g, dtype: float32, nullable: false, notes: "|e| / sigma_g; the scale cadence reads (sigma.failure_scale = training_growth)"}
   - {name: u_s, dtype: float32, nullable: false, notes: (s1 - y) / sigma}
-  - {name: v_s, dtype: float32, nullable: false, notes: "s2 / sigma2(M), sigma2 over the training span of this series"}
+  - {name: v_s, dtype: float32, nullable: false, notes: "s2 / sigma2(c), the configuration's own RMS of s2 over the training span of this series"}
   - {name: s1, dtype: float64, nullable: false, unit: series}
   - {name: s2, dtype: float64, nullable: false, unit: method}
   - {name: window_spans_break, dtype: boolean, nullable: true, notes: "decision 3; <NA> while sigma.break_detector = none"}

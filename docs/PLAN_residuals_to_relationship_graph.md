@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.6 and 1.8 (univariate SES/AR/Holt, the fused configuration and the fibers stage; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 4b on all 14 series. It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.6 (univariate SES/AR/Holt and the fibers stage as a collection of points; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 4b on all 14 series. Item 1.8 (a fused configuration) is withdrawn under the archive rule (section 0, rule 7). It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|
@@ -28,6 +28,7 @@ Rules that make that hold (most are already in the spec or rdiag):
 4. **Invariants don't depend on counts.** Every test and statistic is valid for any number of series and configurations (spec decision 25).
 5. **Every tunable number lives in the config.** No defaults in code; a missing key fails (spec and rdiag).
 6. **Frequency handling is a rule, not a choice per series.** The aggregation of weekly/daily series to the common frequency is a declared rule.
+7. **The archive rule (Adrian, 2026-11-12).** Every configuration's residuals for every series are derived and archived individually. Nothing fuses, pools or takes a weighted average across residuals before the archive is finished: no fused configuration, no cross-configuration aggregate. The fiber bundle is a collection of points. Every later transform and analysis acts on each retained residual on its own, in strict order, and the same analyses run on every series; scores are not aggregated. Redundant configurations are kept, and the analyses sort them out.
 
 **Run specification** = series list (or a rule that selects one) + predictor-set rule + configuration registry + cutoff date(s) + config file. The spring panel is run spec 0. Rerunning it is the first end-to-end test, and its results can be checked against the spring outputs.
 
@@ -184,12 +185,14 @@ A narrow run (one target, one set) is the same machinery with a smaller run spec
 
 ## 10. Open decisions
 
-1. **Spec decisions 1–3** (σ at horizon h; its consequence; σ window across breaks). Building on the spec's proposed defaults, which it offers "so the build can start": one-step σ scales failure, with σ_h stored beside it; both r and r_h recorded, cadence on r until decided; fixed W_σ = 40, with origins whose window spans a break flagged. Still to be confirmed before the first real-data build (spec milestone 7 gate).
+1. **Spec decisions 1–3, decided 2026-11-12.** Failure at horizon h is scaled by σ × g_c(h), each configuration's own training-span growth of its error spread (r_g); r and r_h stay stored beside it, and cadence reads r_g. σ stays the plain 40-step window, unweighted; regime handling (breaks, resets) belongs to the analyses on the archive, so `window_spans_break` stays empty.
+1b. **Spec decision 4 (cadence labels and thresholds), open.** Cadence is computed per ladder (series, configuration, origin); pooled failure statistics are a view, not an archive artifact. The spec's rule list (nine labels) and its cadence table (six) disagree and must be reconciled before stage 5.
+1c. **Spec decisions 16 and 17, closed by the archive rule.** There is no fused coordinate and no axes (u, w) in the archive; any decomposition across configurations belongs to the analyses on the finished archive.
 2. ~~Language for the upstream.~~ **Decided 2026-11-12: Python.** The package lives at `residual-attractor/` in this repository (layout per `downloads/residual-attractor-DIRECTORY.md`, package `rattractor`). GDSS's evaluation contracts carry over; the MATLAB code is retired as reference.
 3. **θ-spec**: fixed grids (spec), estimated per origin (GDSS), or both. Both fit the identity in section 3.
 4. **Neo4j alone vs Neo4j + Memgraph** for the relationship graph.
 5. **Lag grid** for co-movement tests, and how it enters the FDR family.
-6. **Fused definition** (spec decision 16 / rdiag reconciliation issue 5): it decides Diebold-Mariano vs Clark-West against fused. Built 2026-11-12 on the proposed default, to confirm: the equal-weight mean of every admissible configuration, with its own `core_spec_id` (so Diebold-Mariano), included as the last fiber coordinate and flagged.
+6. **Fused definition** (spec decision 16 / rdiag reconciliation issue 5). Closed for the upstream on 2026-11-12: no fusing before the archive is finished, so the archive has no fused configuration. rdiag as delivered is built around one: `k_fused` is required, Stage 1 measures every configuration against fused, and Stage 2 runs on the fused row. Under the archive rule rdiag's transforms and analyses run on every configuration's residual individually, so its contract needs reworking in Phase 2.
 7. **Common frequency and aggregation rule** (rdiag requires monthly).
 8. **Definitional edges from Cognee**: proposals only, accepted by you.
 

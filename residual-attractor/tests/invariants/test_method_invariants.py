@@ -13,7 +13,6 @@ THETAS = {
     "ar": {"phi1": 0.6, "phi2": -0.3},
     "holt": {"alpha": 0.4, "beta": 0.2},
 }
-THETAS["fused"] = {"members": [{"method": m, "params": th} for m, th in THETAS.items()]}
 
 
 @pytest.fixture(scope="module")

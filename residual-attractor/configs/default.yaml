@@ -4,9 +4,9 @@
 horizon.H: 20
 sigma.window: 40
 sigma.floor_factor: 1.0e-6
-sigma.failure_scale: one_step          # spec decision 1, proposed default (to confirm)
+sigma.failure_scale: training_growth   # spec decision 1, decided 2026-11-12: sigma x training-span growth g_c(h)
 sigma.store_h_step: true               # spec decision 1: sigma_h stored beside sigma
-sigma.break_policy: fixed_window_flag_breaks   # spec decision 3, proposed default (to confirm)
+sigma.break_policy: fixed_window_flag_breaks   # spec decision 3: fixed window, unweighted; regime handling belongs to the analyses on the archive
 sigma.ddof: 1
 sigma.break_detector: none            # no break detector chosen yet; flags stay <NA>
 thresholds: [1, 2, 3, 4]
@@ -18,13 +18,10 @@ lagcorr.min_pairs: 10
 lagcorr.smoothing: mean3
 base.closed: false
 origins.stride: 1
-registry.files: [ses.yaml, ar.yaml, holt.yaml, fused.yaml]
+registry.files: [ses.yaml, ar.yaml, holt.yaml]
 methods.ar.mean_window: expanding
 methods.holt.init: first_value_zero_trend
 methods.ses.init: first_value
-fibers.include_fused: true            # spec decision 16, proposed default
-fibers.axes: window_correlation       # spec decision 17, proposed default: W_sigma window for the forecast view
-fibers.eig_tol: 1.0e-9
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60
