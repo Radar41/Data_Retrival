@@ -1,0 +1,23 @@
+artifact: fibers
+description: "one row per (series, origin, ladder, h): the section of the bundle. The fiber X is every fiber coordinate's standardized residual at once (fiber_index gives the coordinate order)."
+primary_key: [series_id, origin, ladder, h]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: origin, dtype: int32, nullable: false, unit: step}
+  - {name: ladder, dtype: category, values: [backward, forward], nullable: false}
+  - {name: h, dtype: int16, nullable: false, unit: step}
+  - {name: step, dtype: int16, nullable: false, unit: step, notes: "h - H backward, h forward"}
+  - {name: issuance, dtype: int32, nullable: false, unit: step, notes: "o forward, o - H backward"}
+  - {name: x, dtype: "list[float32]", nullable: false, notes: "X_k = (y - yhat_k) / sigma_k(issuance) in fiber_index order, fused last; equals -u_f of each steps row"}
+  - {name: u, dtype: "list[float32]", nullable: false, notes: "common axis at issuance, unit length, loadings sum positive; where they cancel (|sum| <= 1e-12), largest |loading| positive, ties within 1e-9 going to the first coordinate"}
+  - {name: w, dtype: "list[float32]", nullable: false, notes: "specific axis at issuance, unit length, orthogonal to u, largest |loading| positive (ties within 1e-9 go to the first coordinate)"}
+  - {name: lam1, dtype: float32, nullable: false, notes: "eigenvalue of u in the window correlation matrix; <= eig_tol x |C| means u is the uniform fallback"}
+  - {name: lam2, dtype: float32, nullable: false, notes: "eigenvalue of w; <= eig_tol x |C| means w is the fallback: e_j for the first j with |u_j| <= 1/sqrt(2), made orthogonal to u"}
+  - {name: norm, dtype: float32, nullable: false, notes: "|X|"}
+  - {name: rms, dtype: float32, nullable: false, notes: "|X| / sqrt(|C|)"}
+  - {name: c, dtype: float32, nullable: false, notes: "common score X . u"}
+  - {name: s, dtype: float32, nullable: false, notes: "specific score X . w"}
+  - {name: share, dtype: float32, nullable: true, notes: "common share c^2 / |X|^2; NaN where X = 0"}
+  - {name: rot_out, dtype: float32, nullable: true, unit: degrees, notes: "angle from X here to X at the next step; NaN at the last step or where either |X| is 0"}
+  - {name: dlog_out, dtype: float32, nullable: true, notes: "log(|X_next| / |X|); NaN at the last step or where either |X| is 0"}
+  - {name: issuance_switch, dtype: bool, nullable: false, notes: "true on the backward step 0 row whose next step is forward step 1 (issuance changes); never pool it with within-ladder moves"}

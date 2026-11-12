@@ -18,10 +18,13 @@ lagcorr.min_pairs: 10
 lagcorr.smoothing: mean3
 base.closed: false
 origins.stride: 1
-registry.files: [ses.yaml, ar.yaml, holt.yaml]
+registry.files: [ses.yaml, ar.yaml, holt.yaml, fused.yaml]
 methods.ar.mean_window: expanding
 methods.holt.init: first_value_zero_trend
 methods.ses.init: first_value
+fibers.include_fused: true            # spec decision 16, proposed default
+fibers.axes: window_correlation       # spec decision 17, proposed default: W_sigma window for the forecast view
+fibers.eig_tol: 1.0e-9
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60

@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.5 (univariate SES/AR/Holt; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 4 on all 14 series. It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.6 and 1.8 (univariate SES/AR/Holt, the fused configuration and the fibers stage; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 4b on all 14 series. It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|
@@ -189,7 +189,7 @@ A narrow run (one target, one set) is the same machinery with a smaller run spec
 3. **θ-spec**: fixed grids (spec), estimated per origin (GDSS), or both. Both fit the identity in section 3.
 4. **Neo4j alone vs Neo4j + Memgraph** for the relationship graph.
 5. **Lag grid** for co-movement tests, and how it enters the FDR family.
-6. **Fused definition** (spec decision 16 / rdiag reconciliation issue 5): it decides Diebold-Mariano vs Clark-West against fused.
+6. **Fused definition** (spec decision 16 / rdiag reconciliation issue 5): it decides Diebold-Mariano vs Clark-West against fused. Built 2026-11-12 on the proposed default, to confirm: the equal-weight mean of every admissible configuration, with its own `core_spec_id` (so Diebold-Mariano), included as the last fiber coordinate and flagged.
 7. **Common frequency and aggregation rule** (rdiag requires monthly).
 8. **Definitional edges from Cognee**: proposals only, accepted by you.
 

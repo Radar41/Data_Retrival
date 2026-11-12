@@ -2,10 +2,11 @@
 
 from .ar import AR
 from .base import Fitted, Method
+from .fused import Fused
 from .holt import Holt
 from .ses import SES
 
-FAMILIES: dict[str, type[Method]] = {cls.name: cls for cls in (SES, AR, Holt)}
+FAMILIES: dict[str, type[Method]] = {cls.name: cls for cls in (SES, AR, Holt, Fused)}
 
 
 def get_method(name: str, cfg: dict) -> Method:
@@ -15,4 +16,4 @@ def get_method(name: str, cfg: dict) -> Method:
         raise KeyError(f"no method family {name!r}; known: {sorted(FAMILIES)}") from None
 
 
-__all__ = ["AR", "SES", "Holt", "Fitted", "Method", "FAMILIES", "get_method"]
+__all__ = ["AR", "SES", "Holt", "Fused", "Fitted", "Method", "FAMILIES", "get_method"]

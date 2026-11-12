@@ -1,7 +1,7 @@
 """One build: run spec + config -> builds/<build_id>/ with every artifact and manifest.json.
 
-Stages run in order and each one's acceptance checks pass before the next
-starts. A failed check writes its failing rows to reports/<build_id>/<stage>.parquet
+Stages run in order (ingest, register, fit, then forecast and fibers per series)
+and each one's acceptance checks pass before the next starts. A failed check writes its failing rows to reports/<build_id>/<stage>.parquet
 and stops the build; the manifest is written last, only when everything passed.
 """
 
@@ -23,7 +23,7 @@ from . import PKG_ROOT, contracts, fixtures
 from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
-from .stages import AcceptanceError, fit, forecast, ingest, register
+from .stages import AcceptanceError, fibers, fit, forecast, ingest, register
 
 
 def _safe(name: str) -> str:
@@ -99,13 +99,18 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         stage = "fit"
         states, cache = fit.run(series, reg, cfg)
         write(states, "states", "states.parquet")
-        stage = "forecast"
+        stage = "fibers"
+        index = fibers.fiber_index(reg, cfg)
+        write(index, "fiber_index", "fiber_index.parquet")
         n_origins = {}
         for sid, g in series.groupby("series_id", sort=False, observed=True):
             sid = str(sid)
+            stage = "forecast"
             steps = forecast.run_series(sid, g, reg, states, cfg, cache[sid])
             write(steps, "steps", f"steps/{_safe(sid)}.parquet")
             n_origins[sid] = int(steps["origin"].nunique())
+            stage = "fibers"
+            write(fibers.run_series(sid, g, states, steps, cfg, index), "fibers", f"fibers/{_safe(sid)}.parquet")
             del steps
     except AcceptanceError as err:
         if err.rows is not None:
@@ -127,7 +132,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "split_boundary": ingest.split_boundary(series),
         "origins_per_series": n_origins,
         "configurations": {"registered": len(reg), "admissible": int(reg["admissible"].sum())},
-        "stages_passed": ["ingest", "register", "fit", "forecast"],
+        "fiber": {"coordinates": len(index), "fused_k": [int(k) for k in index.loc[index["is_fused"], "k"]]},
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

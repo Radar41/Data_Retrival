@@ -1,0 +1,8 @@
+# The fused configuration: the equal-weight mean of every admissible
+# configuration of the parameter grids in registry.files, wherever this file is
+# listed (fused rows always come after the parameter rows). Members are stored
+# sorted by config_id, so the fused identity does not depend on file order.
+# Spec decision 16 (proposed default): it is the last fiber coordinate, flagged
+# in fiber_index.
+method: fused
+members: all_admissible

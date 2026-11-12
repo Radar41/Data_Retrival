@@ -28,3 +28,6 @@ fixture.noise_sd:         {type: float, min: 0.0}
 fixture.test_fraction:    {type: float, min: 0.0, max: 1.0}
 sigma.ddof:               {type: int, min: 0, max: 1}  # sd divisor N - ddof over the W_sigma window
 sigma.break_detector:     {type: str, values: [none]}  # decision 3: no detector yet, window_spans_break stays <NA>
+fibers.include_fused:     {type: bool}                 # decision 16: fused as the last fiber coordinate
+fibers.axes:              {type: str, values: [window_correlation]}  # decision 17: u, w from the W_sigma window at issuance
+fibers.eig_tol:           {type: float, min: 0.0}      # an eigenvalue <= eig_tol x |C| marks that axis degenerate

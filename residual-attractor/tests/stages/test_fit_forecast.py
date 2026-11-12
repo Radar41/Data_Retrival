@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from rattractor import contracts, fixtures
-from rattractor.methods import AR, SES, Holt
+from rattractor.methods import AR, SES, Holt, get_method
 from rattractor.stages import fit, forecast, register
 
 
@@ -41,8 +41,8 @@ def test_ladder_geometry(cfg, built):
     _, _, _, steps = built
     H = cfg["horizon.H"]
     f, b = steps[steps["ladder"] == "forward"], steps[steps["ladder"] == "backward"]
-    assert (f["issued"] == f["origin"]).all() and (b["issued"] == b["origin"] - H).all()
-    assert (steps["t_target"] == steps["issued"] + steps["h"]).all()
+    assert (f["issuance"] == f["origin"]).all() and (b["issuance"] == b["origin"] - H).all()
+    assert (steps["t_target"] == steps["issuance"] + steps["h"]).all()
     assert (b.loc[b["h"] == H, "t_target"] == b.loc[b["h"] == H, "origin"]).all()  # lands on the origin
     np.testing.assert_allclose(f["tau"], f["h"] / H, atol=1e-7)
     np.testing.assert_allclose(b["tau"], (b["h"] - H) / H, atol=1e-7)
@@ -64,7 +64,7 @@ def test_sigma_is_the_window_ending_at_issuance(cfg, built):
     cid = reg.loc[reg["admissible"], "config_id"].iloc[0]
     row = steps[(steps["config_id"] == cid) & (steps["ladder"] == "backward")].iloc[0]
     e1 = states[states["config_id"] == cid]["e1"].to_numpy()
-    W, iss = cfg["sigma.window"], int(row["issued"])
+    W, iss = cfg["sigma.window"], int(row["issuance"])
     assert row["sigma"] == pytest.approx(np.std(e1[iss - W + 1 : iss + 1], ddof=cfg["sigma.ddof"]), rel=1e-12)
 
 
@@ -72,10 +72,10 @@ def test_steps_match_method_forecast(cfg, built):
     series, reg, _, steps = built
     y = series["y"].to_numpy()
     for _, r in reg[reg["admissible"]].groupby("method").head(1).iterrows():
-        m = {"ses": SES, "ar": AR, "holt": Holt}[r["method"]](cfg)
+        m = get_method(r["method"], cfg)
         f = m.fit(y, json.loads(r["params"]))
         o = int(steps["origin"].min())
-        got = steps[(steps["config_id"] == r["config_id"]) & (steps["issued"] == o) & (steps["ladder"] == "forward")]
+        got = steps[(steps["config_id"] == r["config_id"]) & (steps["issuance"] == o) & (steps["ladder"] == "forward")]
         np.testing.assert_allclose(got.sort_values("h")["yhat"], m.forecast(f, o, cfg["horizon.H"]), rtol=0, atol=1e-12)
 
 
@@ -90,8 +90,8 @@ def test_no_leakage_in_input_side_fields(cfg, built):
     p = forecast.run(s2, reg, st2, cfg, cache2)["fixture_six_regime"]
     key = ["config_id", "origin", "ladder", "h"]
     cols = ["yhat", "sigma", "sigma_h", "s1", "s2", "v_s"]
-    a = steps[steps["issued"] <= o].sort_values(key).reset_index(drop=True)
-    b = p[p["issued"] <= o].sort_values(key).reset_index(drop=True)
+    a = steps[steps["issuance"] <= o].sort_values(key).reset_index(drop=True)
+    b = p[p["issuance"] <= o].sort_values(key).reset_index(drop=True)
     # v_s scales by sigma2 over the training span, which ends before o: unchanged too.
     pd.testing.assert_frame_equal(a[key + cols], b[key + cols])
 

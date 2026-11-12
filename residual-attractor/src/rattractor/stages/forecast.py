@@ -37,9 +37,15 @@ def series_floor(y_train: np.ndarray, cfg: dict) -> float:
 
 
 def rolling_sigma(e1: np.ndarray, cfg: dict, floor: float) -> np.ndarray:
-    """sigma at each t over e1[t - W + 1 .. t]; NaN where the window reaches t = 0 (e1 undefined there)."""
-    sd = pd.Series(e1).rolling(cfg["sigma.window"], min_periods=cfg["sigma.window"]).std(ddof=cfg["sigma.ddof"])
-    return np.maximum(sd.to_numpy(), floor)  # NaN stays NaN
+    """sigma at each t over e1[t - W + 1 .. t]; NaN where the window reaches t = 0 (e1 undefined there).
+
+    Two-pass per window (mean, then deviations), so a large residual mean costs no digits.
+    """
+    W = cfg["sigma.window"]
+    out = np.full(e1.size, np.nan)
+    if e1.size >= W:
+        out[W - 1 :] = np.lib.stride_tricks.sliding_window_view(e1, W).std(axis=1, ddof=cfg["sigma.ddof"])
+    return np.maximum(out, floor)  # NaN stays NaN
 
 
 def _verify_states(sid: str, fs: dict[str, Fitted], states: pd.DataFrame) -> None:
@@ -86,12 +92,12 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
     o_b, h_b = np.repeat(O, H), np.tile(h, O.size)
     origin = np.concatenate([o_f, o_b])
     hh = np.concatenate([h_f, h_b])
-    issued = np.concatenate([o_f, o_b - H])
+    issuance = np.concatenate([o_f, o_b - H])
     ladder = np.array(["forward"] * o_f.size + ["backward"] * o_b.size, dtype=object)
-    t_target = issued + hh
+    t_target = issuance + hh
     tau = np.concatenate([h_f / H, (h_b - H) / H])
-    iss_all = np.unique(issued)
-    pos = np.searchsorted(iss_all, issued)
+    iss_all = np.unique(issuance)
+    pos = np.searchsorted(iss_all, issuance)
     yt = y[t_target]
     rows_per = origin.size
 
@@ -104,7 +110,7 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
             S1[i], S2[i] = meth.state_forward(f, int(o), H)
         Y = meth.forecast_from_state(S1, S2)
         yhat, s1, s2 = Y[pos, hh - 1], S1[pos, hh - 1], S2[pos, hh - 1]
-        sig = rolling_sigma(f.e1, cfg, floor)[issued]
+        sig = rolling_sigma(f.e1, cfg, floor)[issuance]
         sig_h = sig * meth.sigma_h_factor(theta, H)[hh - 1]
         e = yt - yhat
         out["config_id"].append(np.full(rows_per, cid, dtype=object))
@@ -119,7 +125,7 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
     data.update({
         "series_id": np.full(rows_per * k, sid, dtype=object),
         "origin": np.tile(origin, k), "ladder": np.tile(ladder, k), "h": np.tile(hh, k),
-        "issued": np.tile(issued, k), "t_target": np.tile(t_target, k), "y": np.tile(yt, k),
+        "issuance": np.tile(issuance, k), "t_target": np.tile(t_target, k), "y": np.tile(yt, k),
         "tau": np.tile(tau, k),
         "window_spans_break": [pd.NA] * (rows_per * k), "cell_id": [pd.NA] * (rows_per * k),
     })

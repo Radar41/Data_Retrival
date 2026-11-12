@@ -7,8 +7,8 @@ columns:
   - {name: origin, dtype: int32, nullable: false, unit: step, notes: base point o}
   - {name: ladder, dtype: category, values: [backward, forward], nullable: false}
   - {name: h, dtype: int16, nullable: false, unit: step, notes: "1..H steps after issuance"}
-  - {name: issued, dtype: int32, nullable: false, unit: step, notes: "o forward, o - H backward"}
-  - {name: t_target, dtype: int32, nullable: false, unit: step, notes: "issued + h; forward rows past N - 1 are truncated"}
+  - {name: issuance, dtype: int32, nullable: false, unit: step, notes: "o forward, o - H backward"}
+  - {name: t_target, dtype: int32, nullable: false, unit: step, notes: "issuance + h; forward rows past N - 1 are truncated"}
   - {name: yhat, dtype: float64, nullable: false, unit: series}
   - {name: y, dtype: float64, nullable: false, unit: series}
   - {name: e, dtype: float64, nullable: false, unit: series, notes: y - yhat}

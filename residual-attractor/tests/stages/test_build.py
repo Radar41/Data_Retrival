@@ -20,7 +20,13 @@ def test_fixture_build_and_manifest(cfg, tmp_path):
         p = out / rel
         assert file_sha256(p) == a["sha256"]
         assert len(contracts.read(p, a["artifact"])) == a["rows"]
-    assert m["stages_passed"] == ["ingest", "register", "fit", "forecast"]
+    assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers"]
+    assert {"fiber_index.parquet", "steps/fixture_six_regime.parquet", "fibers/fixture_six_regime.parquet"} <= set(m["artifacts"])
+    idx = contracts.read(out / "fiber_index.parquet", "fiber_index")
+    assert int(idx["is_fused"].sum()) == 1
+    assert m["fiber"] == {"coordinates": len(idx), "fused_k": [len(idx) - 1]}
+    a = m["artifacts"]
+    assert a["fibers/fixture_six_regime.parquet"]["rows"] * len(idx) == a["steps/fixture_six_regime.parquet"]["rows"]
     assert build(spec, cfg, tmp_path).name == out.name  # same inputs, same build_id
 
 
@@ -37,3 +43,74 @@ def test_failed_check_writes_no_manifest(cfg, tmp_path):
     with pytest.raises(AcceptanceError, match="no origins"):
         build(spec, dict(cfg, **{"sigma.window": 400}), tmp_path)
     assert not list((tmp_path / "builds").glob("*/manifest.json"))
+
+
+def test_failed_fibers_check_writes_its_rows(cfg, tmp_path, monkeypatch):
+    import pandas as pd
+
+    from rattractor.stages import fibers
+
+    # A huge floor in the stage's own sigma recomputation: every (issuance, configuration) pair disagrees with steps.
+    monkeypatch.setattr(fibers, "series_floor", lambda y_train, cfg: 1e12)
+    spec = load_run_spec("fixture_six_regime.yaml")
+    with pytest.raises(AcceptanceError, match="sigma in steps disagrees"):
+        build(spec, cfg, tmp_path)
+    reports = list((tmp_path / "reports").glob("*/fibers.parquet"))
+    assert len(reports) == 1
+    rows = pd.read_parquet(reports[0])
+    n_coords = int(rows["config_id"].nunique())
+    assert n_coords == 55 and len(rows) == n_coords * rows["issuance"].nunique()
+    assert not list((tmp_path / "builds").glob("*/manifest.json"))
+
+
+def test_code_version_names_the_exact_tree():
+    import re
+
+    from rattractor.manifest import code_version
+
+    v = code_version()
+    assert v == "unknown" or re.fullmatch(r"[0-9a-f]{40}(\+dirty:[0-9a-f]{12})?", v)
+    assert code_version() == v  # deterministic for one tree
+
+
+def test_code_version_tells_dirty_states_apart(tmp_path, monkeypatch):
+    import os
+    import re
+    import shutil
+    import subprocess
+
+    from rattractor import manifest
+
+    if shutil.which("git") is None:
+        pytest.skip("git not available")
+
+    def git(*args):
+        subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                       check=True, capture_output=True)
+
+    (tmp_path / "a.txt").write_text("one\n")
+    git("init", "-q")
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    monkeypatch.setattr(manifest, "PKG_ROOT", tmp_path)
+    head = manifest.code_version()
+    assert re.fullmatch(r"[0-9a-f]{40}", head)
+    seen = []
+    for text in ("two\n", "three\n"):
+        (tmp_path / "a.txt").write_text(text)
+        seen.append(manifest.code_version())
+    (tmp_path / "a.txt").write_text("one\n")
+    (tmp_path / "new.txt").write_text("x\n")
+    seen.append(manifest.code_version())
+    (tmp_path / "target").mkdir()
+    os.symlink(tmp_path / "target", tmp_path / "builds")  # an untracked symlink to a directory
+    os.symlink(tmp_path / "missing", tmp_path / "dangling")
+    seen.append(manifest.code_version())
+    assert all(re.fullmatch(re.escape(head) + r"\+dirty:[0-9a-f]{12}", v) for v in seen), seen
+    assert len(set(seen)) == len(seen)
+    git("status", "--porcelain")  # the real index still works and was not used for the hash
+    os.remove(tmp_path / "builds")
+    os.remove(tmp_path / "dangling")
+    os.remove(tmp_path / "new.txt")
+    os.rmdir(tmp_path / "target")
+    assert manifest.code_version() == head  # back to the committed tree

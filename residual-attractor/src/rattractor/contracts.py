@@ -25,6 +25,21 @@ _NUMPY = {
     "float64": np.dtype("float64"),
     "bool": np.dtype("bool"),
 }
+LIST_F32 = "list[float32]"  # one 1-D float32 array per row, every row the same length
+
+
+def _check_list_f32(artifact: str, name: str, col: pd.Series, nullable: bool) -> None:
+    if col.dtype != object:
+        raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema {LIST_F32}")
+    vals = col.to_numpy()
+    bad = sum(not (isinstance(v, np.ndarray) and v.ndim == 1 and v.dtype == np.float32) for v in vals)
+    if bad:
+        raise ContractError(f"{artifact}.{name}: {bad} values are not 1-D float32 arrays")
+    lengths = {v.size for v in vals}
+    if len(lengths) > 1:
+        raise ContractError(f"{artifact}.{name}: array lengths differ ({sorted(lengths)[:5]})")
+    if len(vals) and not nullable and not np.isfinite(np.stack(vals)).all():
+        raise ContractError(f"{artifact}.{name}: non-finite values in a non-null column")
 
 
 @cache
@@ -48,6 +63,8 @@ def empty_frame(artifact: str) -> pd.DataFrame:
             cols[c["name"]] = pd.Series([], dtype=d)
         elif d == "category":
             cols[c["name"]] = pd.Categorical([], categories=c["values"])
+        elif d == LIST_F32:
+            cols[c["name"]] = pd.Series([], dtype=object)
         else:
             cols[c["name"]] = pd.Series([], dtype=_NUMPY[d])
     return pd.DataFrame(cols)
@@ -70,6 +87,14 @@ def from_columns(data: dict, artifact: str) -> pd.DataFrame:
             cols[name] = pd.array(v, dtype=d)
         elif d == "category":
             cols[name] = pd.Categorical(v, categories=c["values"])
+        elif d == LIST_F32:
+            arr = np.asarray(v, dtype=np.float32)
+            if arr.ndim != 2:
+                raise ContractError(f"{artifact}.{name}: list[float32] needs a 2-D (rows, length) array")
+            col = np.empty(arr.shape[0], dtype=object)
+            for i in range(arr.shape[0]):
+                col[i] = arr[i].copy()
+            cols[name] = col
         else:
             cols[name] = np.asarray(v).astype(_NUMPY[d], copy=False)
     return validate(pd.DataFrame(cols), artifact)
@@ -93,6 +118,9 @@ def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
         elif d == "boolean":
             if not isinstance(col.dtype, pd.BooleanDtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema boolean")
+        elif d == LIST_F32:
+            _check_list_f32(artifact, name, col, c.get("nullable", False))
+            continue  # the generic null and finite checks below do not apply to arrays
         elif d == "category":
             if not isinstance(col.dtype, pd.CategoricalDtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema category")
@@ -110,6 +138,12 @@ def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
             if d in ("float32", "float64") and not np.isfinite(col.to_numpy()).all():
                 raise ContractError(f"{artifact}.{name}: non-finite values in a non-null column")
 
+    list_cols = [c["name"] for c in spec if c["dtype"] == LIST_F32]
+    if list_cols and len(df):
+        lengths = {name: df[name].iloc[0].size for name in list_cols}
+        if len(set(lengths.values())) > 1 or min(lengths.values()) < 1:
+            raise ContractError(f"{artifact}: list[float32] columns must share one length >= 1, got {lengths}")
+
     pk = schema.get("primary_key", [])
     if pk and df.duplicated(subset=pk).any():
         n = int(df.duplicated(subset=pk).sum())
@@ -122,18 +156,33 @@ def write(df: pd.DataFrame, artifact: str, path: Path) -> Path:
     validate(df, artifact)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    pq.write_table(pa.Table.from_pandas(df, preserve_index=False), path)
+    table = pa.Table.from_pandas(df, preserve_index=False)
+    for c in load_schema(artifact)["columns"]:
+        if c["dtype"] == LIST_F32:
+            # Built explicitly so the Arrow type is list<float32> whatever pandas would infer.
+            vals = df[c["name"]].to_numpy()
+            offsets = np.concatenate(([0], np.cumsum([v.size for v in vals]))).astype(np.int32)
+            flat = np.concatenate(vals) if len(vals) else np.array([], dtype=np.float32)
+            arr = pa.ListArray.from_arrays(pa.array(offsets), pa.array(flat, type=pa.float32()))
+            i = table.schema.get_field_index(c["name"])
+            table = table.set_column(i, pa.field(c["name"], pa.list_(pa.float32())), arr)
+    pq.write_table(table, path)
     return path
 
 
 def read(path: Path, artifact: str) -> pd.DataFrame:
     """Read Parquet and validate; no casting beyond Arrow's own round trip."""
     table = pq.read_table(path)
+    schema = load_schema(artifact)
+    for c in schema["columns"]:
+        if c["dtype"] == LIST_F32 and c["name"] in table.column_names:
+            got = table.schema.field(c["name"]).type
+            if got != pa.list_(pa.float32()):
+                raise ContractError(f"{artifact}.{c['name']}: Arrow type {got} on disk, schema list<float32>")
     df = table.to_pandas()
     # Arrow can hand back pandas "string" / "boolean" as object (an all-null
     # column has no Arrow type to carry them). Restore exactly, only for columns
     # the schema declares that way, and refuse values of any other type.
-    schema = load_schema(artifact)
     kinds = {"string": str, "boolean": (bool, np.bool_)}
     for c in schema["columns"]:
         d = c["dtype"]
@@ -142,4 +191,9 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
             if not vals.map(lambda v: v is None or v is pd.NA or isinstance(v, kinds[d])).all():
                 raise ContractError(f"{artifact}.{c['name']}: values not of type {d} on read")
             df[c["name"]] = vals.astype(d)
+        # Parquet writes no dictionary for an empty column chunk, so a zero-row category column
+        # comes back with no categories; restore the schema's, which is all a zero-row column can hold.
+        if d == "category" and c["name"] in df and len(df) == 0:
+            df[c["name"]] = pd.Categorical([], categories=c["values"])
+    # list<float32> comes back as an object column of 1-D float32 arrays, which validate checks.
     return validate(df, artifact)

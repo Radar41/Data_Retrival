@@ -24,9 +24,19 @@ def test_registry_round_trip(cfg, tmp_path):
     pd.testing.assert_frame_equal(reg, back)
 
 
+ARTIFACTS = ("series", "calendar", "registry", "states", "steps", "fibers", "fiber_index")
+
+
 def test_empty_frames_validate():
-    for artifact in ("series", "registry", "states"):
+    for artifact in ARTIFACTS:
         contracts.validate(contracts.empty_frame(artifact), artifact)
+
+
+@pytest.mark.parametrize("artifact", ARTIFACTS)
+def test_empty_frames_round_trip(artifact, tmp_path):
+    empty = contracts.empty_frame(artifact)
+    back = contracts.read(contracts.write(empty, artifact, tmp_path / f"{artifact}.parquet"), artifact)
+    assert len(back) == 0 and list(back.columns) == list(empty.columns)
 
 
 def test_extra_column_refused(cfg):
