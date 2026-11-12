@@ -3,17 +3,18 @@
 # depends on which series these are.
 #   as_of 2026-05-03: the date _outputs_final/ was written, so the spring run
 #   saw no vintage later than this.
-#   Four spring series are not in the catalog yet and are left out until loaded:
-#   PCU333611333611, WPU1197 (targets), IMPMANUS, EXPMANUS (indicators).
+#   PCU333611333611, WPU1197, IMPMANUS and EXPMANUS were loaded 2026-11-12
+#   (data/catalog/fred/lists/spec0_spring_missing.tsv).
 name: spec0_spring_adan7406
 source: catalog
 catalog:
   dsn: "dbname=fred"
-  series: [PALUMUSDM, PCOPPUSDM, PNICKUSDM, IPG3361T3S, IPG3344S,
-           BSCICP02USM460S, NEWORDER, DGORDER, TSIFRGHT, STLFSI4]
+  series: [PALUMUSDM, PCOPPUSDM, PNICKUSDM, IPG3361T3S, IPG3344S, PCU333611333611, WPU1197,
+           BSCICP02USM460S, NEWORDER, DGORDER, IMPMANUS, EXPMANUS, TSIFRGHT, STLFSI4]
   as_of: "2026-05-03"
   frequency: M
   aggregate: mean
+  max_interpolate: 4     # WPU1197 has no values Oct 2016 - Jan 2017 in this vintage; filled and flagged
   missing: longest_run
   transform: level
   test_start: "2018-01-01"

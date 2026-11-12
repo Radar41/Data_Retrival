@@ -5,3 +5,4 @@ columns:
   - {name: series_id, dtype: string, nullable: false}
   - {name: t, dtype: int32, nullable: false, unit: step}
   - {name: period, dtype: string, nullable: false, notes: "ISO date of the period start (FRED observation_date convention)"}
+  - {name: imputed, dtype: bool, nullable: false, notes: "true where ingest filled the value by linear interpolation (max_interpolate)"}

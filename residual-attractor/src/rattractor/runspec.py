@@ -54,6 +54,8 @@ def validate_run_spec(spec: dict) -> dict:
             raise ContractError(f"run spec catalog: missing {missing}, unknown {unknown}")
         for k, rule in catalog_rules.items():
             _check(f"catalog.{k}", cat[k], rule)
+        if cat["max_interpolate"] < 0:
+            raise ContractError("run spec catalog.max_interpolate: must be >= 0")
         _date("catalog.as_of", cat["as_of"])
         _date("catalog.test_start", cat["test_start"])
         s = cat["series"]

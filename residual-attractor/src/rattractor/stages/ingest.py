@@ -8,8 +8,10 @@ function of the extracted rows (prepare), so it is tested without a database.
 Preprocessing, every step declared in the run spec:
   1. put each series on the target frequency (aggregate finer series by period;
      coarser ones are refused; an aggregated period not yet over on as_of is dropped),
-  2. reindex to the full period range, trim leading and trailing gaps, then
-     refuse interior gaps (missing = fail) or keep the longest gap-free run,
+  2. reindex to the full period range, trim leading and trailing gaps, fill
+     interior gaps of at most max_interpolate periods linearly (flagged in
+     calendar.imputed), then refuse any gap left (missing = fail) or keep the
+     longest gap-free run,
   3. transform (level, log, diff, log_diff),
   4. split: periods on or after test_start are test.
 """
@@ -83,28 +85,37 @@ def _to_frequency(sid: str, s: pd.Series, native: str, target: str, how: str, as
     return out[out.index.end_time.normalize() <= pd.Timestamp(as_of)]
 
 
-def _gaps(sid: str, s: pd.Series, policy: str) -> pd.Series:
+def _runs(ok: np.ndarray) -> list[tuple[int, int]]:
+    """[(start, stop)) of each run of True."""
+    edges = np.diff(np.concatenate(([0], ok.astype(np.int8), [0])))
+    return list(zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)))
+
+
+def _gaps(sid: str, s: pd.Series, policy: str, max_interp: int) -> tuple[pd.Series, np.ndarray]:
+    """(gap-free series, imputed flags)."""
     full = s.reindex(pd.period_range(s.index.min(), s.index.max(), freq=s.index.freq))
     ok = full.notna().to_numpy()
     if not ok.any():
         raise AcceptanceError("ingest", f"{sid}: no values in this vintage")
     first, last = np.argmax(ok), len(ok) - 1 - np.argmax(ok[::-1])
     full, ok = full.iloc[first : last + 1], ok[first : last + 1]
+    imputed = np.zeros(len(full), dtype=bool)
+    if max_interp > 0:
+        vals = full.to_numpy(np.float64).copy()
+        for a, b in _runs(~ok):  # interior only: the ends were trimmed above
+            if b - a <= max_interp:
+                vals[a:b] = np.interp(np.arange(a, b), [a - 1, b], [vals[a - 1], vals[b]])
+                imputed[a:b] = True
+        full = pd.Series(vals, index=full.index)
+        ok = ok | imputed
     if ok.all():
-        return full
+        return full, imputed
     if policy == "fail":
         holes = [str(p) for p in full.index[~ok][:5]]
         raise AcceptanceError("ingest", f"{sid}: {int((~ok).sum())} interior gaps (first {holes}); missing = fail")
-    # longest_run: the longest stretch with no gap; earliest wins a tie.
-    best, start, best_span = (0, 0), None, -1
-    for i, v in enumerate(np.append(ok, False)):
-        if v and start is None:
-            start = i
-        elif not v and start is not None:
-            if i - start > best_span:
-                best, best_span = (start, i), i - start
-            start = None
-    return full.iloc[best[0] : best[1]]
+    # longest_run: the longest stretch with no gap left; earliest wins a tie.
+    a, b = max(_runs(ok), key=lambda r: (r[1] - r[0], -r[0]))
+    return full.iloc[a:b], imputed[a:b]
 
 
 def _transform(sid: str, s: pd.Series, how: str) -> pd.Series:
@@ -127,8 +138,10 @@ def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict) -> tuple[pd.Data
             raise AcceptanceError("ingest", f"{sid}: no observations current on {cat['as_of']}")
         s = pd.Series(r["value"].to_numpy(), index=pd.DatetimeIndex(r["observation_date"]))
         s = _to_frequency(sid, s, freq[sid], cat["frequency"], cat["aggregate"], cat["as_of"])
-        s = _gaps(sid, s, cat["missing"])
+        s, imputed = _gaps(sid, s, cat["missing"], cat["max_interpolate"])
         s = _transform(sid, s, cat["transform"])
+        if len(imputed) != len(s):  # diff drops the first period
+            imputed = imputed[1:] | imputed[:-1]  # a difference touching an imputed level is imputed
         test = s.index >= test_start
         if test.all() or not test.any():
             raise AcceptanceError("ingest", f"{sid}: test_start {test_start} leaves an empty train or test split")
@@ -139,7 +152,8 @@ def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict) -> tuple[pd.Data
             "y": s.to_numpy(np.float64),
             "split": np.where(test, "test", "train"),
         })
-        cal.append({"series_id": [sid] * n, "t": np.arange(n), "period": [p.start_time.date().isoformat() for p in s.index]})
+        cal.append({"series_id": [sid] * n, "t": np.arange(n), "period": [p.start_time.date().isoformat() for p in s.index],
+                    "imputed": imputed})
     cat_cols = lambda ps: {k: np.concatenate([p[k] for p in ps]) for k in ps[0]}
     series = contracts.from_columns(cat_cols(parts), "series")
     calendar = contracts.from_columns(cat_cols(cal), "calendar")

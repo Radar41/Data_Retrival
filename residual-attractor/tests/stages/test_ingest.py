@@ -9,7 +9,7 @@ from rattractor.runspec import load_run_spec, validate_run_spec
 from rattractor.stages import AcceptanceError, ingest
 
 CAT = dict(dsn="dbname=x", series=["A"], as_of="2026-05-03", frequency="M", aggregate="mean",
-           missing="fail", transform="level", test_start="2025-01-01")
+           max_interpolate=0, missing="fail", transform="level", test_start="2025-01-01")
 
 
 def raw_monthly(sid, start, n, values=None):
@@ -35,6 +35,26 @@ def test_interior_gap_fail_and_longest_run():
         ingest.prepare(raw, {"A": "M"}, CAT)
     s, cal = ingest.prepare(raw, {"A": "M"}, dict(CAT, missing="longest_run"))
     assert len(s) == 61 and cal["period"].iloc[0] == "2020-12-01"
+
+
+def test_short_gaps_interpolated_and_flagged():  # needs a train/test split inside the kept run
+    v = np.arange(1.0, 73)
+    v[10:14] = np.nan   # 4-period gap: filled
+    v[50:56] = np.nan   # 6-period gap: left for the missing policy
+    raw = raw_monthly("A", "2020-01-01", 72, v)
+    s, cal = ingest.prepare(raw, {"A": "M"}, dict(CAT, max_interpolate=4, missing="longest_run", test_start="2023-01-01"))
+    assert cal["period"].iloc[0] == "2020-01-01" and len(s) == 50  # 2020-01 .. 2024-02, through the filled gap
+    np.testing.assert_allclose(s["y"].to_numpy()[10:14], np.arange(11.0, 15.0))  # linear fill of a line
+    assert cal["imputed"].tolist() == [False] * 10 + [True] * 4 + [False] * 36
+    with pytest.raises(AcceptanceError, match="interior gaps"):
+        ingest.prepare(raw, {"A": "M"}, dict(CAT, max_interpolate=4))
+
+
+def test_diff_of_imputed_level_is_imputed():
+    v = np.arange(1.0, 73)
+    v[10] = np.nan
+    s, cal = ingest.prepare(raw_monthly("A", "2020-01-01", 72, v), {"A": "M"}, dict(CAT, max_interpolate=1, transform="diff"))
+    assert np.flatnonzero(cal["imputed"].to_numpy()).tolist() == [9, 10]  # diffs into and out of the filled level
 
 
 def test_absent_period_is_a_gap():
@@ -102,6 +122,7 @@ def test_run_specs_in_repo_validate():
     {"name": "x", "source": "catalog", "catalog": dict(CAT, series=["A", "A"])},
     {"name": "x", "source": "catalog", "catalog": {k: v for k, v in CAT.items() if k != "missing"}},
     {"name": "x", "source": "catalog", "catalog": dict(CAT, frequency="D")},
+    {"name": "x", "source": "catalog", "catalog": dict(CAT, max_interpolate=-1)},
 ])
 def test_run_spec_rejections(bad):
     with pytest.raises(ContractError):

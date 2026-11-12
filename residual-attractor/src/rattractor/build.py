@@ -45,6 +45,7 @@ def _inputs(spec: dict, cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame, dict, di
         calendar = contracts.from_columns({
             "series_id": series["series_id"].to_numpy(object), "t": series["t"].to_numpy(),
             "period": [(start + i).start_time.date().isoformat() for i in range(n)],
+            "imputed": np.zeros(n, dtype=bool),
         }, "calendar")
         prov = {"source": "fixture", "regimes": [list(b) for b in bounds], "calendar": "synthetic monthly from 2000-01"}
         return series, calendar, {"fixture_six_regime": _frame_sha256(series)}, prov
@@ -56,6 +57,8 @@ def _inputs(spec: dict, cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame, dict, di
         "vintage_rule": "realtime_start <= as_of <= realtime_end",
         "raw_rows": {k: int(v) for k, v in raw.groupby("series_id").size().items()},
         "native_frequency": freq, "raw_sha256": ingest.raw_sha256(raw),
+        "imputed_periods": {str(k): g.loc[g["imputed"], "period"].tolist()
+                            for k, g in calendar.groupby("series_id", observed=True) if g["imputed"].any()},
     }
     return series, calendar, {"catalog_extract": prov["raw_sha256"]}, prov
 

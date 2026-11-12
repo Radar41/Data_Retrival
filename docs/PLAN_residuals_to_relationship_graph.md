@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.5 (univariate SES/AR/Holt; the GDSS families, exog sets and fit status fields are still to come); run spec 0 builds through stage 4 on the 10 of its series that are in the catalog. It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.5 (univariate SES/AR/Holt; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 4 on all 14 series. It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|

@@ -4,19 +4,19 @@ The upstream of the residual diagnostic pipeline: configurations, forecast steps
 
 ## State (2026-11-12)
 
-Built and tested (71 tests):
+Built and tested (74 tests):
 
 - **Contracts** (`schemas/`, `contracts.py`): exact columns, exact dtypes, no casting, primary keys; Parquet round trip.
 - **Config** (`configs/default.yaml`, `schemas/config.yaml`): every key required, no defaults in code. Spec decisions 1 and 3 use the spec's proposed defaults, to be confirmed before results are read.
 - **Run specs** (`runs/`, `schemas/run_spec.yaml`): which series a build runs on and how they are read. The machinery never depends on the list.
 - **Methods** behind one interface (`fit`, `forecast`, `state`, `state_forward`, `state_names`, `fisher`, `psi`): SES, AR(2) (AR(1) is the φ₂ = 0 face), Holt (SES is the β = 0 face).
-- **Stage 1, ingest**: one query against the FRED catalog for the vintage current on `as_of` (realtime_start ≤ as_of ≤ realtime_end), then frequency alignment, gap policy, transform, split. Writes `series` and `calendar`.
+- **Stage 1, ingest**: one query against the FRED catalog for the vintage current on `as_of` (realtime_start ≤ as_of ≤ realtime_end), then frequency alignment, declared interpolation of short gaps (flagged in `calendar.imputed`), gap policy, transform, split. Writes `series` and `calendar`.
 - **Stage 2, register**: `config_id = hash(method, theta_spec, params, exog_set_id)`, `core_spec_id` without the exog set; ℓ closed form on one-parameter strata, flagged elsewhere (decision 12).
 - **Stage 3, fit**: `states` for every admissible configuration; acceptance re-checks leakage and SES = ARIMA(0,1,1) on every build.
 - **Stage 4, forecast**: `steps/<series>.parquet`, forward and backward ladders at every origin from o_min = test start + max(W_σ, W_ρ, H), with σ, σ_h, r, r_h and the spec coordinates.
 - **Build**: `builds/<build_id>/` plus `manifest.json` (inputs, provenance, artifact rows and hashes), written only when every check passed; failing rows go to `reports/<build_id>/<stage>.parquet`.
 
-Run spec 0 (`runs/spec0_spring_adan7406.yaml`) builds on the 10 spring series that are in the catalog: 1,161,000 step rows in about 2 s. PCU333611333611, WPU1197, IMPMANUS and EXPMANUS still need loading.
+Run spec 0 (`runs/spec0_spring_adan7406.yaml`) builds on all 14 spring series as of 2026-05-03: 1,621,080 step rows in about 2 s. WPU1197's four missing months (Oct 2016 – Jan 2017) are interpolated and flagged.
 
 Next: fibers (4b), cadence (5), lag correlation (6), then the export to rdiag.
 
