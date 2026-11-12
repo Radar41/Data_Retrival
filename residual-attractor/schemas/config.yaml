@@ -8,8 +8,12 @@ sigma.floor_factor:       {type: float, min: 0.0}      # sigma floor = factor x 
 sigma.failure_scale:      {type: str, values: [one_step, model_h, training_growth]}  # decision 1: the scale cadence reads (r, r_h or r_g)
 sigma.store_h_step:       {type: bool}                              # decision 1: sigma_h stored beside
 sigma.break_policy:       {type: str, values: [fixed_window_flag_breaks]}  # decision 3, spec default
-thresholds:               {type: list}                 # crossing levels in sigma
-cadence.steady_ratio:     {type: float, min: 1.0}
+thresholds:               {type: list}                 # the four crossing levels in sigma, ascending (h1..h4)
+cadence.steady_ratio:     {type: float, min: 1.0}      # Steady: max gap <= ratio x min gap ...
+cadence.steady_abs:       {type: float, min: 0.0}      # ... or max gap - min gap <= abs
+cadence.fail_level:       {type: float, min: 0.0}      # the level whose crossing is "h2": Holds, Immediate; one of thresholds
+cadence.oscillation_levels: {type: list}               # levels checked for a fall-back after first reaching them; subset of thresholds
+cadence.labels:           {type: list}                 # decision 4: the label rules, in priority order (first that applies)
 cadence.oscillation_drop: {type: float, min: 0.0}
 lagcorr.K:                {type: int, min: 1}
 lagcorr.window:           {type: int, min: 2}          # W_rho

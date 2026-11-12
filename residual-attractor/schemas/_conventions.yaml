@@ -9,6 +9,8 @@ dtypes:
   boolean: pandas nullable "boolean"; <NA> is the null
   category: pandas categorical whose categories equal `values` exactly, in order
   "list[float32]": one 1-D numpy float32 array per row (pandas object column), every row the same length; Arrow list<float32>
+  "list[int16]": one 1-D numpy int16 array per row (pandas object column), any length including zero; Arrow list<int16>
+  Int16: pandas nullable int16; <NA> is the null
 rules:
   - Column list and order are exact. Extra, missing or reordered columns fail.
   - Dtypes are exact. Nothing is cast on read or write.

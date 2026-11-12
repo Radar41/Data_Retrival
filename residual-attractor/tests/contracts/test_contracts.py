@@ -24,7 +24,7 @@ def test_registry_round_trip(cfg, tmp_path):
     pd.testing.assert_frame_equal(reg, back)
 
 
-ARTIFACTS = ("series", "calendar", "registry", "states", "steps", "fibers", "fiber_index")
+ARTIFACTS = ("series", "calendar", "registry", "states", "steps", "fibers", "fiber_index", "cadence")
 
 
 def test_empty_frames_validate():

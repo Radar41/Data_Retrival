@@ -41,7 +41,25 @@ def validate_config(cfg: dict) -> dict:
     mw = cfg["methods.ar.mean_window"]
     if mw != "expanding" and not (mw.isdigit() and int(mw) >= 2):
         raise ContractError(f"config methods.ar.mean_window: {mw!r} is not 'expanding' or an integer >= 2")
+    _validate_cadence(cfg)
     return cfg
+
+
+def _validate_cadence(cfg: dict) -> None:
+    from .stages.cadence import CADENCE_RULES  # the rule names live with the rules
+
+    th = cfg["thresholds"]
+    if len(th) != 4 or not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in th) \
+            or not all(a < b for a, b in zip([0, *th[:-1]], th)):  # 0 < t1 < t2 < t3 < t4
+        raise ContractError(f"config thresholds: {th} is not four ascending positive levels (h1..h4)")
+    if not any(cfg["cadence.fail_level"] == x for x in th):
+        raise ContractError(f"config cadence.fail_level: {cfg['cadence.fail_level']} is not one of thresholds {th}")
+    osc = cfg["cadence.oscillation_levels"]
+    if not osc or not all(any(k == x for x in th) for k in osc):
+        raise ContractError(f"config cadence.oscillation_levels: {osc} is not a non-empty subset of thresholds {th}")
+    labels = cfg["cadence.labels"]
+    if sorted(labels) != sorted(CADENCE_RULES) or labels[-1] != "Mixed":
+        raise ContractError(f"config cadence.labels: {labels} must name each of {list(CADENCE_RULES)} once, with Mixed (the catch-all) last")
 
 
 def load_config(path: Path | None = None) -> dict:

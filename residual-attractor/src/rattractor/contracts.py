@@ -18,7 +18,7 @@ import yaml
 
 from . import SCHEMA_DIR, ContractError
 
-_NUMPY = {
+_NUMPY: dict = {
     "int16": np.dtype("int16"),
     "int32": np.dtype("int32"),
     "float32": np.dtype("float32"),
@@ -26,6 +26,9 @@ _NUMPY = {
     "bool": np.dtype("bool"),
 }
 LIST_F32 = "list[float32]"  # one 1-D float32 array per row, every row the same length
+LIST_I16 = "list[int16]"    # one 1-D int16 array per row, lengths free (zero included)
+INT16_NULLABLE = "Int16"    # pandas nullable int16; <NA> is the null
+_LIST_ARROW = {LIST_F32: (pa.float32(), np.float32), LIST_I16: (pa.int16(), np.int16)}
 
 
 def _check_list_f32(artifact: str, name: str, col: pd.Series, nullable: bool) -> None:
@@ -40,6 +43,14 @@ def _check_list_f32(artifact: str, name: str, col: pd.Series, nullable: bool) ->
         raise ContractError(f"{artifact}.{name}: array lengths differ ({sorted(lengths)[:5]})")
     if len(vals) and not nullable and not np.isfinite(np.stack(vals)).all():
         raise ContractError(f"{artifact}.{name}: non-finite values in a non-null column")
+
+
+def _check_list_i16(artifact: str, name: str, col: pd.Series) -> None:
+    if col.dtype != object:
+        raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema {LIST_I16}")
+    bad = sum(not (isinstance(v, np.ndarray) and v.ndim == 1 and v.dtype == np.int16) for v in col.to_numpy())
+    if bad:
+        raise ContractError(f"{artifact}.{name}: {bad} values are not 1-D int16 arrays")
 
 
 @cache
@@ -63,8 +74,10 @@ def empty_frame(artifact: str) -> pd.DataFrame:
             cols[c["name"]] = pd.Series([], dtype=d)
         elif d == "category":
             cols[c["name"]] = pd.Categorical([], categories=c["values"])
-        elif d == LIST_F32:
+        elif d in (LIST_F32, LIST_I16):
             cols[c["name"]] = pd.Series([], dtype=object)
+        elif d == INT16_NULLABLE:
+            cols[c["name"]] = pd.Series([], dtype="Int16")
         else:
             cols[c["name"]] = pd.Series([], dtype=_NUMPY[d])
     return pd.DataFrame(cols)
@@ -95,6 +108,13 @@ def from_columns(data: dict, artifact: str) -> pd.DataFrame:
             for i in range(arr.shape[0]):
                 col[i] = arr[i].copy()
             cols[name] = col
+        elif d == LIST_I16:
+            col = np.empty(len(v), dtype=object)
+            for i, row in enumerate(v):
+                col[i] = np.asarray(row, dtype=np.int16).reshape(-1)
+            cols[name] = col
+        elif d == INT16_NULLABLE:
+            cols[name] = pd.array(v, dtype="Int16")
         else:
             cols[name] = np.asarray(v).astype(_NUMPY[d], copy=False)
     return validate(pd.DataFrame(cols), artifact)
@@ -121,6 +141,12 @@ def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
         elif d == LIST_F32:
             _check_list_f32(artifact, name, col, c.get("nullable", False))
             continue  # the generic null and finite checks below do not apply to arrays
+        elif d == LIST_I16:
+            _check_list_i16(artifact, name, col)
+            continue
+        elif d == INT16_NULLABLE:
+            if not isinstance(col.dtype, pd.Int16Dtype):
+                raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema Int16")
         elif d == "category":
             if not isinstance(col.dtype, pd.CategoricalDtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema category")
@@ -158,14 +184,15 @@ def write(df: pd.DataFrame, artifact: str, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     table = pa.Table.from_pandas(df, preserve_index=False)
     for c in load_schema(artifact)["columns"]:
-        if c["dtype"] == LIST_F32:
-            # Built explicitly so the Arrow type is list<float32> whatever pandas would infer.
+        if c["dtype"] in _LIST_ARROW:
+            # Built explicitly so the Arrow type is exact whatever pandas would infer (empty lists included).
+            child, np_type = _LIST_ARROW[c["dtype"]]
             vals = df[c["name"]].to_numpy()
             offsets = np.concatenate(([0], np.cumsum([v.size for v in vals]))).astype(np.int32)
-            flat = np.concatenate(vals) if len(vals) else np.array([], dtype=np.float32)
-            arr = pa.ListArray.from_arrays(pa.array(offsets), pa.array(flat, type=pa.float32()))
+            flat = np.concatenate(vals) if len(vals) else np.array([], dtype=np_type)
+            arr = pa.ListArray.from_arrays(pa.array(offsets), pa.array(flat.astype(np_type, copy=False), type=child))
             i = table.schema.get_field_index(c["name"])
-            table = table.set_column(i, pa.field(c["name"], pa.list_(pa.float32())), arr)
+            table = table.set_column(i, pa.field(c["name"], pa.list_(child)), arr)
     pq.write_table(table, path)
     return path
 
@@ -175,10 +202,11 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
     table = pq.read_table(path)
     schema = load_schema(artifact)
     for c in schema["columns"]:
-        if c["dtype"] == LIST_F32 and c["name"] in table.column_names:
-            got = table.schema.field(c["name"]).type
-            if got != pa.list_(pa.float32()):
-                raise ContractError(f"{artifact}.{c['name']}: Arrow type {got} on disk, schema list<float32>")
+        if c["name"] not in table.column_names:
+            continue
+        want = pa.list_(_LIST_ARROW[c["dtype"]][0]) if c["dtype"] in _LIST_ARROW else (pa.int16() if c["dtype"] == INT16_NULLABLE else None)
+        if want is not None and table.schema.field(c["name"]).type != want:
+            raise ContractError(f"{artifact}.{c['name']}: Arrow type {table.schema.field(c['name']).type} on disk, schema {want}")
     df = table.to_pandas()
     # Arrow can hand back pandas "string" / "boolean" as object (an all-null
     # column has no Arrow type to carry them). Restore exactly, only for columns
@@ -195,5 +223,8 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
         # comes back with no categories; restore the schema's, which is all a zero-row column can hold.
         if d == "category" and c["name"] in df and len(df) == 0:
             df[c["name"]] = pd.Categorical([], categories=c["values"])
+        if d == INT16_NULLABLE and c["name"] in df and not isinstance(df[c["name"]].dtype, pd.Int16Dtype):
+            # The Arrow type on disk is int16 (checked above); without pandas metadata, nulls make it float64.
+            df[c["name"]] = df[c["name"]].astype("Int16")
     # list<float32> comes back as an object column of 1-D float32 arrays, which validate checks.
     return validate(df, artifact)

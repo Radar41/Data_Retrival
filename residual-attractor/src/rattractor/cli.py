@@ -16,7 +16,7 @@ from .stages import AcceptanceError
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="rattractor")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    b = sub.add_parser("build", help="run stages 1-4b for one run spec")
+    b = sub.add_parser("build", help="run stages 1-5 for one run spec")
     b.add_argument("run_spec", help="path, or a file name under runs/")
     b.add_argument("--config", default=None, help="config YAML (default configs/default.yaml)")
     b.add_argument("--root", default=None, help="directory that gets builds/ and reports/ (default the package root)")
@@ -29,10 +29,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"build stopped: {err}", file=sys.stderr)
         return 2
     m = json.loads((out / "manifest.json").read_text())
-    rows = {d: sum(a["rows"] for k, a in m["artifacts"].items() if k.startswith(d + "/")) for d in ("steps", "fibers")}
+    rows = {d: sum(a["rows"] for k, a in m["artifacts"].items() if k.startswith(d + "/")) for d in ("steps", "fibers", "cadence")}
     print(f"build {m['build_id']} -> {out}")
     print(f"  series {len(m['split_boundary'])}, configurations {m['configurations']['admissible']} admissible, "
           f"fiber length {m['fiber']['coordinates']}, steps rows {rows['steps']:,}, fiber rows {rows['fibers']:,}, "
+          f"cadence rows {rows['cadence']:,} (on {m['cadence']['scale']}), "
           f"{time.time() - t0:.1f}s")
     return 0
 

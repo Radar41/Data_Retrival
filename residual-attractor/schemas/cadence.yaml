@@ -1,0 +1,13 @@
+artifact: cadence
+description: "one row per (series, configuration, eligible origin): one configuration's own forward ladder from one origin, read on the failure scale sigma.failure_scale names. Nothing is pooled; pooled readouts are views."
+primary_key: [series_id, config_id, origin]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: origin, dtype: int32, nullable: false, unit: step, notes: "eligible: H + W_sigma <= o <= N - 1 - H"}
+  - {name: h1, dtype: Int16, nullable: true, unit: step, notes: "first h with scale >= thresholds[0]; <NA> = not reached within H"}
+  - {name: h2, dtype: Int16, nullable: true, unit: step, notes: "first crossing of thresholds[1]"}
+  - {name: h3, dtype: Int16, nullable: true, unit: step, notes: "first crossing of thresholds[2]"}
+  - {name: h4, dtype: Int16, nullable: true, unit: step, notes: "first crossing of thresholds[3]"}
+  - {name: gaps, dtype: "list[int16]", nullable: false, notes: "successive differences of the non-null crossings (0 to 3 values)"}
+  - {name: label, dtype: category, values: [Holds, Immediate, Oscillating, Jump, Insufficient, Steady, Accelerating, Decelerating, Mixed], nullable: false, notes: "first rule in cadence.labels that applies (decision 4: the spec's nine)"}

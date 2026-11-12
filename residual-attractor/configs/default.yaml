@@ -11,7 +11,11 @@ sigma.ddof: 1
 sigma.break_detector: none            # no break detector chosen yet; flags stay <NA>
 thresholds: [1, 2, 3, 4]
 cadence.steady_ratio: 1.5
-cadence.oscillation_drop: 0.5
+cadence.steady_abs: 1.0
+cadence.fail_level: 2.0
+cadence.oscillation_levels: [2, 3, 4]
+cadence.labels: [Holds, Immediate, Oscillating, Jump, Insufficient, Steady, Accelerating, Decelerating, Mixed]   # spec decision 4, decided 2026-11-12: the spec's nine, in its order
+cadence.oscillation_drop: 0.5         # the spec's rule text (k - 0.5); its config table proposes 1.0
 lagcorr.K: 6
 lagcorr.window: 24
 lagcorr.min_pairs: 10

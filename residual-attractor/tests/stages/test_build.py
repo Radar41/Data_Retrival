@@ -20,7 +20,8 @@ def test_fixture_build_and_manifest(cfg, tmp_path):
         p = out / rel
         assert file_sha256(p) == a["sha256"]
         assert len(contracts.read(p, a["artifact"])) == a["rows"]
-    assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers"]
+    assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers", "cadence"]
+    assert "cadence/fixture_six_regime.parquet" in m["artifacts"] and m["cadence"]["scale"] == "r_g"
     assert {"fiber_index.parquet", "steps/fixture_six_regime.parquet", "fibers/fixture_six_regime.parquet"} <= set(m["artifacts"])
     idx = contracts.read(out / "fiber_index.parquet", "fiber_index")
     assert m["fiber"] == {"coordinates": len(idx)} and len(idx) == m["configurations"]["admissible"]
