@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.6 and stage 5 of item 1.7 (univariate SES/AR/Holt, the fibers stage as a collection of points, and cadence per ladder; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 5 on all 14 series. Item 1.8 (a fused configuration) is withdrawn under the archive rule (section 0, rule 7). It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.7 (univariate SES/AR/Holt, the fibers stage as a collection of points, cadence per ladder, lag correlation and the per-configuration bundle summary; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 7 on all 14 series. Item 1.8 (a fused configuration) is withdrawn under the archive rule (section 0, rule 7). It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|
@@ -187,6 +187,7 @@ A narrow run (one target, one set) is the same machinery with a smaller run spec
 
 1. **Spec decisions 1–3, decided 2026-11-12.** Failure at horizon h is scaled by σ × g_c(h), each configuration's own training-span growth of its error spread (r_g); r and r_h stay stored beside it, and cadence reads r_g. σ stays the plain 40-step window, unweighted; regime handling (breaks, resets) belongs to the analyses on the archive, so `window_spans_break` stays empty.
 1b. **Spec decision 4, decided 2026-11-12: the spec's nine labels**, in its priority order, loaded from config (`cadence.labels`), thresholds 1–4, drop 0.5 as in the rule text. Cadence is computed per ladder (series, configuration, origin) on r_g; pooled failure statistics are a view, not an artifact. The spec's cadence table (six labels) is corrected to nine, and its trend + SES known answer cannot be met by its own rules (kept as an expected failure).
+1d. **Stages 6-7, decided 2026-11-12: no A(t).** The alignment averages across configurations, so bundle_summary has one row per (series, configuration) and no per-t rows. lagcorr's 3-point mean is trailing along the base (config `lagcorr.smoothing`; `centred3` is one key away), and the AR(1) known answer is tested in share form.
 1c. **Spec decisions 16 and 17, closed by the archive rule.** There is no fused coordinate and no axes (u, w) in the archive; any decomposition across configurations belongs to the analyses on the finished archive.
 2. ~~Language for the upstream.~~ **Decided 2026-11-12: Python.** The package lives at `residual-attractor/` in this repository (layout per `downloads/residual-attractor-DIRECTORY.md`, package `rattractor`). GDSS's evaluation contracts carry over; the MATLAB code is retired as reference.
 3. **θ-spec**: fixed grids (spec), estimated per origin (GDSS), or both. Both fit the identity in section 3.

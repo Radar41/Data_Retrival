@@ -42,6 +42,10 @@ def validate_config(cfg: dict) -> dict:
     if mw != "expanding" and not (mw.isdigit() and int(mw) >= 2):
         raise ContractError(f"config methods.ar.mean_window: {mw!r} is not 'expanding' or an integer >= 2")
     _validate_cadence(cfg)
+    if not 1 <= cfg["lagcorr.K"] <= 127:
+        raise ContractError(f"config lagcorr.K: {cfg['lagcorr.K']} must lie in 1..127 (k is stored as int8)")
+    if cfg["lagcorr.min_pairs"] > cfg["lagcorr.window"]:
+        raise ContractError(f"config lagcorr.min_pairs: {cfg['lagcorr.min_pairs']} exceeds lagcorr.window {cfg['lagcorr.window']}")
     return cfg
 
 

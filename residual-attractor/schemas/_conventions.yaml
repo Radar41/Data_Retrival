@@ -1,5 +1,6 @@
 # Conventions every artifact schema follows.
 dtypes:
+  int8: numpy int8, no nulls
   int16: numpy int16, no nulls
   int32: numpy int32, no nulls
   float32: numpy float32; NaN is the null when nullable

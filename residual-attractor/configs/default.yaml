@@ -19,7 +19,7 @@ cadence.oscillation_drop: 0.5         # the spec's rule text (k - 0.5); its conf
 lagcorr.K: 6
 lagcorr.window: 24
 lagcorr.min_pairs: 10
-lagcorr.smoothing: mean3
+lagcorr.smoothing: trailing3          # spec: 3-point mean applied to rho before arccos; trailing keeps past-lag theta causal
 base.closed: false
 origins.stride: 1
 registry.files: [ses.yaml, ar.yaml, holt.yaml]

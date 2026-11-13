@@ -1,6 +1,6 @@
 """One build: run spec + config -> builds/<build_id>/ with every artifact and manifest.json.
 
-Stages run in order (ingest, register, fit, then forecast, fibers and cadence per series)
+Stages run in order (ingest, register, fit, then forecast, fibers, cadence, lagcorr and bundle summary per series)
 and each one's acceptance checks pass before the next starts. A failed check writes its failing rows to reports/<build_id>/<stage>.parquet
 and stops the build; the manifest is written last, only when everything passed.
 """
@@ -23,7 +23,7 @@ from . import PKG_ROOT, contracts, fixtures
 from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
-from .stages import AcceptanceError, cadence, fibers, fit, forecast, ingest, register
+from .stages import AcceptanceError, bundle, cadence, fibers, fit, forecast, ingest, lagcorr, register
 
 
 def _safe(name: str) -> str:
@@ -114,6 +114,12 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             stage = "cadence"
             write(cadence.run_series(sid, g, steps, cfg), "cadence", f"cadence/{_safe(sid)}.parquet")
             del steps
+            stage = "lagcorr"
+            lc = lagcorr.run_series(sid, g, states, reg, cfg)
+            write(lc, "lagcorr", f"lagcorr/{_safe(sid)}.parquet")
+            stage = "bundle_summary"
+            write(bundle.run_series(sid, lc, cfg), "bundle_summary", f"bundle_summary/{_safe(sid)}.parquet")
+            del lc
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -136,7 +142,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "configurations": {"registered": len(reg), "admissible": int(reg["admissible"].sum())},
         "fiber": {"coordinates": len(index)},
         "cadence": {"scale": cadence.SCALE_COLUMN[cfg["sigma.failure_scale"]], "labels": cfg["cadence.labels"]},
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence"],
+        "bundle_summary": {"alignment_A_t": "not built: it averages across configurations (archive rule)", "base_closed": cfg["base.closed"]},
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

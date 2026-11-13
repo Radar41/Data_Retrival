@@ -19,6 +19,7 @@ import yaml
 from . import SCHEMA_DIR, ContractError
 
 _NUMPY: dict = {
+    "int8": np.dtype("int8"),
     "int16": np.dtype("int16"),
     "int32": np.dtype("int32"),
     "float32": np.dtype("float32"),

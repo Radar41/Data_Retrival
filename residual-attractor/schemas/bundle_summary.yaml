@@ -1,0 +1,10 @@
+artifact: bundle_summary
+description: "one row per (series, configuration): the twist and closure of that configuration's own lag fibers along the base. The per-t alignment A(t), which averages across configurations, is not built (archive rule)."
+primary_key: [series_id, config_id]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: flips_lag_m1, dtype: int16, nullable: false, notes: "sign changes of rho at lag -1 along the base"}
+  - {name: flips_lag_p1, dtype: int16, nullable: false, notes: "sign changes of rho at lag +1 along the base"}
+  - {name: total_rotation, dtype: float32, nullable: true, unit: half twists}
+  - {name: closure_p1, dtype: category, values: [orientable, mobius, n/a], nullable: false, notes: "n/a on an open base"}

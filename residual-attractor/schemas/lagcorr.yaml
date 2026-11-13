@@ -1,0 +1,12 @@
+artifact: lagcorr
+description: "one row per (series, configuration, base position t, lag k): the correlation of one configuration's own one-step residuals at lag k, past (k < 0) over the W_rho steps before t and forward (k > 0) over the W_rho steps after t. Nothing is pooled across configurations."
+primary_key: [series_id, config_id, t, k]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: t, dtype: int32, nullable: false, unit: step, notes: "base position (a test-set origin)"}
+  - {name: k, dtype: int8, nullable: false, unit: step, notes: "-K..K"}
+  - {name: rho, dtype: float32, nullable: true, notes: "in [-1, 1]; exactly 1 at k = 0 (assigned); NaN where n_pairs < lagcorr.min_pairs or either member's sd <= the series' sigma floor (a flat window)"}
+  - {name: theta, dtype: float32, nullable: true, unit: radians, notes: "arccos of rho after the declared smoothing, in [0, pi]; NaN where rho is"}
+  - {name: n_pairs, dtype: int16, nullable: false, notes: "pairs kept (both indices in 1..N-1, both values finite); at k = 0, the lag-0 pairs over the past window"}
+  - {name: cell_id, dtype: string, nullable: true, notes: "decision 11, reserved; <NA> until the classifier lands"}

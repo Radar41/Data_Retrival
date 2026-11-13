@@ -18,7 +18,7 @@ cadence.oscillation_drop: {type: float, min: 0.0}
 lagcorr.K:                {type: int, min: 1}
 lagcorr.window:           {type: int, min: 2}          # W_rho
 lagcorr.min_pairs:        {type: int, min: 2}
-lagcorr.smoothing:        {type: str, values: [none, mean3]}
+lagcorr.smoothing:        {type: str, values: [none, trailing3, centred3]}  # 3-point mean of rho along the base, before arccos
 base.closed:              {type: bool}
 origins.stride:           {type: int, min: 1}
 registry.files:           {type: list}                 # paths under configs/registry/
