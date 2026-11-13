@@ -106,6 +106,13 @@ def series_rows(sid: str, i: int, g: pd.DataFrame, states: pd.DataFrame, coords:
     return Z
 
 
+def raw_errors(sid: str, states: pd.DataFrame, coords: list[str], t_idx: np.ndarray) -> np.ndarray:
+    """The unscaled one-step errors e1 (K, P) at the holdout months, in coords order (for Clark-West)."""
+    st = states[(states["series_id"] == sid) & states["config_id"].isin(coords)]
+    E = st.pivot(index="t", columns="config_id", values="e1").sort_index()[coords]
+    return E.to_numpy(np.float64)[t_idx].T
+
+
 def assemble(Z_by_series: list[np.ndarray], series_ids: list[str], registry: pd.DataFrame, coords: list[str], months: pd.DatetimeIndex,
              t_of: dict[str, np.ndarray], calendar: pd.DataFrame, cfg: dict, vintage_id: str, model_run_id: str) -> dict[str, pd.DataFrame]:
     """coords is the configuration order the rows of every Z were built in; k labels follow it, so they cannot drift."""

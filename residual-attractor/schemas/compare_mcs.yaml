@@ -1,0 +1,10 @@
+artifact: compare_mcs
+description: "one row per (series, configuration): Hansen-Lunde-Nason model confidence set, T_max, stationary bootstrap, over one representative per twin group."
+primary_key: [i, k]
+columns:
+  - {name: i, dtype: int32, nullable: false}
+  - {name: k, dtype: int32, nullable: false}
+  - {name: mcs_p_value, dtype: float64, nullable: false}
+  - {name: in_set, dtype: bool, nullable: false, notes: "mcs_p_value >= compare.mcs_alpha"}
+  - {name: elimination_order, dtype: int16, nullable: false, notes: "0 for the set; 1 for the first eliminated, and so on"}
+  - {name: represented_by, dtype: int32, nullable: false, notes: "the twin group's representative (itself when it has no twin)"}

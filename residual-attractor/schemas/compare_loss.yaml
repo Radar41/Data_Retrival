@@ -1,0 +1,8 @@
+artifact: compare_loss
+description: "rdiag Stage 1 under v2: each configuration's own loss of its standardized residual, L[k, i, t] = resid^2 (compare.loss). No reference configuration."
+primary_key: [k, i, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false}
+  - {name: loss, dtype: float64, nullable: false}

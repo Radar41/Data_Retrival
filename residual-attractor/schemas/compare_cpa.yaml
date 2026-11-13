@@ -1,0 +1,12 @@
+artifact: compare_cpa
+description: "one row per (series, pair): Giacomini-White conditional predictive ability of d = L_a - L_b with instruments at t - 1."
+primary_key: [i, k_a, k_b]
+columns:
+  - {name: i, dtype: int32, nullable: false}
+  - {name: k_a, dtype: int32, nullable: false}
+  - {name: k_b, dtype: int32, nullable: false}
+  - {name: statistic, dtype: float64, nullable: true, notes: "Wald statistic with HAC covariance; NaN for twins"}
+  - {name: df, dtype: int16, nullable: false}
+  - {name: p_value, dtype: float64, nullable: true, notes: "chi-square; NaN for twins"}
+  - {name: n, dtype: int32, nullable: false}
+  - {name: instruments, dtype: "list[string]", nullable: false}

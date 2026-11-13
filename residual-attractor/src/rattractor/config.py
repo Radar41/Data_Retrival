@@ -44,6 +44,9 @@ def validate_config(cfg: dict) -> dict:
     _validate_cadence(cfg)
     if not 1 <= cfg["lagcorr.K"] <= 127:
         raise ContractError(f"config lagcorr.K: {cfg['lagcorr.K']} must lie in 1..127 (k is stored as int8)")
+    inst = cfg["compare.cpa_instruments"]
+    if not inst or len(set(inst)) != len(inst) or not set(inst) <= {"const", "d_lag1"}:
+        raise ContractError(f"config compare.cpa_instruments: {inst} must be distinct names from [const, d_lag1]")
     if cfg["lagcorr.min_pairs"] > cfg["lagcorr.window"]:
         raise ContractError(f"config lagcorr.min_pairs: {cfg['lagcorr.min_pairs']} exceeds lagcorr.window {cfg['lagcorr.window']}")
     return cfg

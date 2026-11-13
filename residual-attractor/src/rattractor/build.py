@@ -1,7 +1,7 @@
 """One build: run spec + config -> builds/<build_id>/ with every artifact and manifest.json.
 
 Stages run in order (ingest, register, fit, then forecast, fibers, cadence, lagcorr and bundle summary per series,
-then the grid: rdiag's input field over every series)
+then the grid: rdiag's input field over every series, and compare: rdiag's Stage 1 on it)
 and each one's acceptance checks pass before the next starts. A failed check writes its failing rows to reports/<build_id>/<stage>.parquet
 and stops the build; the manifest is written last, only when everything passed.
 """
@@ -24,7 +24,7 @@ from . import PKG_ROOT, contracts, fixtures
 from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
-from .stages import AcceptanceError, bundle, cadence, fibers, fit, forecast, grid, ingest, lagcorr, register
+from .stages import AcceptanceError, bundle, cadence, compare, fibers, fit, forecast, grid, ingest, lagcorr, register
 
 
 def _safe(name: str) -> str:
@@ -106,7 +106,7 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         write(index, "fiber_index", "fiber_index.parquet")
         stage = "grid"
         months, t_of = grid.holdout(series, calendar)
-        series_ids, Z = [], []
+        series_ids, Z, raw = [], [], []
         n_origins = {}
         for sid, g in series.groupby("series_id", sort=False, observed=True):
             sid = str(sid)
@@ -121,6 +121,7 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             stage = "grid"
             series_ids.append(sid)
             Z.append(grid.series_rows(sid, len(series_ids) - 1, g, states, list(index["config_id"]), t_of[sid], cfg, steps))
+            raw.append(grid.raw_errors(sid, states, list(index["config_id"]), t_of[sid]))
             del steps
             stage = "lagcorr"
             lc = lagcorr.run_series(sid, g, states, reg, cfg)
@@ -140,6 +141,10 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             "rdiag_minimums": grid.minimums(frames),
             "files": {name: f"grid/{name.removeprefix('grid_')}.parquet" for name in frames},
         }
+        stage = "compare"
+        compared, compare_info = compare.run(frames, reg, index, cfg, np.stack(raw, axis=1))
+        for name, frame in compared.items():
+            write(frame, name, f"compare/{name.removeprefix('compare_')}.parquet")
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -164,7 +169,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "cadence": {"scale": cadence.SCALE_COLUMN[cfg["sigma.failure_scale"]], "labels": cfg["cadence.labels"]},
         "bundle_summary": {"alignment_A_t": "not built: it averages across configurations (archive rule)", "base_closed": cfg["base.closed"]},
         "grid": grid_info,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid"],
+        "compare": compare_info,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

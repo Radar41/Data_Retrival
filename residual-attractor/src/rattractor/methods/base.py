@@ -54,6 +54,14 @@ class Method(ABC):
     def stratum(self, theta: dict) -> str:
         return self.name
 
+    def equivalent(self, theta: dict) -> tuple[str, dict] | None:
+        """(method, theta) of another family's configuration that forecasts identically, or None.
+
+        A nesting face can make two registered configurations the same model (Holt with beta = 0
+        and a zero initial trend is SES with the same alpha). The analyses treat such twins as one.
+        """
+        return None
+
     @abstractmethod
     def psi(self, theta: dict, H: int) -> np.ndarray:
         """MA(infinity) weights psi_0 = 1, psi_1 .. psi_{H-1} of the forecast error.

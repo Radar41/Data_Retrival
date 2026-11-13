@@ -1,0 +1,13 @@
+artifact: compare_pairwise
+description: "one row per series and unordered configuration pair k_a < k_b: equal predictive accuracy on d = L_a - L_b. Twins (identical through a method face) are marked, not tested."
+primary_key: [i, k_a, k_b]
+columns:
+  - {name: i, dtype: int32, nullable: false}
+  - {name: k_a, dtype: int32, nullable: false}
+  - {name: k_b, dtype: int32, nullable: false}
+  - {name: test, dtype: category, values: [DM_HLN, CW, twin], nullable: false, notes: "CW exactly when one configuration nests the other (same core_spec_id, exog set a strict subset)"}
+  - {name: nested, dtype: bool, nullable: false}
+  - {name: statistic, dtype: float64, nullable: true, notes: "DM_HLN: positive when k_b has the smaller loss; CW: positive when the larger model forecasts better; NaN for twins"}
+  - {name: p_value, dtype: float64, nullable: true, notes: "in (0, 1]: two-sided for DM_HLN, one-sided for CW; NaN for twins"}
+  - {name: hac_lag, dtype: int16, nullable: false}
+  - {name: n, dtype: int32, nullable: false}

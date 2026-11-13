@@ -1,0 +1,10 @@
+artifact: compare_fluctuation_sup
+description: "one row per (series, pair): the fluctuation test's sup over t, the registered test."
+primary_key: [i, k_a, k_b]
+columns:
+  - {name: i, dtype: int32, nullable: false}
+  - {name: k_a, dtype: int32, nullable: false}
+  - {name: k_b, dtype: int32, nullable: false}
+  - {name: sup_abs_fstat, dtype: float64, nullable: true, notes: "NaN for twins"}
+  - {name: critical_value, dtype: float64, nullable: false, notes: "Giacomini-Rossi (2010) Table I, two-sided, interpolated in mu = m / P"}
+  - {name: reject, dtype: boolean, nullable: true, notes: "<NA> for twins"}

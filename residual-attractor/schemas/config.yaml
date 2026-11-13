@@ -32,3 +32,10 @@ fixture.noise_sd:         {type: float, min: 0.0}
 fixture.test_fraction:    {type: float, min: 0.0, max: 1.0}
 sigma.ddof:               {type: int, min: 0, max: 1}  # sd divisor N - ddof over the W_sigma window
 sigma.break_detector:     {type: str, values: [none]}  # decision 3: no detector yet, window_spans_break stays <NA>
+compare.loss:             {type: str, values: [squared, absolute]}  # rdiag loss.function
+compare.mcs_alpha:        {type: float, min: 0.0, max: 1.0}        # rdiag mcs.alpha
+compare.mcs_n_boot:       {type: int, min: 1}                      # rdiag mcs.n_boot
+compare.mcs_block_length: {type: float, min: 1.0}                  # rdiag mcs.block_length (mean of the stationary bootstrap)
+compare.fluctuation_window: {type: int, min: 2}                    # rdiag fluctuation.window (m)
+compare.fluctuation_alpha: {type: float, values: [0.05, 0.10]}     # the Giacomini-Rossi table's columns
+compare.cpa_instruments:  {type: list}                             # from [const, d_lag1], all at t - 1

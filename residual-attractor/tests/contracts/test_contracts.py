@@ -24,7 +24,8 @@ def test_registry_round_trip(cfg, tmp_path):
     pd.testing.assert_frame_equal(reg, back)
 
 
-ARTIFACTS = ("series", "calendar", "registry", "states", "steps", "fibers", "fiber_index", "cadence", "lagcorr", "bundle_summary")
+ARTIFACTS = ("series", "calendar", "registry", "states", "steps", "fibers", "fiber_index", "cadence", "lagcorr", "bundle_summary", "grid_resid", "grid_config", "grid_attrs", "grid_series", "grid_month", "grid_provenance", "grid_names",
+             "compare_loss", "compare_pairwise", "compare_mcs", "compare_fluctuation", "compare_fluctuation_sup", "compare_cpa")
 
 
 def test_empty_frames_validate():

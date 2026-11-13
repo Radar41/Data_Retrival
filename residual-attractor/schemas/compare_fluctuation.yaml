@@ -1,0 +1,10 @@
+artifact: compare_fluctuation
+description: "one row per (series, pair, month): the Giacomini-Rossi fluctuation path sqrt(m) x mean(d over the m months ending t) / sigma_HAC(d, full sample)."
+primary_key: [i, k_a, k_b, t]
+columns:
+  - {name: i, dtype: int32, nullable: false}
+  - {name: k_a, dtype: int32, nullable: false}
+  - {name: k_b, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false}
+  - {name: fstat, dtype: float64, nullable: true, notes: "NaN for the first m - 1 months and for twins"}
+  - {name: outside_band, dtype: bool, nullable: false, notes: "|fstat| > the critical value"}

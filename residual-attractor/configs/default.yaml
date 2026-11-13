@@ -26,6 +26,13 @@ registry.files: [ses.yaml, ar.yaml, holt.yaml]
 methods.ar.mean_window: expanding
 methods.holt.init: first_value_zero_trend
 methods.ses.init: first_value
+compare.loss: squared                 # rdiag params.yaml (loss, mcs, fluctuation); stage 10 is rdiag's Stage 1 under v2
+compare.mcs_alpha: 0.10
+compare.mcs_n_boot: 5000
+compare.mcs_block_length: 6.0
+compare.fluctuation_window: 24
+compare.fluctuation_alpha: 0.05
+compare.cpa_instruments: [const, d_lag1]  # v2: rdiag's fused-row state instruments do not exist; Giacomini-White's own
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60

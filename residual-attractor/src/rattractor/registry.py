@@ -90,3 +90,27 @@ def build_registry(grids: list[dict], cfg: dict) -> pd.DataFrame:
     cols = {k: [row[k] for row in rows] for k in rows[0]}
     return contracts.from_columns(cols, "registry")
 
+
+def twin_groups(registry: pd.DataFrame, cfg: dict) -> list[list[str]]:
+    """Groups of admissible configurations that forecast identically (method faces), each sorted, singletons left out."""
+    adm = registry[registry["admissible"]]
+    ids = set(adm["config_id"])
+    parent = {c: c for c in ids}
+
+    def find(c):
+        while parent[c] != c:
+            parent[c] = parent[parent[c]]
+            c = parent[c]
+        return c
+
+    for cid, m, p in zip(adm["config_id"], adm["method"], adm["params"]):
+        eq = get_method(str(m), cfg).equivalent(json.loads(p))
+        if eq is not None:
+            other = config_id(eq[0], "fixed", eq[1])
+            if other in ids:
+                a, b = find(cid), find(other)
+                parent[max(a, b)] = min(a, b)
+    groups: dict[str, list[str]] = {}
+    for c in ids:
+        groups.setdefault(find(c), []).append(c)
+    return sorted(sorted(g) for g in groups.values() if len(g) > 1)

@@ -26,6 +26,12 @@ class Holt(Method):
     def stratum(self, theta: dict) -> str:
         return "ses" if theta["beta"] == 0.0 else "holt"
 
+    def equivalent(self, theta: dict):
+        # With b0 = 0 and beta = 0 the trend stays 0 and the recursion is SES(alpha) with l0 = y0.
+        if theta["beta"] == 0.0 and self.cfg["methods.holt.init"] == "first_value_zero_trend" and self.cfg["methods.ses.init"] == "first_value":
+            return "ses", {"alpha": theta["alpha"]}
+        return None
+
     def fisher(self, theta: dict):
         # On the beta = 0 face the configuration is SES(alpha), whose coordinate is closed form.
         if theta["beta"] == 0.0:

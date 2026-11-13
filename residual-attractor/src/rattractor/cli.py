@@ -16,7 +16,7 @@ from .stages import AcceptanceError
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="rattractor")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    b = sub.add_parser("build", help="run stages 1-7 and the grid (stage 9) for one run spec")
+    b = sub.add_parser("build", help="run stages 1-7, the grid (9) and compare (10) for one run spec")
     b.add_argument("run_spec", help="path, or a file name under runs/")
     b.add_argument("--config", default=None, help="config YAML (default configs/default.yaml)")
     b.add_argument("--root", default=None, help="directory that gets builds/ and reports/ (default the package root)")
@@ -40,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  grid {g['holdout'][0]}..{g['holdout'][1]}: K {mins['K']}, N {mins['N']}, P {mins['P']}; "
           + ("meets rdiag's minimums" if all(v for k, v in mins.items() if ">=" in k) else
              "below rdiag's minimums: " + ", ".join(k for k, v in mins.items() if ">=" in k and not v)))
+    c = m["compare"]
+    print(f"  compare: {c['pairs_per_series']} pairs per series ({c['twin_pairs_per_series']} twin), "
+          f"MCS over {c['mcs']['models_per_series']} models, fluctuation m {c['fluctuation']['m']} (critical {c['fluctuation']['critical_value']:.3f})")
     return 0
 
 

@@ -164,7 +164,7 @@ def test_fixture_build_writes_the_grid_and_reports_rdiag_minimums(cfg, tmp_path)
     out = build(load_run_spec("fixture_six_regime.yaml"), cfg, tmp_path)
     m = json.loads((out / "manifest.json").read_text())
     g = m["grid"]
-    assert m["stages_passed"][-1] == "grid" and g["contract"].startswith("rdiag input v2")
+    assert m["stages_passed"][-2:] == ["grid", "compare"] and g["contract"].startswith("rdiag input v2")
     assert g["rdiag_minimums"]["N"] == 1 and g["rdiag_minimums"]["N>=3"] is False
     for name, rel in g["files"].items():
         assert rel in m["artifacts"] and len(contracts.read(out / rel, name)) == m["artifacts"][rel]["rows"]
