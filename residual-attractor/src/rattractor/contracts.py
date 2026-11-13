@@ -29,6 +29,8 @@ _NUMPY: dict = {
 LIST_F32 = "list[float32]"  # one 1-D float32 array per row, every row the same length
 LIST_I16 = "list[int16]"    # one 1-D int16 array per row, lengths free (zero included)
 INT16_NULLABLE = "Int16"    # pandas nullable int16; <NA> is the null
+DATETIME_NS = "datetime64[ns]"  # naive timestamps; NaT is the null when nullable
+LIST_STR = "list[string]"   # one list (or 1-D object array) of str per row, any length; Arrow list<string>
 _LIST_ARROW = {LIST_F32: (pa.float32(), np.float32), LIST_I16: (pa.int16(), np.int16)}
 
 
@@ -44,6 +46,15 @@ def _check_list_f32(artifact: str, name: str, col: pd.Series, nullable: bool) ->
         raise ContractError(f"{artifact}.{name}: array lengths differ ({sorted(lengths)[:5]})")
     if len(vals) and not nullable and not np.isfinite(np.stack(vals)).all():
         raise ContractError(f"{artifact}.{name}: non-finite values in a non-null column")
+
+
+def _check_list_str(artifact: str, name: str, col: pd.Series) -> None:
+    if col.dtype != object:
+        raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema {LIST_STR}")
+    ok = lambda v: isinstance(v, (list, np.ndarray)) and np.ndim(v) == 1 and all(isinstance(x, str) for x in v)
+    bad = sum(not ok(v) for v in col.to_numpy())
+    if bad:
+        raise ContractError(f"{artifact}.{name}: {bad} values are not lists of str")
 
 
 def _check_list_i16(artifact: str, name: str, col: pd.Series) -> None:
@@ -75,8 +86,10 @@ def empty_frame(artifact: str) -> pd.DataFrame:
             cols[c["name"]] = pd.Series([], dtype=d)
         elif d == "category":
             cols[c["name"]] = pd.Categorical([], categories=c["values"])
-        elif d in (LIST_F32, LIST_I16):
+        elif d in (LIST_F32, LIST_I16, LIST_STR):
             cols[c["name"]] = pd.Series([], dtype=object)
+        elif d == DATETIME_NS:
+            cols[c["name"]] = pd.Series([], dtype="datetime64[ns]")
         elif d == INT16_NULLABLE:
             cols[c["name"]] = pd.Series([], dtype="Int16")
         else:
@@ -116,6 +129,13 @@ def from_columns(data: dict, artifact: str) -> pd.DataFrame:
             cols[name] = col
         elif d == INT16_NULLABLE:
             cols[name] = pd.array(v, dtype="Int16")
+        elif d == DATETIME_NS:
+            cols[name] = pd.to_datetime(pd.Series(v)).astype("datetime64[ns]").to_numpy()
+        elif d == LIST_STR:
+            col = np.empty(len(v), dtype=object)
+            for i, row in enumerate(v):
+                col[i] = [str(x) for x in row]
+            cols[name] = col
         else:
             cols[name] = np.asarray(v).astype(_NUMPY[d], copy=False)
     return validate(pd.DataFrame(cols), artifact)
@@ -145,6 +165,12 @@ def validate(df: pd.DataFrame, artifact: str) -> pd.DataFrame:
         elif d == LIST_I16:
             _check_list_i16(artifact, name, col)
             continue
+        elif d == LIST_STR:
+            _check_list_str(artifact, name, col)
+            continue
+        elif d == DATETIME_NS:
+            if col.dtype != np.dtype("datetime64[ns]"):
+                raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema datetime64[ns]")
         elif d == INT16_NULLABLE:
             if not isinstance(col.dtype, pd.Int16Dtype):
                 raise ContractError(f"{artifact}.{name}: dtype {col.dtype}, schema Int16")
@@ -185,6 +211,11 @@ def write(df: pd.DataFrame, artifact: str, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     table = pa.Table.from_pandas(df, preserve_index=False)
     for c in load_schema(artifact)["columns"]:
+        if c["dtype"] == LIST_STR:
+            arr = pa.array([list(v) for v in df[c["name"]].to_numpy()], type=pa.list_(pa.string()))
+            i = table.schema.get_field_index(c["name"])
+            table = table.set_column(i, pa.field(c["name"], pa.list_(pa.string())), arr)
+            continue
         if c["dtype"] in _LIST_ARROW:
             # Built explicitly so the Arrow type is exact whatever pandas would infer (empty lists included).
             child, np_type = _LIST_ARROW[c["dtype"]]
@@ -205,7 +236,8 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
     for c in schema["columns"]:
         if c["name"] not in table.column_names:
             continue
-        want = pa.list_(_LIST_ARROW[c["dtype"]][0]) if c["dtype"] in _LIST_ARROW else (pa.int16() if c["dtype"] == INT16_NULLABLE else None)
+        want = (pa.list_(_LIST_ARROW[c["dtype"]][0]) if c["dtype"] in _LIST_ARROW else pa.int16() if c["dtype"] == INT16_NULLABLE
+                else pa.list_(pa.string()) if c["dtype"] == LIST_STR else pa.timestamp("ns") if c["dtype"] == DATETIME_NS else None)
         if want is not None and table.schema.field(c["name"]).type != want:
             raise ContractError(f"{artifact}.{c['name']}: Arrow type {table.schema.field(c['name']).type} on disk, schema {want}")
     df = table.to_pandas()
@@ -227,5 +259,7 @@ def read(path: Path, artifact: str) -> pd.DataFrame:
         if d == INT16_NULLABLE and c["name"] in df and not isinstance(df[c["name"]].dtype, pd.Int16Dtype):
             # The Arrow type on disk is int16 (checked above); without pandas metadata, nulls make it float64.
             df[c["name"]] = df[c["name"]].astype("Int16")
+        if d == LIST_STR and c["name"] in df:  # Arrow hands back object arrays of str; store them as lists
+            df[c["name"]] = pd.Series([list(v) for v in df[c["name"]].to_numpy()], dtype=object, index=df.index)
     # list<float32> comes back as an object column of 1-D float32 arrays, which validate checks.
     return validate(df, artifact)

@@ -1,0 +1,6 @@
+artifact: grid_attrs
+description: "rdiag in_field_attrs under the reworked input contract (v2): one row per build. k_fused is not carried."
+primary_key: [standardization_id]
+columns:
+  - {name: standardization_id, dtype: string, nullable: false, notes: "the one standardization rule every residual in the field follows"}
+  - {name: horizon, dtype: int32, nullable: false, notes: "1: one-step-ahead residuals"}

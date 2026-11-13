@@ -1,0 +1,5 @@
+artifact: grid_month
+description: "rdiag dim_month: one row per holdout month, month starts, contiguous."
+primary_key: [t]
+columns:
+  - {name: t, dtype: "datetime64[ns]", nullable: false}

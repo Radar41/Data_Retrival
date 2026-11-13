@@ -39,23 +39,36 @@ WHERE o.series_id = ANY(%(ids)s)
 ORDER BY o.series_id, o.observation_date
 """
 FREQ_SQL = "SELECT series_id, frequency_code FROM series WHERE series_id = ANY(%(ids)s)"
+# First release of each observation's value: the earliest vintage (realtime_start) at or before as_of
+# that carries a value. Where ALFRED's vintage history has gaps this is the first vintage it holds.
+RELEASE_SQL = """
+SELECT o.series_id, o.observation_date, min(o.realtime_start) AS first_release
+FROM observation o
+WHERE o.series_id = ANY(%(ids)s) AND o.realtime_start <= %(as_of)s AND o.value IS NOT NULL
+GROUP BY o.series_id, o.observation_date
+"""
 
 
-def extract(dsn: str, series: list[str], as_of: str) -> tuple[pd.DataFrame, dict[str, str]]:
-    """(raw rows: series_id, observation_date, value with NaN for FRED '.', {series_id: frequency_code})."""
+def extract(dsn: str, series: list[str], as_of: str) -> tuple[pd.DataFrame, dict[str, str], pd.DataFrame]:
+    """(raw rows: series_id, observation_date, value with NaN for FRED '.'; {series_id: frequency_code};
+    first releases: series_id, observation_date, first_release)."""
     import psycopg
 
     args = {"ids": list(series), "as_of": dt.date.fromisoformat(as_of)}
     with psycopg.connect(dsn) as conn:
         freq = dict(conn.execute(FREQ_SQL, args).fetchall())
         rows = conn.execute(EXTRACT_SQL, args).fetchall()
+        rel_rows = conn.execute(RELEASE_SQL, args).fetchall()
     missing = sorted(set(series) - set(freq))
     if missing:
         raise AcceptanceError("ingest", f"series not in the catalog: {missing}")
     raw = pd.DataFrame(rows, columns=["series_id", "observation_date", "value"])
     raw["observation_date"] = pd.to_datetime(raw["observation_date"])
     raw["value"] = raw["value"].astype(np.float64)
-    return raw, freq
+    releases = pd.DataFrame(rel_rows, columns=["series_id", "observation_date", "first_release"])
+    releases["observation_date"] = pd.to_datetime(releases["observation_date"])
+    releases["first_release"] = pd.to_datetime(releases["first_release"])
+    return raw, freq, releases
 
 
 def raw_sha256(raw: pd.DataFrame) -> str:
@@ -128,8 +141,22 @@ def _transform(sid: str, s: pd.Series, how: str) -> pd.Series:
     return s
 
 
-def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Raw extract -> (series artifact, calendar artifact), in the run spec's series order."""
+def _first_release(sid: str, r: pd.DataFrame, rel: pd.DataFrame, target: str) -> pd.Series:
+    """First release of each target period's value: the observation's own, or for a period aggregated from
+    finer observations the latest first release among the observations that went into it."""
+    rel = rel[rel["series_id"] == sid]
+    used = r.loc[r["value"].notna(), "observation_date"]
+    rel = rel[rel["observation_date"].isin(used)]
+    per = rel["observation_date"].dt.to_period(_PANDAS[target])
+    return rel.groupby(per.to_numpy())["first_release"].max()
+
+
+def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict, releases: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Raw extract -> (series artifact, calendar artifact), in the run spec's series order.
+
+    releases (series_id, observation_date, first_release) fills calendar.first_release; without it the
+    column is <NA>. Interpolated periods have no release; a difference is released with its later level.
+    """
     test_start = pd.Period(cat["test_start"], freq=_PANDAS[cat["frequency"]])
     parts, cal = [], []
     for sid in cat["series"]:
@@ -139,9 +166,16 @@ def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict) -> tuple[pd.Data
         s = pd.Series(r["value"].to_numpy(), index=pd.DatetimeIndex(r["observation_date"]))
         s = _to_frequency(sid, s, freq[sid], cat["frequency"], cat["aggregate"], cat["as_of"])
         s, imputed = _gaps(sid, s, cat["missing"], cat["max_interpolate"])
+        if releases is not None:
+            rel = _first_release(sid, r, releases, cat["frequency"]).reindex(s.index)
+            rel[imputed] = pd.NaT
+        else:
+            rel = pd.Series(pd.NaT, index=s.index)
         s = _transform(sid, s, cat["transform"])
         if len(imputed) != len(s):  # diff drops the first period
             imputed = imputed[1:] | imputed[:-1]  # a difference touching an imputed level is imputed
+            later = pd.concat([rel.iloc[1:].reset_index(drop=True), rel.iloc[:-1].reset_index(drop=True)], axis=1)
+            rel = pd.Series(later.max(axis=1, skipna=False).to_numpy(), index=s.index)
         test = s.index >= test_start
         if test.all() or not test.any():
             raise AcceptanceError("ingest", f"{sid}: test_start {test_start} leaves an empty train or test split")
@@ -153,7 +187,8 @@ def prepare(raw: pd.DataFrame, freq: dict[str, str], cat: dict) -> tuple[pd.Data
             "split": np.where(test, "test", "train"),
         })
         cal.append({"series_id": [sid] * n, "t": np.arange(n), "period": [p.start_time.date().isoformat() for p in s.index],
-                    "imputed": imputed})
+                    "imputed": imputed,
+                    "first_release": [pd.NA if pd.isna(v) else pd.Timestamp(v).date().isoformat() for v in rel.to_numpy()]})
     cat_cols = lambda ps: {k: np.concatenate([p[k] for p in ps]) for k in ps[0]}
     series = contracts.from_columns(cat_cols(parts), "series")
     calendar = contracts.from_columns(cat_cols(cal), "calendar")

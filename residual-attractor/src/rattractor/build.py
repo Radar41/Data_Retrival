@@ -1,6 +1,7 @@
 """One build: run spec + config -> builds/<build_id>/ with every artifact and manifest.json.
 
-Stages run in order (ingest, register, fit, then forecast, fibers, cadence, lagcorr and bundle summary per series)
+Stages run in order (ingest, register, fit, then forecast, fibers, cadence, lagcorr and bundle summary per series,
+then the grid: rdiag's input field over every series)
 and each one's acceptance checks pass before the next starts. A failed check writes its failing rows to reports/<build_id>/<stage>.parquet
 and stops the build; the manifest is written last, only when everything passed.
 """
@@ -23,7 +24,7 @@ from . import PKG_ROOT, contracts, fixtures
 from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
-from .stages import AcceptanceError, bundle, cadence, fibers, fit, forecast, ingest, lagcorr, register
+from .stages import AcceptanceError, bundle, cadence, fibers, fit, forecast, grid, ingest, lagcorr, register
 
 
 def _safe(name: str) -> str:
@@ -46,12 +47,13 @@ def _inputs(spec: dict, cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame, dict, di
             "series_id": series["series_id"].to_numpy(object), "t": series["t"].to_numpy(),
             "period": [(start + i).start_time.date().isoformat() for i in range(n)],
             "imputed": np.zeros(n, dtype=bool),
+            "first_release": [(start + i + 1).start_time.date().isoformat() for i in range(n)],  # synthetic: one month on
         }, "calendar")
         prov = {"source": "fixture", "regimes": [list(b) for b in bounds], "calendar": "synthetic monthly from 2000-01"}
         return series, calendar, {"fixture_six_regime": _frame_sha256(series)}, prov
     cat = spec["catalog"]
-    raw, freq = ingest.extract(cat["dsn"], cat["series"], cat["as_of"])
-    series, calendar = ingest.prepare(raw, freq, cat)
+    raw, freq, releases = ingest.extract(cat["dsn"], cat["series"], cat["as_of"])
+    series, calendar = ingest.prepare(raw, freq, cat, releases)
     prov = {
         "source": "catalog", "dsn": cat["dsn"], "as_of": cat["as_of"],
         "vintage_rule": "realtime_start <= as_of <= realtime_end",
@@ -102,6 +104,9 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         stage = "fibers"
         index = fibers.fiber_index(reg, cfg)
         write(index, "fiber_index", "fiber_index.parquet")
+        stage = "grid"
+        months, t_of = grid.holdout(series, calendar)
+        series_ids, Z = [], []
         n_origins = {}
         for sid, g in series.groupby("series_id", sort=False, observed=True):
             sid = str(sid)
@@ -113,6 +118,9 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             write(fibers.run_series(sid, g, states, steps, cfg, index), "fibers", f"fibers/{_safe(sid)}.parquet")
             stage = "cadence"
             write(cadence.run_series(sid, g, steps, cfg), "cadence", f"cadence/{_safe(sid)}.parquet")
+            stage = "grid"
+            series_ids.append(sid)
+            Z.append(grid.series_rows(sid, len(series_ids) - 1, g, states, list(index["config_id"]), t_of[sid], cfg, steps))
             del steps
             stage = "lagcorr"
             lc = lagcorr.run_series(sid, g, states, reg, cfg)
@@ -120,6 +128,18 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             stage = "bundle_summary"
             write(bundle.run_series(sid, lc, cfg), "bundle_summary", f"bundle_summary/{_safe(sid)}.parquet")
             del lc
+        stage = "grid"
+        vintage = f"fred:{spec['catalog']['as_of']}" if spec["source"] == "catalog" else "fixture:synthetic"
+        frames = grid.assemble(Z, series_ids, reg, list(index["config_id"]), months, t_of, calendar, cfg, vintage, bid)
+        for name, frame in frames.items():
+            write(frame, name, f"grid/{name.removeprefix('grid_')}.parquet")
+        grid_info = {
+            "contract": "rdiag input v2: no fused configuration (no k_fused, is_fused, member_ks or residual_metrics)",
+            "holdout": [str(months[0].date()), str(months[-1].date())],
+            "standardization_id": grid.standardization_id(cfg), "vintage_id": vintage,
+            "rdiag_minimums": grid.minimums(frames),
+            "files": {name: f"grid/{name.removeprefix('grid_')}.parquet" for name in frames},
+        }
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -143,7 +163,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "fiber": {"coordinates": len(index)},
         "cadence": {"scale": cadence.SCALE_COLUMN[cfg["sigma.failure_scale"]], "labels": cfg["cadence.labels"]},
         "bundle_summary": {"alignment_A_t": "not built: it averages across configurations (archive rule)", "base_closed": cfg["base.closed"]},
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary"],
+        "grid": grid_info,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

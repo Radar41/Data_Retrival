@@ -1,0 +1,7 @@
+artifact: grid_config
+description: "rdiag in_config under the reworked input contract (v2): one row per configuration k. There is no fused configuration, so is_fused and member_ks are not carried."
+primary_key: [k]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: core_spec_id, dtype: string, nullable: false, notes: "registry core_spec_id: hash of method, theta-spec and params, without the exog set"}
+  - {name: exog_set, dtype: "list[string]", nullable: false, notes: "opaque exogenous input ids; [] for a univariate configuration"}

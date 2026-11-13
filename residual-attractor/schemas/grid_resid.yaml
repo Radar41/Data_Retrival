@@ -1,0 +1,8 @@
+artifact: grid_resid
+description: "rdiag in_resid: one row per (configuration k, series i, holdout month t). resid = e1(t) / sigma(t - 1), each configuration's own one-step residual over its own sigma at the month the forecast was made. Nothing is pooled."
+primary_key: [k, i, t]
+columns:
+  - {name: k, dtype: int32, nullable: false, notes: "configuration index, fiber_index order (registry order of admissible configurations)"}
+  - {name: i, dtype: int32, nullable: false, notes: "series index, run-spec order"}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "target month, month start"}
+  - {name: resid, dtype: float64, nullable: false, notes: "standardized one-step residual; finite"}

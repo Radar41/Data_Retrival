@@ -127,3 +127,54 @@ def test_run_specs_in_repo_validate():
 def test_run_spec_rejections(bad):
     with pytest.raises(ContractError):
         validate_run_spec(bad)
+
+
+def releases_for(raw, lag_days=40):
+    r = raw[raw["value"].notna()][["series_id", "observation_date"]].copy()
+    r["first_release"] = r["observation_date"] + pd.Timedelta(days=lag_days)
+    return r
+
+
+def test_first_release_monthly_and_interpolated(cfg=None):
+    v = np.arange(1.0, 73)
+    v[10] = np.nan
+    raw = raw_monthly("A", "2020-01-01", 72, v)
+    s, cal = ingest.prepare(raw, {"A": "M"}, dict(CAT, max_interpolate=1), releases_for(raw))
+    assert cal["first_release"].iloc[0] == "2020-02-10"
+    assert pd.isna(cal["first_release"].iloc[10]) and cal["imputed"].iloc[10]   # an interpolated month was never released
+    assert cal["first_release"].iloc[11] == (pd.Timestamp("2020-12-01") + pd.Timedelta(days=40)).date().isoformat()
+
+
+def test_first_release_of_an_aggregated_month_is_its_last_observation(cfg=None):
+    d = pd.date_range("2023-01-06", "2026-05-01", freq="W-FRI")
+    raw = pd.DataFrame({"series_id": "W", "observation_date": d, "value": np.arange(d.size, dtype=float)})
+    rel = raw[["series_id", "observation_date"]].copy()
+    rel["first_release"] = rel["observation_date"] + pd.Timedelta(days=4)
+    s, cal = ingest.prepare(raw, {"W": "W"}, dict(CAT, series=["W"]), rel)
+    jan = d[(d.year == 2023) & (d.month == 1)]
+    assert cal["first_release"].iloc[0] == (jan.max() + pd.Timedelta(days=4)).date().isoformat()
+
+
+def test_first_release_of_a_difference_is_the_later_level(cfg=None):
+    raw = raw_monthly("A", "2020-01-01", 72)
+    rel = releases_for(raw)
+    rel.loc[rel["observation_date"] == pd.Timestamp("2020-03-01"), "first_release"] = pd.Timestamp("2021-01-01")  # a late first release
+    s, cal = ingest.prepare(raw, {"A": "M"}, dict(CAT, transform="diff"), rel)
+    # diff at 2020-03 needs 2020-02 and 2020-03; diff at 2020-04 needs 2020-03 and 2020-04: both wait for 2021-01-01
+    assert cal.set_index("period").loc["2020-03-01", "first_release"] == "2021-01-01"
+    assert cal.set_index("period").loc["2020-04-01", "first_release"] == "2021-01-01"
+    assert cal.set_index("period").loc["2020-05-01", "first_release"] == "2020-06-10"
+
+
+def test_no_releases_gives_null_first_release():
+    s, cal = ingest.prepare(raw_monthly("A", "2020-01-01", 72), {"A": "M"}, CAT)
+    assert cal["first_release"].isna().all()
+
+
+def test_interpolated_month_has_no_release_under_differencing():
+    v = np.arange(1.0, 73)
+    v[10] = np.nan
+    raw = raw_monthly("A", "2020-01-01", 72, v)
+    s, cal = ingest.prepare(raw, {"A": "M"}, dict(CAT, max_interpolate=1, transform="diff"), releases_for(raw))
+    assert cal["imputed"].to_numpy().nonzero()[0].tolist() == [9, 10]
+    assert cal.loc[cal["imputed"], "first_release"].isna().all()

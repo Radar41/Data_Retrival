@@ -1,0 +1,5 @@
+artifact: grid_series
+description: "rdiag dim_series: one row per series index i."
+primary_key: [i]
+columns:
+  - {name: i, dtype: int32, nullable: false}

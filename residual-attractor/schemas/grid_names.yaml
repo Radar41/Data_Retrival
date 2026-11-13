@@ -1,0 +1,7 @@
+artifact: grid_names
+description: "rdiag meta_names: names for a person to read after a finding; no stage reads them."
+primary_key: [axis, idx]
+columns:
+  - {name: axis, dtype: category, values: [k, i], nullable: false}
+  - {name: idx, dtype: int32, nullable: false}
+  - {name: name, dtype: string, nullable: false, notes: "k: config_id with method and params; i: FRED series_id"}

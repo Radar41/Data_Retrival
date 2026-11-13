@@ -1,6 +1,6 @@
 # Plan: from forecast residuals to a growing graph of economic relationships
 
-Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.7 (univariate SES/AR/Holt, the fibers stage as a collection of points, cadence per ladder, lag correlation and the per-configuration bundle summary; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 7 on all 14 series. Item 1.8 (a fused configuration) is withdrawn under the archive rule (section 0, rule 7). It ties together these pieces:
+Status: plan, 2026-11-12 (revised after the Architecture Specification arrived). Built so far, in `residual-attractor/`: items 1.1–1.7 and 1.10 (univariate SES/AR/Holt, the fibers stage as a collection of points, cadence per ladder, lag correlation and the per-configuration bundle summary; the GDSS families, exog sets and fit status fields are still to come); item 1.12 (the four missing spring series, loaded 2026-11-12); run spec 0 builds through stage 7 and exports the grid (stage 9) on all 14 series. Item 1.8 (a fused configuration) is withdrawn under the archive rule (section 0, rule 7). It ties together these pieces:
 
 | Piece | Where | State |
 |---|---|---|
@@ -93,7 +93,7 @@ Follows the spec's milestones (contracts → methods → fit/forecast → cadenc
 | 1.7 | **Cadence and lag correlation** (stages 5–7). | spec |
 | 1.8 | **Fused configuration**, defined once (open decision 10.6). | spec decision 16; rdiag |
 | 1.9 | **Storage**: run, registry and step metadata in PostgreSQL (`forecast` schema); step and fiber arrays as Parquet per build, loaded into DuckDB downstream. | GDSS appraisal; rdiag |
-| 1.10 | **Export to rdiag**: R[k, i, t], `config_structure`, `provenance` (`data_cutoff`, `release_date`, `vintage_id` come straight from the catalog's vintages). | rdiag `schemas/00_input.yaml` |
+| 1.10 | **Export to rdiag**: R[k, i, t], `config_structure`, `provenance` (`data_cutoff`, `release_date`, `vintage_id` come straight from the catalog's vintages). Built 2026-11-13 as stage 9 (`grid`) under rdiag input contract v2 (no fused configuration). | rdiag `schemas/00_input.yaml` |
 | 1.11 | **Tests**: the spec's known answers and seven invariants, leakage test, conformance per method, round-trip export. | spec validation plan |
 | 1.12 | **Load missing series**: PCU333611333611, WPU1197, IMPMANUS and EXPMANUS (in run spec 0, absent from the catalog). | coverage |
 
@@ -104,6 +104,17 @@ Follows the spec's milestones (contracts → methods → fit/forecast → cadenc
 **Scale.** The spec's own size check: steps = |series| × |C| × |O| × 2H. With 1,000 configurations, 180 origins and H = 20, that's 7.2M rows per series; 100 series is 720M rows. That decides the storage: steps and fibers live as Parquet arrays and DuckDB tables, never as graph nodes, and fits run in parallel. Earlier fits are reused because `config_id` is a content hash.
 
 ## 5. Phase 2: implement rdiag stages in the order the relationships need
+
+**First, rework rdiag for the archive rule (input contract v2).** Stage 9 (`grid`) writes rdiag's input tables (in_resid, in_config, in_field_attrs, dim_series, dim_month, in_provenance, meta_names) with no fused configuration. rdiag as delivered refuses that: `in_field_attrs.k_fused` is NOT NULL with a foreign key, and its `one_fused` check needs exactly one fused row. The rework, mapped file by file on 2026-11-13:
+- **Input:** drop `k_fused`, `is_fused`, `member_ks` and `input.residual_metrics` (ensemble spread and member residuals have no upstream source); in_config becomes (k, core_spec_id, exog_set). Delete the checks `one_fused`, `fused_members_exist`, `loss_excludes_fused`, `cpa_excludes_fused` (and `collapse_needs_metrics` if collapse goes); re-key `loss_exact`, `threshold_exceedances` and `events_resid_rule` on k.
+- **Stage 1:** no reference configuration. Each configuration's own loss L[k, i, t]; differentials only between two configurations, d[k_a, k_b, i, t] with k_a < k_b (the form `pairwise` already takes): 1,431 pairs per series at K = 54. Fluctuation (Giacomini-Rossi) and CPA (Giacomini-White) carry over on pairwise d. Pairwise DM-HLN/Clark-West, MCS and Bai-Ng stay as they are.
+- **Stage 2:** every family (CWT and holonomy, spectral, persistence, tails) runs on every configuration's own row resid[k, i, :]; k joins every key.
+- **Stage 3:** coherence, adjacency, common mode, events and coincidence run per configuration; k joins every key (coherence grows from 91 series pairs to 54 × 91 at spec 0).
+- **Exact twins:** Holt β = 0 and SES at the same α stay in the archive. Their residuals agree only to rounding (about 1e-13), so the long-run variance of their loss difference is positive, not zero, and Diebold-Mariano on that noise reports "significant" differences (up to 6.3 on spec 0). Twins have to be identified from the registry (a method face: Holt with β = 0 is SES with the same α and initial state) and marked, so pairwise, MCS and FDR treat them as one model; zero variance cannot be the test.
+- **Replay:** P ≥ 60 cannot hold at the early cutoffs; `replay.runs` maps to no table.
+- **Owner's layout:** `s10_compare` becomes configuration versus configuration.
+
+Choices this leaves to you: store per-configuration losses or pairwise differences (or both); which configuration's states condition a CPA pair; whether surrogate draws are shared across configurations; whether an FDR family spans all configurations or one per configuration; whether the collapse signature is dropped or restated on pairwise similarity; the replay baseline; and whether the pooled replay test stays ("we are not aggregating that score").
 
 1. `loss`, `pairwise` (Diebold-Mariano with small-sample correction / Clark-West), `mcs`, `fluctuation`: does conditioning on a set improve forecasts, and when?
 2. `cwt`, `coherence` (relative phase = who leads), `adjacency`.

@@ -6,3 +6,4 @@ columns:
   - {name: t, dtype: int32, nullable: false, unit: step}
   - {name: period, dtype: string, nullable: false, notes: "ISO date of the period start (FRED observation_date convention)"}
   - {name: imputed, dtype: bool, nullable: false, notes: "true where ingest filled the value by linear interpolation (max_interpolate)"}
+  - {name: first_release, dtype: string, nullable: true, notes: "ISO date the period's value was first published (the earliest vintage at or before as_of holding it; for an aggregated period, the latest first release among the observations in it); <NA> for interpolated periods"}

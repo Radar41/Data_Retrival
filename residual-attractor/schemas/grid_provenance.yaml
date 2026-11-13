@@ -1,0 +1,11 @@
+artifact: grid_provenance
+description: "rdiag in_provenance: one row per (k, i, t, vintage) held in the field, in rdiag's loader column order."
+primary_key: [k, i, t, vintage_id]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false}
+  - {name: vintage_id, dtype: string, nullable: false, notes: "the vintage the build read: source and as_of"}
+  - {name: data_cutoff, dtype: "datetime64[ns]", nullable: false, notes: "month t - 1: the last period a one-step forecast for t uses; before t"}
+  - {name: release_date, dtype: "datetime64[ns]", nullable: false, notes: "first release of the value for month t (calendar.first_release)"}
+  - {name: model_run_id, dtype: string, nullable: false, notes: "the upstream build_id"}
