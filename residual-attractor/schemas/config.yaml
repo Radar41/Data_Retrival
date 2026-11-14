@@ -65,6 +65,7 @@ adjacency.edge_rule:      {type: str, values: [binomial_exceedance]}            
 adjacency.per_band:       {type: bool}                              # rdiag adjacency.per_band
 inference.cooccurrence_family_method: {type: str, values: [benjamini_yekutieli]}    # rdiag inference.cooccurrence_family_method
 inference.q:              {type: float, min: 0.0, max: 1.0}         # rdiag inference.q; strictly inside (0, 1)
+# Track B, who leads by events (rdiag params.yaml: tails, events, coincidence, surrogates.n_coincidence)
 tails.n_tail_grid:        {type: list}                 # rdiag tails.k_grid: [lowest, highest] n_tail, each an integer or "floor(P / d)"
 tails.n_tail_rule:        {type: str, values: [hill_stability]}             # rdiag tails.k_rule
 tails.n_tail_stability_width: {type: int, min: 1}      # rdiag tails.k_stability_width
@@ -78,3 +79,6 @@ tails.gpd_ci:             {type: str, values: [profile_likelihood]}         # th
 tails.gpd_ci_level:       {type: float, min: 0.5, max: 0.999}
 events.kinds:             {type: list}                 # which of rdiag's event kinds are built; only residual can be named for now
 events.residual:          {type: str, values: [tails_threshold]}            # rdiag events.residual
+coincidence.windows:      {type: list}                 # [delta_min, delta_max] pairs in months, scanned one by one (rdiag: coincidence.delta_min, delta_max)
+coincidence.direction:    {type: str, values: [precursor]}                  # rdiag coincidence.direction
+surrogates.n_coincidence: {type: int, min: 1}          # rdiag surrogates.n_coincidence

@@ -1,0 +1,16 @@
+artifact: coincidence_precursor
+description: "rdiag s3.coincidence under v2: one row per (configuration k, ordered pair of event series a -> b, window). The share of a's events followed by an event of b within the window, and its circular-shift p-value. Both series belong to configuration k; every window is its own test, with its raw p-value."
+primary_key: [k, kind_a, i_a, kind_b, i_b, delta_min, delta_max]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: kind_a, dtype: category, values: [residual, band_power, persistence], nullable: false, notes: "event kind of the leading series (rdiag f_a)"}
+  - {name: i_a, dtype: int32, nullable: false, notes: "the leading series (rdiag a)"}
+  - {name: kind_b, dtype: category, values: [residual, band_power, persistence], nullable: false, notes: "event kind of the follower (rdiag f_b)"}
+  - {name: i_b, dtype: int32, nullable: false, notes: "the follower (rdiag b); (kind_a, i_a) != (kind_b, i_b)"}
+  - {name: delta_min, dtype: int16, nullable: false, unit: months, notes: "the window [t + delta_min, t + delta_max] after an event of a at t; one entry of coincidence.windows"}
+  - {name: delta_max, dtype: int16, nullable: false, unit: months}
+  - {name: n_events_a, dtype: int32, nullable: false, notes: "all events of the leading series"}
+  - {name: n_eligible_a, dtype: int32, nullable: false, notes: "those whose whole window lies inside the sample with the follower defined on all of it; >= 1"}
+  - {name: rate, dtype: float64, nullable: false, notes: "share of the eligible events with at least one event of b in the window"}
+  - {name: n_surrogates, dtype: int32, nullable: false, notes: "circular shifts of b the rate was compared with: every offset that exists when surrogates.n_coincidence covers them, else that many draws"}
+  - {name: p_value, dtype: float64, nullable: false, notes: "(1 + surrogates whose rate >= rate) / (1 + n_surrogates), raw; never below 1 / (1 + n_surrogates)"}

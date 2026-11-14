@@ -62,7 +62,7 @@ def validate_config(cfg: dict) -> dict:
     for key in ("spectral_summary.c_delta", "spectral_summary.gamma_decorrelation", "spectral_summary.dj0_decorrelation"):
         if not cfg[key] > 0:
             raise ContractError(f"config {key}: {cfg[key]} must be positive")
-    # tails, events, coincidence (rdiag s2d, s3.events, s3.coincidence): the rules that span keys or list entries
+    # Track B (tails, events, coincidence): the rules that span keys or list entries.
     from .stages.tails import COUNT_RULE  # the rule a count may follow lives with the stage that resolves it
 
     whole = lambda x: isinstance(x, int) and not isinstance(x, bool)
@@ -85,6 +85,10 @@ def validate_config(cfg: dict) -> dict:
         raise ContractError(f"config events.kinds: {kinds} must name at least one of {list(KINDS)}, each once")
     if set(kinds) - set(RULES):
         raise ContractError("config events.kinds: " + "; ".join(f"{k} is not built yet, it waits for {WAITS_FOR[k]}" for k in kinds if k not in RULES))
+    cw = cfg["coincidence.windows"]
+    pairs = [tuple(x) for x in cw if isinstance(x, list) and len(x) == 2 and all(whole(v) for v in x)]
+    if not cw or len(pairs) != len(cw) or len(set(pairs)) != len(pairs) or not all(0 <= lo <= hi <= 32767 for lo, hi in pairs):
+        raise ContractError(f"config coincidence.windows: {cw} must be distinct [delta_min, delta_max] pairs of whole months with 0 <= delta_min <= delta_max, at least one")
     return cfg
 
 

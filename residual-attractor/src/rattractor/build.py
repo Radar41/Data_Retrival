@@ -25,7 +25,6 @@ from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
 from .stages import AcceptanceError, bundle, cadence, compare, fibers, fit, forecast, grid, ingest, lagcorr, register
-from .stages import events, tails
 
 
 def _safe(name: str) -> str:
@@ -166,6 +165,9 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         for name, frame in adj.items():
             write(frame, name, f"adjacency/{name.removeprefix('adjacency_')}.parquet")
         track_a = {"wavelet": wavelet_info, "spectral": spectral_info, "coherence": coherence_info, "adjacency": adjacency_info}
+        # Track B, who leads by events: each stage runs inside one configuration, on its own rows of the grid.
+        from .stages import coincidence, events, tails
+
         stage = "tails"
         tailed, tails_info = tails.run(frames, cfg)
         for name, frame in tailed.items():
@@ -174,6 +176,11 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         evented, events_info = events.run(frames, tailed, cfg)
         for name, frame in evented.items():
             write(frame, name, f"events/{name.removeprefix('events_')}.parquet")
+        stage = "coincidence"
+        coincided, coincidence_info = coincidence.run(frames, evented, cfg)
+        for name, frame in coincided.items():
+            write(frame, name, f"coincidence/{name.removeprefix('coincidence_')}.parquet")
+        track_b = {"tails": tails_info, "events": events_info, "coincidence": coincidence_info}
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -200,9 +207,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "grid": grid_info,
         "compare": compare_info,
         **track_a,
-        "tails": tails_info,
-        "events": events_info,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, "tails", "events"],
+        **track_b,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, *track_b],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

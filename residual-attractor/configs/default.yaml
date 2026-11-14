@@ -35,6 +35,7 @@ compare.fluctuation_alpha: 0.05
 compare.cpa_instruments: [const, d_lag1]  # v2: rdiag's fused-row state instruments do not exist; Giacomini-White's own
 surrogates.circular_shift_min_offset: 12  # rdiag surrogates: circular-shift offsets are drawn from [min, P - min]
 surrogates.scope: per_configuration       # every configuration has its own draws; `shared` gives all of them the same draws
+# Track B, who leads by events (rdiag params.yaml: tails, events, coincidence, surrogates.n_coincidence)
 tails.n_tail_grid: [10, "floor(P / 4)"]    # rdiag tails.k_grid; rdiag's k (upper order statistics) is n_tail here, k is the configuration
 tails.n_tail_rule: hill_stability          # rdiag tails.k_rule: least variance of gamma over a sliding range of n_tail
 tails.n_tail_stability_width: 5            # rdiag tails.k_stability_width
@@ -48,6 +49,9 @@ tails.gpd_ci: profile_likelihood           # rdiag says "confidence intervals"; 
 tails.gpd_ci_level: 0.95
 events.kinds: [residual]                   # rdiag has three; band_power and persistence wait for their sources (s2b, s2c)
 events.residual: tails_threshold           # rdiag: |resid| above the row's own u_star from stage tails
+coincidence.windows: [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 9], [10, 10], [11, 11], [12, 12], [0, 2]]   # [delta_min, delta_max] in months, each its own test; rdiag has the one window [0, 2]
+coincidence.direction: precursor           # rdiag: events of a followed by events of b
+surrogates.n_coincidence: 1000             # rdiag surrogates.n_coincidence; when it is at least the number of distinct offsets, every offset is used once
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60
