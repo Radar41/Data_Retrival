@@ -35,6 +35,17 @@ compare.fluctuation_alpha: 0.05
 compare.cpa_instruments: [const, d_lag1]  # v2: rdiag's fused-row state instruments do not exist; Giacomini-White's own
 surrogates.circular_shift_min_offset: 12  # rdiag surrogates: circular-shift offsets are drawn from [min, P - min]
 surrogates.scope: per_configuration       # every configuration has its own draws; `shared` gives all of them the same draws
+tails.n_tail_grid: [10, "floor(P / 4)"]    # rdiag tails.k_grid; rdiag's k (upper order statistics) is n_tail here, k is the configuration
+tails.n_tail_rule: hill_stability          # rdiag tails.k_rule: least variance of gamma over a sliding range of n_tail
+tails.n_tail_stability_width: 5            # rdiag tails.k_stability_width
+tails.threshold_grid_quantiles: [0.70, 0.98, 0.01]   # rdiag: first, last, step
+tails.threshold_rule: gpd_shape_stability  # rdiag: Coles (2001), threshold stability
+tails.rolling_window: 36                   # rdiag
+tails.rolling_n_tail: 6                    # rdiag tails.rolling_k
+tails.min_exceed: 3                        # rdiag's postcondition n_exceed >= 3; a threshold with fewer exceedances is not fitted
+tails.gpd_shape_min: -0.5                  # the shape is estimated over shape >= this; below -1/2 the likelihood has no regular optimum
+tails.gpd_ci: profile_likelihood           # rdiag says "confidence intervals"; estimate +/- z se covers 29-76% at 5-30 exceedances, this one 91-99%
+tails.gpd_ci_level: 0.95
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60

@@ -1,0 +1,14 @@
+artifact: tails_mean_excess
+description: "rdiag s2d.mean_excess under v2: one row per (configuration k, series i, threshold u on the quantile grid). The mean excess of |resid[k, i, :]| over the threshold and the generalized Pareto fit to the excesses."
+primary_key: [k, i, u]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: u, dtype: int16, nullable: false, notes: "index on tails.threshold_grid_quantiles, ascending"}
+  - {name: threshold, dtype: float64, nullable: false, notes: "that quantile of |resid| over the row's months, linear interpolation"}
+  - {name: n_exceed, dtype: int32, nullable: false, notes: "months with |resid| > threshold"}
+  - {name: mean_excess, dtype: float64, nullable: true, notes: "mean of |resid| - threshold over those months; NaN where there are none"}
+  - {name: gpd_shape, dtype: float64, nullable: true, notes: "maximum-likelihood shape over shape >= tails.gpd_shape_min; NaN where n_exceed < tails.min_exceed (no fit)"}
+  - {name: gpd_ci_lo, dtype: float64, nullable: true, notes: "profile-likelihood interval at tails.gpd_ci_level, cut at tails.gpd_shape_min; NaN where there is no fit"}
+  - {name: gpd_ci_hi, dtype: float64, nullable: true}
+  - {name: stable, dtype: bool, nullable: false, notes: "fitted, and gpd_shape lies inside [gpd_ci_lo, gpd_ci_hi] of every higher fitted threshold of the row"}

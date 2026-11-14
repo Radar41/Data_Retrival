@@ -62,6 +62,22 @@ def validate_config(cfg: dict) -> dict:
     for key in ("spectral_summary.c_delta", "spectral_summary.gamma_decorrelation", "spectral_summary.dj0_decorrelation"):
         if not cfg[key] > 0:
             raise ContractError(f"config {key}: {cfg[key]} must be positive")
+    # tails, events, coincidence (rdiag s2d, s3.events, s3.coincidence): the rules that span keys or list entries
+    from .stages.tails import COUNT_RULE  # the rule a count may follow lives with the stage that resolves it
+
+    whole = lambda x: isinstance(x, int) and not isinstance(x, bool)
+    number = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+    ng = cfg["tails.n_tail_grid"]
+    if len(ng) != 2 or not all((whole(x) and x >= 1) or (isinstance(x, str) and COUNT_RULE.fullmatch(x)) for x in ng) \
+            or (whole(ng[0]) and whole(ng[1]) and ng[0] > ng[1]):
+        raise ContractError(f"config tails.n_tail_grid: {ng} is not [lowest, highest], each an integer >= 1 or the text 'floor(P / d)'")
+    tq = cfg["tails.threshold_grid_quantiles"]
+    if len(tq) != 3 or not all(number(x) for x in tq) or not (0 < tq[0] <= tq[1] < 1 and tq[2] > 0):
+        raise ContractError(f"config tails.threshold_grid_quantiles: {tq} is not [first, last, step] with 0 < first <= last < 1 and step > 0")
+    if cfg["tails.rolling_n_tail"] >= cfg["tails.rolling_window"]:
+        raise ContractError(f"config tails.rolling_n_tail: {cfg['tails.rolling_n_tail']} must be below tails.rolling_window {cfg['tails.rolling_window']}")
+    if not cfg["tails.gpd_shape_min"] < 0:
+        raise ContractError(f"config tails.gpd_shape_min: {cfg['tails.gpd_shape_min']} must lie in [-0.5, 0)")
     return cfg
 
 

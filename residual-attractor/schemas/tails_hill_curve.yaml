@@ -1,0 +1,10 @@
+artifact: tails_hill_curve
+description: "rdiag s2d.hill_curve under v2: one row per (configuration k, series i, n_tail). Hill's estimate of the tail index of |resid[k, i, :]| from its n_tail largest values. rdiag calls the count k; here k is the configuration."
+primary_key: [k, i, n_tail]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: n_tail, dtype: int32, nullable: false, notes: "number of upper order statistics, on tails.n_tail_grid"}
+  - {name: gamma, dtype: float64, nullable: true, notes: "mean of the logs of the n_tail largest |resid| minus the log of the next one; NaN where that next value is 0"}
+  - {name: se, dtype: float64, nullable: true, notes: "gamma / sqrt(n_tail)"}
+  - {name: star, dtype: bool, nullable: false, notes: "true at n_tail_star (rdiag k_star): the middle of the tails.n_tail_stability_width consecutive n_tail whose gammas vary least; at most one per (k, i)"}

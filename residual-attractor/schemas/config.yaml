@@ -65,3 +65,14 @@ adjacency.edge_rule:      {type: str, values: [binomial_exceedance]}            
 adjacency.per_band:       {type: bool}                              # rdiag adjacency.per_band
 inference.cooccurrence_family_method: {type: str, values: [benjamini_yekutieli]}    # rdiag inference.cooccurrence_family_method
 inference.q:              {type: float, min: 0.0, max: 1.0}         # rdiag inference.q; strictly inside (0, 1)
+tails.n_tail_grid:        {type: list}                 # rdiag tails.k_grid: [lowest, highest] n_tail, each an integer or "floor(P / d)"
+tails.n_tail_rule:        {type: str, values: [hill_stability]}             # rdiag tails.k_rule
+tails.n_tail_stability_width: {type: int, min: 1}      # rdiag tails.k_stability_width
+tails.threshold_grid_quantiles: {type: list}           # rdiag: [first, last, step] quantiles of |resid|
+tails.threshold_rule:     {type: str, values: [gpd_shape_stability]}        # rdiag tails.threshold_rule
+tails.rolling_window:     {type: int, min: 2}          # rdiag tails.rolling_window
+tails.rolling_n_tail:     {type: int, min: 1}          # rdiag tails.rolling_k; below tails.rolling_window
+tails.min_exceed:         {type: int, min: 3}          # exceedances a threshold needs to be fitted and chosen (rdiag: n_exceed >= 3)
+tails.gpd_shape_min:      {type: float, min: -0.5}     # lower bound of the shape estimate and its interval; below 0
+tails.gpd_ci:             {type: str, values: [profile_likelihood]}         # the interval the stability rule reads
+tails.gpd_ci_level:       {type: float, min: 0.5, max: 0.999}

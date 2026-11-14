@@ -1,0 +1,9 @@
+artifact: tails_rolling_hill
+description: "rdiag s2d.rolling_hill under v2: one row per (configuration k, series i, month t). Hill's estimate from the tails.rolling_n_tail largest |resid| among the tails.rolling_window months ending at t."
+primary_key: [k, i, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "window end month, month start"}
+  - {name: gamma, dtype: float64, nullable: true, notes: "NaN before the first full window (and where the window's (rolling_n_tail + 1)-th largest |resid| is 0)"}
+  - {name: se, dtype: float64, nullable: true, notes: "gamma / sqrt(tails.rolling_n_tail)"}

@@ -25,6 +25,7 @@ from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
 from .stages import AcceptanceError, bundle, cadence, compare, fibers, fit, forecast, grid, ingest, lagcorr, register
+from .stages import tails
 
 
 def _safe(name: str) -> str:
@@ -165,6 +166,10 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         for name, frame in adj.items():
             write(frame, name, f"adjacency/{name.removeprefix('adjacency_')}.parquet")
         track_a = {"wavelet": wavelet_info, "spectral": spectral_info, "coherence": coherence_info, "adjacency": adjacency_info}
+        stage = "tails"
+        tailed, tails_info = tails.run(frames, cfg)
+        for name, frame in tailed.items():
+            write(frame, name, f"tails/{name.removeprefix('tails_')}.parquet")
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -191,7 +196,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "grid": grid_info,
         "compare": compare_info,
         **track_a,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a],
+        "tails": tails_info,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, "tails"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

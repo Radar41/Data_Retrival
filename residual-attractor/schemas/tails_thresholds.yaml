@@ -1,0 +1,9 @@
+artifact: tails_thresholds
+description: "rdiag s2d.thresholds under v2: one row per (configuration k, series i). The row's own event threshold on |resid|, from the stability of the generalized Pareto shape; stage events reads it."
+primary_key: [k, i]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: u, dtype: Int16, nullable: true, notes: "index in tails_mean_excess of the chosen threshold; <NA> where no threshold has tails.min_exceed exceedances"}
+  - {name: u_star, dtype: float64, nullable: true, notes: "the lowest stable threshold of the row; NaN with u"}
+  - {name: n_exceed, dtype: int32, nullable: false, notes: "months with |resid| > u_star; 0 where u_star is null"}
