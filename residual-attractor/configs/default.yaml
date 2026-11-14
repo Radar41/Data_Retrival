@@ -59,3 +59,8 @@ coherence.time_smoothing: gaussian_by_scale   # Grinsted, Moore and Jevrejeva (2
 coherence.scale_smoothing_width: 0.6      # octaves, boxcar
 coherence.quantile: 0.95
 surrogates.n_coherence: 1000              # rdiag surrogates.n_coherence; when it is at least the number of distinct offsets, every offset is used once
+adjacency.edge_weight: share_of_significant_incoi_cells
+adjacency.edge_rule: binomial_exceedance  # an edge is kept if the share exceeds what 1 - coherence.quantile predicts, at inference.q
+adjacency.per_band: true                  # false: the all-scales scope only
+inference.cooccurrence_family_method: benjamini_yekutieli   # valid under any dependence (2001)
+inference.q: 0.10

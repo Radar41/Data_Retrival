@@ -1,0 +1,17 @@
+artifact: adjacency_edges
+description: "rdiag s3.adjacency: one row per (k, pair i_a < i_b, scope), the scopes of coherence_scope. The only place where neighbourhood between series is defined, and it is defined inside one configuration: the share of significant cells, its binomial p-value, and the edge decision taken among the tests of the same configuration and family."
+primary_key: [k, i_a, i_b, band_a, band_b]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i_a, dtype: int32, nullable: false}
+  - {name: i_b, dtype: int32, nullable: false}
+  - {name: band_a, dtype: int16, nullable: false, notes: "spectral_bands.band of row (k, i_a); -1 for the scope over every scale"}
+  - {name: band_b, dtype: int16, nullable: false, notes: "spectral_bands.band of row (k, i_b); -1 for the scope over every scale"}
+  - {name: weight, dtype: float64, nullable: true, notes: "share of the scope's in-cone cells that are significant; NaN where it has none"}
+  - {name: expected, dtype: float64, nullable: false, notes: "1 - coherence.quantile"}
+  - {name: n_eff, dtype: float64, nullable: true, notes: "Kish count of smoothing footprints among the scope's in-cone cells, at least 1; NaN where it has none"}
+  - {name: p_value, dtype: float64, nullable: true, notes: "P(X >= weight x n_eff), X ~ Binomial(n_eff, expected), raw; NaN where the scope has no in-cone cell"}
+  - {name: family, dtype: category, values: [all, band], nullable: false, notes: "the tests controlled together are the rows of the same k with the same family: the decision is taken inside one configuration"}
+  - {name: family_size, dtype: int32, nullable: false, notes: "tests in the row's family"}
+  - {name: q_value, dtype: float64, nullable: true, notes: "Benjamini-Yekutieli q-value within the family"}
+  - {name: edge, dtype: bool, nullable: false, notes: "q_value <= inference.q"}
