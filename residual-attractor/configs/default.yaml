@@ -55,3 +55,7 @@ spectral_summary.min_band_scales: 2
 spectral_summary.c_delta: 0.776           # Morlet reconstruction factor (Torrence and Compo, Table 2)
 spectral_summary.gamma_decorrelation: 2.32   # Morlet time-decorrelation factor
 spectral_summary.dj0_decorrelation: 0.60  # Morlet scale-decorrelation factor (their delta-j0); rdiag leaves it implicit in "eq. 26"
+coherence.time_smoothing: gaussian_by_scale   # Grinsted, Moore and Jevrejeva (2004): Gaussian in time with sd = the scale
+coherence.scale_smoothing_width: 0.6      # octaves, boxcar
+coherence.quantile: 0.95
+surrogates.n_coherence: 1000              # rdiag surrogates.n_coherence; when it is at least the number of distinct offsets, every offset is used once

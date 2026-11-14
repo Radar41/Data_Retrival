@@ -52,7 +52,7 @@ def validate_config(cfg: dict) -> dict:
     # Track A (wavelet, spectral, coherence, adjacency): levels strictly inside (0, 1), and the period rule's form.
     from .common.wavelets import period_max_divisor  # the rule's form lives with the code that reads it
 
-    for key in ("wavelet.significance",):
+    for key in ("wavelet.significance", "coherence.quantile"):
         if not 0.0 < cfg[key] < 1.0:
             raise ContractError(f"config {key}: {cfg[key]} must lie strictly between 0 and 1")
     try:

@@ -56,3 +56,7 @@ spectral_summary.min_band_scales: {type: int, min: 1}               # rdiag spec
 spectral_summary.c_delta: {type: float, min: 0.0}                   # rdiag spectral_summary.c_delta; > 0
 spectral_summary.gamma_decorrelation: {type: float, min: 0.0}       # rdiag spectral_summary.gamma_decorrelation; > 0
 spectral_summary.dj0_decorrelation: {type: float, min: 0.0}         # Torrence and Compo's delta-j0 for scale averaging; > 0
+coherence.time_smoothing: {type: str, values: [gaussian_by_scale]}  # rdiag coherence.time_smoothing
+coherence.scale_smoothing_width: {type: float, min: 0.0}            # rdiag coherence.scale_smoothing_width, octaves
+coherence.quantile:       {type: float, min: 0.0, max: 1.0}         # rdiag coherence.quantile; strictly inside (0, 1)
+surrogates.n_coherence:   {type: int, min: 1}                       # rdiag surrogates.n_coherence

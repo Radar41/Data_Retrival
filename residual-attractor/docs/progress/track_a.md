@@ -8,7 +8,7 @@ Branch `claude/ra-wavelet-coherence-1ef86c` (worktree), cut from `3eb8984`. Brie
 |---|---|---|
 | A1 | `wavelet` | built, tested, committed |
 | A2 | `spectral` | built, tested, committed |
-| A3 | `coherence` | next |
+| A3 | `coherence` | DRAFT, uncommitted work saved as a WIP commit: module written, never run; no schemas, no stage tests, not wired |
 | A4 | `adjacency` | not started |
 
 Tests: 339 pass, 1 expected failure (268 + 34 wavelet + 37 spectral). Spec 0 builds in 10.5 s (9 s before) with `wavelet` and `spectral` in `stages_passed`.
@@ -52,6 +52,34 @@ Choices:
 - `p_value` per (k, i, j) is stored raw (rdiag registers these tests in its registry).
 - `spectral_summary.dj0_decorrelation` (0.60, Torrence and Compo's δj0) is a new key: rdiag cites their eq. 26 for the band-power level and leaves the factor implicit.
 - On pure red noise about a third of rows get a band by chance (two adjacent scales at 5% each, and neighbouring scales are correlated). That is rdiag's rule; the false-discovery stage is what controls it.
+
+## A3, `coherence`: where it stopped (session hit its usage limit on 2026-11-13)
+
+Done: `coherence.*` and `surrogates.n_coherence` config keys; the smoothing kernels in `common/wavelets.py` (`smoother`, `smooth`, `scale_weights`) with one test in `tests/stages/test_coherence.py`; a full draft of `src/rattractor/stages/coherence.py` that has **never been run**.
+
+Still to do, in order:
+
+1. Schemas `schemas/coherence_cells.yaml` (k, i_a, i_b int32; j int16; t; r2, phase, r2_q float64; in_coi, significant bool; key k, i_a, i_b, j, t) and `schemas/coherence_scope.yaml` (k, i_a, i_b int32; band_a, band_b, j_lo, j_hi int16, with -1/-1 = all scales; n_cells, n_significant, n_surrogates int32; r2_mean, p_value, phase, period, lag_months nullable float64; key k, i_a, i_b, band_a, band_b).
+2. Run the draft on a small grid, then on spec 0 (expected about a minute: 4,914 pairs x 76 fields; 15.9 M cell rows, roughly 400 MB).
+3. Wire into `build.py` (`coherence.run(frames, wav, spec_frames, cfg)`, files under `coherence/`), add to `track_a` and to the expected list in `test_build.py`.
+4. Tests: planted delay (sign, and the swap flips it), independent red noise (about 3.9% of in-cone cells at P = 98, never above 5%), cone, archive rule, count independence, every check rule, one-series fixture (empty tables), round trip, config validation.
+
+Design decisions already taken (all in the draft's docstring):
+
+- Surrogates shift only the higher-indexed row. When `surrogates.n_coherence` >= the offsets that exist (75 on spec 0) every offset is used once; p-values then step by 1/76.
+- `r2_q` is the r-th largest surrogate value, r = floor((1 - quantile)(n + 1)), not an interpolated quantile, so a cell's null rate never exceeds 1 - quantile.
+- The (pair, band) test rdiag names without a statistic: mean r2 over the scope's in-cone cells against the same on every surrogate. Scopes: all scales, plus each overlap of the two rows' own bands.
+- Lag in months = phase x period / 2 pi, stored per scope (circular mean phase and geometric mean period of the significant cells). Positive: i_a leads.
+- A shared deterministic cycle is coherent under every shift, so it is not significant: test significance with a shared stochastic component.
+
+## A4, `adjacency`: not started. Planned design
+
+- Reads `coherence_scope` (+ `wavelet_scale`). weight = n_significant / n_cells; expected = 1 - coherence.quantile.
+- Effective n: (scales in scope / 4.8, at least 1) x mean over scales of (in-cone months / (sqrt(2 pi) x scale), at least 1). p = I_expected(x, n_eff - x + 1), x = weight x n_eff (the binomial tail for real n).
+- Benjamini-Yekutieli in `common/fdr.py`, within one configuration, two families (all-scales rows; band rows), named in a `family` column, with `family_size`, `q_value`, `edge` = q_value <= inference.q.
+- Keys still to add: `adjacency.edge_weight`, `adjacency.edge_rule`, `adjacency.per_band`, `inference.cooccurrence_family_method`, `inference.q`.
+
+After A4: second independent implementation on a sample of spec 0, planted bugs, the AR-rows and April 2020 shares, then the section 8 report. None of that has been done.
 
 ## For the merge
 
