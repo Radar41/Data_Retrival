@@ -1,0 +1,8 @@
+artifact: wavelet_red_noise
+description: "rdiag s2a.cwt red_noise_threshold: one row per (k, i, scale j), the pointwise level of the row's own AR(1) reference."
+primary_key: [k, i, j]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: j, dtype: int16, nullable: false}
+  - {name: threshold, dtype: float64, nullable: false, notes: "variance x P_ar1(period) x chi2_2(wavelet.significance) / 2"}

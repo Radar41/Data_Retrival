@@ -41,3 +41,13 @@ compare.fluctuation_alpha: {type: float, values: [0.05, 0.10]}     # the Giacomi
 compare.cpa_instruments:  {type: list}                             # from [const, d_lag1], all at t - 1
 surrogates.circular_shift_min_offset: {type: int, min: 1}   # rdiag surrogates.circular_shift_min_offset
 surrogates.scope:         {type: str, values: [per_configuration, shared]}  # whether configurations share surrogate draws (owner's choice; default keeps them apart)
+# Track A, who leads by phase (rdiag params.yaml: wavelet, spectral_summary, coherence, adjacency, inference)
+wavelet.family:           {type: str, values: [morlet]}             # rdiag wavelet.family
+wavelet.omega0:           {type: float, min: 5.0}                   # rdiag wavelet.omega0; below about 5 the plain Morlet is not a wavelet
+wavelet.period_min:       {type: float, min: 2.0}                   # rdiag wavelet.period_min, months (2 is the Nyquist period)
+wavelet.period_max_rule:  {type: str}                               # rdiag wavelet.period_max_rule: "P / d", d a number >= 1
+wavelet.voices_per_octave: {type: int, min: 1}                      # rdiag wavelet.voices_per_octave (dj = 1 / voices)
+wavelet.padding:          {type: str, values: [zero]}               # rdiag wavelet.padding
+wavelet.coi:              {type: str, values: [e_folding_sqrt2]}    # rdiag wavelet.coi
+wavelet.red_noise:        {type: str, values: [ar1]}                # rdiag wavelet.red_noise
+wavelet.significance:     {type: float, min: 0.0, max: 1.0}         # rdiag wavelet.significance; strictly inside (0, 1)

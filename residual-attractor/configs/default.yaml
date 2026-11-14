@@ -40,3 +40,13 @@ seed: 41
 fixture.regime_length: 60
 fixture.noise_sd: 1.0
 fixture.test_fraction: 0.5
+# Track A, who leads by phase (rdiag params.yaml: wavelet, spectral_summary, coherence, adjacency, inference)
+wavelet.family: morlet                    # Torrence and Compo (1998)
+wavelet.omega0: 6.0
+wavelet.period_min: 2.0                   # months; the Nyquist period of monthly data
+wavelet.period_max_rule: "P / 3"          # the longest period is P / 3 months (32.7 at P = 98)
+wavelet.voices_per_octave: 8              # dj = 1/8
+wavelet.padding: zero
+wavelet.coi: e_folding_sqrt2              # a cell is in the cone at least sqrt(2) x scale from both ends
+wavelet.red_noise: ar1                    # the reference each row's power is judged against: its own AR(1)
+wavelet.significance: 0.95

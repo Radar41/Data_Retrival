@@ -145,6 +145,14 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         compared, compare_info = compare.run(frames, reg, index, cfg, np.stack(raw, axis=1))
         for name, frame in compared.items():
             write(frame, name, f"compare/{name.removeprefix('compare_')}.parquet")
+        # Track A, who leads by phase: each stage runs on every configuration's own rows of the grid.
+        from .stages import wavelet
+
+        stage = "wavelet"
+        wav, wavelet_info = wavelet.run(frames, cfg)
+        for name, frame in wav.items():
+            write(frame, name, f"wavelet/{name.removeprefix('wavelet_')}.parquet")
+        track_a = {"wavelet": wavelet_info}
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -170,7 +178,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "bundle_summary": {"alignment_A_t": "not built: it averages across configurations (archive rule)", "base_closed": cfg["base.closed"]},
         "grid": grid_info,
         "compare": compare_info,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare"],
+        **track_a,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

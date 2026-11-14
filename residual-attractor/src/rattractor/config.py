@@ -49,6 +49,16 @@ def validate_config(cfg: dict) -> dict:
         raise ContractError(f"config compare.cpa_instruments: {inst} must be distinct names from [const, d_lag1]")
     if cfg["lagcorr.min_pairs"] > cfg["lagcorr.window"]:
         raise ContractError(f"config lagcorr.min_pairs: {cfg['lagcorr.min_pairs']} exceeds lagcorr.window {cfg['lagcorr.window']}")
+    # Track A (wavelet, spectral, coherence, adjacency): levels strictly inside (0, 1), and the period rule's form.
+    from .common.wavelets import period_max_divisor  # the rule's form lives with the code that reads it
+
+    for key in ("wavelet.significance",):
+        if not 0.0 < cfg[key] < 1.0:
+            raise ContractError(f"config {key}: {cfg[key]} must lie strictly between 0 and 1")
+    try:
+        period_max_divisor(cfg["wavelet.period_max_rule"])
+    except ValueError as err:
+        raise ContractError(f"config {err}") from None
     return cfg
 
 

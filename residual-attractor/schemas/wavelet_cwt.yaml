@@ -1,0 +1,15 @@
+artifact: wavelet_cwt
+description: "rdiag s2a.cwt: one row per (k, i, scale j, month t), the Morlet transform of configuration k's own centred row for series i. Every cell is kept; cells near the ends are flagged by in_coi = false."
+primary_key: [k, i, j, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: j, dtype: int16, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "month start"}
+  - {name: w_re, dtype: float64, nullable: false}
+  - {name: w_im, dtype: float64, nullable: false}
+  - {name: power, dtype: float64, nullable: false, notes: "w_re^2 + w_im^2"}
+  - {name: amplitude, dtype: float64, nullable: false, notes: "sqrt(power)"}
+  - {name: phase, dtype: float64, nullable: false, notes: "arg(w_re + i w_im), radians in (-pi, pi]; it grows with time on an oscillation"}
+  - {name: in_coi, dtype: bool, nullable: false, notes: "true where the month is at least sqrt(2) x scale from both ends of the row"}
+  - {name: significant, dtype: bool, nullable: false, notes: "in_coi and power > wavelet_red_noise.threshold"}

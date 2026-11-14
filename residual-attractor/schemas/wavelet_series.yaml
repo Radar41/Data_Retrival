@@ -1,0 +1,9 @@
+artifact: wavelet_series
+description: "rdiag s2a.cwt ar1 and variance: one row per (configuration k, series i), the moments of that row alone."
+primary_key: [k, i]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: mean, dtype: float64, nullable: false, notes: "the row's mean over the holdout months; removed before the transform"}
+  - {name: variance, dtype: float64, nullable: false, notes: "about the mean, divisor P; > 0"}
+  - {name: ar1, dtype: float64, nullable: false, notes: "lag-1 autocorrelation of the centred row, in (-1, 1)"}

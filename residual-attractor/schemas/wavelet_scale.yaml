@@ -1,0 +1,7 @@
+artifact: wavelet_scale
+description: "rdiag s2a.cwt coords: one row per wavelet scale j. The grid follows from P and the config only, so it has no k."
+primary_key: [j]
+columns:
+  - {name: j, dtype: int16, nullable: false, notes: "scale index, ascending period"}
+  - {name: period, dtype: float64, nullable: false, notes: "Fourier period in months: wavelet.period_min x 2^(j / voices_per_octave)"}
+  - {name: scale, dtype: float64, nullable: false, notes: "period / (4 pi / (omega0 + sqrt(2 + omega0^2))); a cell is in the cone at least sqrt(2) x scale months from both ends"}
