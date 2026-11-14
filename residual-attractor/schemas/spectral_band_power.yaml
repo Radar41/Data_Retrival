@@ -1,0 +1,10 @@
+artifact: spectral_band_power
+description: "rdiag s2b.band_power: one row per (k, i, band, month t), the scale-averaged power of the row over its own band. Every month is kept."
+primary_key: [k, i, band, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: band, dtype: int16, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false}
+  - {name: sap, dtype: float64, nullable: false, notes: "(dj / c_delta) x sum over the band's scales of power / scale"}
+  - {name: in_coi, dtype: bool, nullable: false, notes: "true where every scale of the band is in the cone at t"}

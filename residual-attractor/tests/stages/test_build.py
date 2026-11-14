@@ -21,7 +21,7 @@ def test_fixture_build_and_manifest(cfg, tmp_path):
         assert file_sha256(p) == a["sha256"]
         assert len(contracts.read(p, a["artifact"])) == a["rows"]
     assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare",
-                                  "wavelet"]
+                                  "wavelet", "spectral"]
     assert {"lagcorr/fixture_six_regime.parquet", "bundle_summary/fixture_six_regime.parquet"} <= set(m["artifacts"])
     assert m["artifacts"]["bundle_summary/fixture_six_regime.parquet"]["rows"] == m["configurations"]["admissible"]
     assert "cadence/fixture_six_regime.parquet" in m["artifacts"] and m["cadence"]["scale"] == "r_g"

@@ -7,11 +7,11 @@ Branch `claude/ra-wavelet-coherence-1ef86c` (worktree), cut from `3eb8984`. Brie
 | Package | Stage | State |
 |---|---|---|
 | A1 | `wavelet` | built, tested, committed |
-| A2 | `spectral` | next |
-| A3 | `coherence` | not started |
+| A2 | `spectral` | built, tested, committed |
+| A3 | `coherence` | next |
 | A4 | `adjacency` | not started |
 
-Tests: 302 pass, 1 expected failure (268 + 34 in `tests/stages/test_wavelet.py`). Spec 0 builds in 10 s (9 s before) with `wavelet` in `stages_passed`.
+Tests: 339 pass, 1 expected failure (268 + 34 wavelet + 37 spectral). Spec 0 builds in 10.5 s (9 s before) with `wavelet` and `spectral` in `stages_passed`.
 
 ## A1, `wavelet`
 
@@ -33,6 +33,25 @@ Choices (each is in the module docstring):
 - `wavelet_scale` has no `k`: it follows from P and the config only.
 - rdiag's `s2a.complex` is the holonomy cell complex (needs adjacency edges). Not built; the complex coefficients are `w_re`, `w_im`, with amplitude and phase beside them.
 - A constant row stops the build with its (k, i).
+
+## A2, `spectral`
+
+Files: `src/rattractor/stages/spectral.py`, `schemas/spectral_{global,bands,band_count,band_power,dominant}.yaml`, `tests/stages/test_spectral.py`, five `spectral_summary.*` config keys.
+
+| Artifact | Key | Rows on spec 0 |
+|---|---|---|
+| `spectral/global.parquet` | k, i, j | 24,948, each with its raw p-value |
+| `spectral/bands.parquet` | k, i, band | 488 |
+| `spectral/band_count.parquet` | k, i | 756 |
+| `spectral/band_power.parquet` | k, i, band, t | 47,824 |
+| `spectral/dominant.parquet` | k, i, t | 74,088 |
+
+Choices:
+
+- Bands are per (k, i) row, from that row's own spectrum against its own AR(1) reference. Never across configurations, never across series.
+- `p_value` per (k, i, j) is stored raw (rdiag registers these tests in its registry).
+- `spectral_summary.dj0_decorrelation` (0.60, Torrence and Compo's δj0) is a new key: rdiag cites their eq. 26 for the band-power level and leaves the factor implicit.
+- On pure red noise about a third of rows get a band by chance (two adjacent scales at 5% each, and neighbouring scales are correlated). That is rdiag's rule; the false-discovery stage is what controls it.
 
 ## For the merge
 

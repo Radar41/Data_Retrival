@@ -1,0 +1,7 @@
+artifact: spectral_band_count
+description: "rdiag s2b.band_power band_count: one row per (k, i), the number of bands of that row. Zero is recorded."
+primary_key: [k, i]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: band_count, dtype: int16, nullable: false}

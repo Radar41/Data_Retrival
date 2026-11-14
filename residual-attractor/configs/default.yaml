@@ -50,3 +50,8 @@ wavelet.padding: zero
 wavelet.coi: e_folding_sqrt2              # a cell is in the cone at least sqrt(2) x scale from both ends
 wavelet.red_noise: ar1                    # the reference each row's power is judged against: its own AR(1)
 wavelet.significance: 0.95
+spectral_summary.band_rule: contiguous_above_red_noise   # bands = maximal runs of scales whose global spectrum clears the row's red noise
+spectral_summary.min_band_scales: 2
+spectral_summary.c_delta: 0.776           # Morlet reconstruction factor (Torrence and Compo, Table 2)
+spectral_summary.gamma_decorrelation: 2.32   # Morlet time-decorrelation factor
+spectral_summary.dj0_decorrelation: 0.60  # Morlet scale-decorrelation factor (their delta-j0); rdiag leaves it implicit in "eq. 26"

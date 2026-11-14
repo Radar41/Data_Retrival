@@ -1,0 +1,12 @@
+artifact: spectral_global
+description: "rdiag s2b.global_spectrum: one row per (k, i, scale j), the time-averaged power of configuration k's own row for series i against that row's own AR(1) reference. p_value is the raw p-value of the (k, i, j) test."
+primary_key: [k, i, j]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: j, dtype: int16, nullable: false}
+  - {name: gws, dtype: float64, nullable: true, notes: "mean power over the in-cone months; NaN when the scale has none"}
+  - {name: dof, dtype: float64, nullable: false, notes: "2 sqrt(1 + (n_a / (gamma_decorrelation x scale))^2), n_a the in-cone months"}
+  - {name: threshold, dtype: float64, nullable: false, notes: "variance x P_ar1(period) x chi2_dof(wavelet.significance) / dof"}
+  - {name: above, dtype: bool, nullable: false, notes: "gws > threshold; false where gws is null"}
+  - {name: p_value, dtype: float64, nullable: true, notes: "P(chi2_dof > dof x gws / (variance x P_ar1)), in (0, 1]; NaN where gws is null"}

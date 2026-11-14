@@ -51,3 +51,8 @@ wavelet.padding:          {type: str, values: [zero]}               # rdiag wave
 wavelet.coi:              {type: str, values: [e_folding_sqrt2]}    # rdiag wavelet.coi
 wavelet.red_noise:        {type: str, values: [ar1]}                # rdiag wavelet.red_noise
 wavelet.significance:     {type: float, min: 0.0, max: 1.0}         # rdiag wavelet.significance; strictly inside (0, 1)
+spectral_summary.band_rule: {type: str, values: [contiguous_above_red_noise]}   # rdiag spectral_summary.band_rule
+spectral_summary.min_band_scales: {type: int, min: 1}               # rdiag spectral_summary.min_band_scales
+spectral_summary.c_delta: {type: float, min: 0.0}                   # rdiag spectral_summary.c_delta; > 0
+spectral_summary.gamma_decorrelation: {type: float, min: 0.0}       # rdiag spectral_summary.gamma_decorrelation; > 0
+spectral_summary.dj0_decorrelation: {type: float, min: 0.0}         # Torrence and Compo's delta-j0 for scale averaging; > 0

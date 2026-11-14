@@ -1,0 +1,13 @@
+artifact: spectral_bands
+description: "rdiag s2b.bands: one row per (k, i, band), the maximal runs of scales whose global spectrum clears the row's own red noise, at least min_band_scales long. A row may have no band; bands never overlap within a row. No preset period ranges exist."
+primary_key: [k, i, band]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: band, dtype: int16, nullable: false, notes: "0.. in ascending period within the row"}
+  - {name: j_lo, dtype: int16, nullable: false}
+  - {name: j_hi, dtype: int16, nullable: false}
+  - {name: period_lo, dtype: float64, nullable: false, notes: "months, the period of j_lo"}
+  - {name: period_hi, dtype: float64, nullable: false, notes: "months, the period of j_hi"}
+  - {name: j_center, dtype: int16, nullable: false, notes: "the scale of largest gws within the band"}
+  - {name: sap_threshold, dtype: float64, nullable: false, notes: "the level a red-noise row's scale-averaged power over the band exceeds with probability 1 - wavelet.significance (Torrence and Compo, eq. 26)"}

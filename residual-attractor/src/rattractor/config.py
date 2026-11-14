@@ -59,6 +59,9 @@ def validate_config(cfg: dict) -> dict:
         period_max_divisor(cfg["wavelet.period_max_rule"])
     except ValueError as err:
         raise ContractError(f"config {err}") from None
+    for key in ("spectral_summary.c_delta", "spectral_summary.gamma_decorrelation", "spectral_summary.dj0_decorrelation"):
+        if not cfg[key] > 0:
+            raise ContractError(f"config {key}: {cfg[key]} must be positive")
     return cfg
 
 

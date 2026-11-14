@@ -1,0 +1,9 @@
+artifact: spectral_dominant
+description: "rdiag s2b.dominant_period: one row per (k, i, month t), the period of largest power among the scales in the cone at t."
+primary_key: [k, i, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false}
+  - {name: j, dtype: Int16, nullable: true, notes: "the scale of largest power among the in-cone scales; <NA> where none is in the cone"}
+  - {name: period, dtype: float64, nullable: true, notes: "months; NaN where no scale is in the cone"}
