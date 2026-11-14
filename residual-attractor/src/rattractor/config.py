@@ -89,6 +89,10 @@ def validate_config(cfg: dict) -> dict:
     pairs = [tuple(x) for x in cw if isinstance(x, list) and len(x) == 2 and all(whole(v) for v in x)]
     if not cw or len(pairs) != len(cw) or len(set(pairs)) != len(pairs) or not all(0 <= lo <= hi <= 32767 for lo, hi in pairs):
         raise ContractError(f"config coincidence.windows: {cw} must be distinct [delta_min, delta_max] pairs of whole months with 0 <= delta_min <= delta_max, at least one")
+    if not 0 < cfg["common_mode.absorption_top_fraction"] <= 1:
+        raise ContractError(f"config common_mode.absorption_top_fraction: {cfg['common_mode.absorption_top_fraction']} must lie in (0, 1]")
+    if not 0 < cfg["common_mode.quantile"] < 1:
+        raise ContractError(f"config common_mode.quantile: {cfg['common_mode.quantile']} must lie strictly between 0 and 1")
     return cfg
 
 

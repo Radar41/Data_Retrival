@@ -21,10 +21,17 @@ def test_fixture_build_and_manifest(cfg, tmp_path):
         assert file_sha256(p) == a["sha256"]
         assert len(contracts.read(p, a["artifact"])) == a["rows"]
     assert m["stages_passed"] == ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare",
-                                  "wavelet", "spectral", "coherence", "adjacency", "tails", "events", "coincidence"]
+                                  "wavelet", "spectral", "coherence", "adjacency", "tails", "events", "coincidence", "common_mode"]
     assert {"tails/hill_curve.parquet", "tails/mean_excess.parquet", "tails/rolling_hill.parquet", "tails/thresholds.parquet",
             "events/flags.parquet", "coincidence/precursor.parquet"} <= set(m["artifacts"])
     assert m["artifacts"]["coincidence/precursor.parquet"]["rows"] == 0   # the fixture has one series: no pair to test
+    # The fixture has one series: nothing to correlate across series, so the common mode writes every row with null values.
+    K, P = m["grid"]["rdiag_minimums"]["K"], m["grid"]["rdiag_minimums"]["P"]
+    cm = {name: contracts.read(out / f"common_mode/{name}.parquet", f"common_mode_{name}") for name in ("month", "eigen", "vector")}
+    assert [len(cm[name]) for name in ("month", "eigen", "vector")] == [K * P, K * P, K * P]
+    assert cm["month"][["lambda1", "lambda1_q", "p_value", "absorption_ratio", "vector_turnover"]].isna().all().all()
+    assert cm["eigen"]["eigenvalue"].isna().all() and cm["vector"]["loading"].isna().all() and (cm["month"]["n_surrogates"] == 0).all()
+    assert m["common_mode"]["undefined"]["fewer_than_two_series"] and m["common_mode"]["window"] == cfg["common_mode.window"]
     assert {"lagcorr/fixture_six_regime.parquet", "bundle_summary/fixture_six_regime.parquet"} <= set(m["artifacts"])
     assert m["artifacts"]["bundle_summary/fixture_six_regime.parquet"]["rows"] == m["configurations"]["admissible"]
     assert "cadence/fixture_six_regime.parquet" in m["artifacts"] and m["cadence"]["scale"] == "r_g"

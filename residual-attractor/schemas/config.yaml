@@ -82,3 +82,7 @@ events.residual:          {type: str, values: [tails_threshold]}            # rd
 coincidence.windows:      {type: list}                 # [delta_min, delta_max] pairs in months, scanned one by one (rdiag: coincidence.delta_min, delta_max)
 coincidence.direction:    {type: str, values: [precursor]}                  # rdiag coincidence.direction
 surrogates.n_coincidence: {type: int, min: 1}          # rdiag surrogates.n_coincidence
+common_mode.window:       {type: int, min: 2}                      # rdiag common_mode.window: months in the trailing window
+common_mode.absorption_top_fraction: {type: float, min: 0.0, max: 1.0}  # rdiag common_mode.absorption_top_fraction; in (0, 1]
+common_mode.quantile:     {type: float, min: 0.0, max: 1.0}        # rdiag common_mode.quantile; strictly between 0 and 1
+surrogates.n_common_mode: {type: int, min: 1}                      # rdiag surrogates.n_common_mode

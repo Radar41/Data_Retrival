@@ -1,0 +1,8 @@
+artifact: common_mode_eigen
+description: "rdiag s3.common_mode eigenvalues, inside one configuration: one row per (configuration k, month t, rank r). The eigenvalues of the trailing-window correlation across series of configuration k's own rows, descending; they sum to N where defined."
+primary_key: [k, t, r]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "the month the trailing window ends at"}
+  - {name: r, dtype: int32, nullable: false, notes: "rank, 0 = leading; 0..N-1"}
+  - {name: eigenvalue, dtype: float64, nullable: true, notes: "NaN exactly where common_mode_month.lambda1 is"}

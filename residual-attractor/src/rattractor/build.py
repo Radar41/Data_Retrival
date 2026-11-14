@@ -181,6 +181,14 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         for name, frame in coincided.items():
             write(frame, name, f"coincidence/{name.removeprefix('coincidence_')}.parquet")
         track_b = {"tails": tails_info, "events": events_info, "coincidence": coincidence_info}
+        # Track C, are the series being pulled together: inside each configuration, on its own rows of the grid.
+        from .stages import common_mode
+
+        stage = "common_mode"
+        common, common_mode_info = common_mode.run(frames, cfg)
+        for name, frame in common.items():
+            write(frame, name, f"common_mode/{name.removeprefix('common_mode_')}.parquet")
+        track_c = {"common_mode": common_mode_info}
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -208,7 +216,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "compare": compare_info,
         **track_a,
         **track_b,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, *track_b],
+        **track_c,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, *track_b, *track_c],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

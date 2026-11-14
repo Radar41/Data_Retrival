@@ -1,0 +1,8 @@
+artifact: common_mode_vector
+description: "rdiag s3.common_mode leading vector, inside one configuration: one row per (configuration k, month t, series i). The unit eigenvector of the leading eigenvalue of the trailing-window correlation across series of configuration k's own rows."
+primary_key: [k, t, i]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "the month the trailing window ends at"}
+  - {name: i, dtype: int32, nullable: false, notes: "series index, as in grid_resid"}
+  - {name: loading, dtype: float64, nullable: true, notes: "entry of the unit leading eigenvector, signed so that the vector's sum is >= 0; NaN exactly where common_mode_month.lambda1 is"}

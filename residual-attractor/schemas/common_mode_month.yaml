@@ -1,0 +1,13 @@
+artifact: common_mode_month
+description: "rdiag s3.common_mode per month, inside one configuration: one row per (configuration k, month t). The trailing window of common_mode.window months ending at t, over configuration k's own rows of grid_resid; the leading eigenvalue of their correlation across series with its circular-shift surrogate band and p-value. Nothing is computed from two configurations."
+primary_key: [k, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "the month the trailing window ends at"}
+  - {name: lambda1, dtype: float64, nullable: true, notes: "leading eigenvalue of the N x N correlation across series; NaN before the first full window, with fewer than two series, and where a row is flat over the window"}
+  - {name: lambda1_q, dtype: float64, nullable: true, notes: "common_mode.quantile quantile of the leading eigenvalue over the surrogates (every row shifted by its own offset); the band. NaN where lambda1 is, or where no draw was counted"}
+  - {name: p_value, dtype: float64, nullable: true, notes: "(1 + #{surrogate lambda1 >= lambda1}) / (1 + n_surrogates), in (0, 1], one-sided, raw; NaN where lambda1_q is"}
+  - {name: n_surrogates, dtype: int32, nullable: false, notes: "draws counted in lambda1_q and p_value: surrogates.n_common_mode less the draws in which a shifted row's window was flat; 0 where lambda1 is NaN"}
+  - {name: mp_edge, dtype: float64, nullable: false, notes: "(1 + sqrt(N / window))^2, the Marchenko-Pastur edge; a reference line, never the test"}
+  - {name: absorption_ratio, dtype: float64, nullable: true, notes: "sum of the top ceil(N x common_mode.absorption_top_fraction) eigenvalues over N; NaN where lambda1 is"}
+  - {name: vector_turnover, dtype: float64, nullable: true, notes: "angle in radians, 0..pi, between the leading vectors at t and t - 1; NaN where either is undefined"}

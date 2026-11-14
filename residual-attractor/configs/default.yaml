@@ -52,6 +52,10 @@ events.residual: tails_threshold           # rdiag: |resid| above the row's own 
 coincidence.windows: [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 9], [10, 10], [11, 11], [12, 12], [0, 2]]   # [delta_min, delta_max] in months, each its own test; rdiag has the one window [0, 2]
 coincidence.direction: precursor           # rdiag: events of a followed by events of b
 surrogates.n_coincidence: 1000             # rdiag surrogates.n_coincidence; when it is at least the number of distinct offsets, every offset is used once
+common_mode.window: 24                    # rdiag common_mode: months in the trailing window of each correlation across series
+common_mode.absorption_top_fraction: 0.2  # absorption ratio: the top ceil(N / 5) eigenvalues over N
+common_mode.quantile: 0.95                # the surrogate band of the leading eigenvalue
+surrogates.n_common_mode: 1000            # rdiag surrogates: draws per configuration, every row shifted by its own offset
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60
