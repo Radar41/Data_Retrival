@@ -39,3 +39,5 @@ compare.mcs_block_length: {type: float, min: 1.0}                  # rdiag mcs.b
 compare.fluctuation_window: {type: int, min: 2}                    # rdiag fluctuation.window (m)
 compare.fluctuation_alpha: {type: float, values: [0.05, 0.10]}     # the Giacomini-Rossi table's columns
 compare.cpa_instruments:  {type: list}                             # from [const, d_lag1], all at t - 1
+surrogates.circular_shift_min_offset: {type: int, min: 1}   # rdiag surrogates.circular_shift_min_offset
+surrogates.scope:         {type: str, values: [per_configuration, shared]}  # whether configurations share surrogate draws (owner's choice; default keeps them apart)

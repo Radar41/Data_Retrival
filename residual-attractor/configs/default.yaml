@@ -33,6 +33,8 @@ compare.mcs_block_length: 6.0
 compare.fluctuation_window: 24
 compare.fluctuation_alpha: 0.05
 compare.cpa_instruments: [const, d_lag1]  # v2: rdiag's fused-row state instruments do not exist; Giacomini-White's own
+surrogates.circular_shift_min_offset: 12  # rdiag surrogates: circular-shift offsets are drawn from [min, P - min]
+surrogates.scope: per_configuration       # every configuration has its own draws; `shared` gives all of them the same draws
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60

@@ -118,6 +118,8 @@ Follows the spec's milestones (contracts → methods → fit/forecast → cadenc
 
 Choices still open: whether surrogate draws are shared across configurations; whether an FDR family spans all configurations or one per configuration; whether the collapse signature is dropped or restated on pairwise similarity; the replay baseline; and whether the pooled replay test stays ("we are not aggregating that score"). Settled by the build so far: losses are stored per configuration; CPA conditions on the pair's own lagged d.
 
+**Split into sessions (2026-11-13).** Steps 2 to 4 below run as three parallel sessions, each on its own branch: wavelet coherence and adjacency; tail events and coincidence; common mode and the consolidation signature. Their briefs, the rules they share and the order they merge in are in `residual-attractor/docs/WORK_PACKAGES.md`. The state at the split, what the archive shows so far and the decisions still open (with the defaults the sessions use) are in `residual-attractor/docs/REPORT_2026-11-13.md`. The open choices above have these defaults until decided: every configuration has its own surrogate draws (`surrogates.scope`), raw p-values are stored and decisions are made within one configuration, and co-occurrence scans the lags 0 to 12 months.
+
 1. `loss`, `pairwise` (Diebold-Mariano with small-sample correction / Clark-West), `mcs`, `fluctuation`: does conditioning on a set improve forecasts, and when?
 2. `cwt`, `coherence` (relative phase = who leads), `adjacency`.
 3. `tails`, `events`, `coincidence` (events in one series followed by events in another within a lag window).

@@ -8,7 +8,7 @@ The build derives every configuration's residuals for every series and archives 
 
 ## State (2026-11-12)
 
-Built and tested (256 tests, plus one expected failure that records a spec known answer its own rules cannot meet):
+Built and tested (268 tests, plus one expected failure that records a spec known answer its own rules cannot meet):
 
 - **Contracts** (`schemas/`, `contracts.py`): exact columns, exact dtypes, no casting, primary keys; Parquet round trip, zero-row frames included. `list[float32]` columns (one float32 array per row, Arrow `list<float32>`) share one length per artifact.
 - **Config** (`configs/default.yaml`, `schemas/config.yaml`): every key required, no defaults in code. Decisions 1 (training-span growth), 3 (plain 40-step window) and 4 (the spec's nine cadence labels) are decided.
@@ -24,11 +24,12 @@ Built and tested (256 tests, plus one expected failure that records a spec known
 - **Stage 7, bundle summary**: `bundle_summary/<series>.parquet`, one row per configuration: sign flips of ρ at lags −1 and +1, total rotation in half twists, and closure at lag +1 (n/a on the default open base). The spec's alignment A(t) averages across configurations, so it is not built.
 - **Stage 9, grid (the export to rdiag)**: `grid/*.parquet`, rdiag's input tables under its reworked contract v2, with no fused configuration. resid[k, i, t] = e₁(t) / σ(t − 1), each configuration's own one-step residual over its own σ at the month the forecast was made, over the months every series covers from its test split on. Provenance per value: the vintage read, data through t − 1, the value's first-release date, and the build id. The manifest reports whether rdiag's minimums (K ≥ 2, N ≥ 3, P ≥ 60) are met.
 - **Stage 10, compare (rdiag's Stage 1 under v2)**: `compare/*.parquet`. Each configuration's own loss L = resid²; every unordered pair per series tested on d = L_a − L_b (Diebold-Mariano with the Harvey-Leybourne-Newbold correction, or Clark-West when one configuration nests the other; Newey-West variance); the Hansen-Lunde-Nason model confidence set (T_max, stationary bootstrap); the Giacomini-Rossi fluctuation path and its sup test; and Giacomini-White conditional predictive ability with instruments at t − 1. Twins (identical through a method face, such as Holt β = 0 and SES) agree exactly or to rounding, so they never reach a test; the confidence set runs on one representative per twin group. Clark-West runs on the archive's unscaled one-step errors, so its adjustment is in one unit.
+- **Shared pieces for the analyses on the archive** (`common/`): `seeds.stream(cfg, stage, *keys)`, the one source of randomness, and `surrogates`, circular-shift offsets as a pure function of (seed, purpose, configuration, unit). Each configuration has its own draws (`surrogates.scope`); no stage uses them yet.
 - **Build**: `builds/<build_id>/` plus `manifest.json` (inputs, provenance, artifact rows and hashes), written only when every check passed; failing rows go to `reports/<build_id>/<stage>.parquet`. A dirty tree gets a content hash in its code version, so different uncommitted states never share a build_id.
 
 Run spec 0 (`runs/spec0_spring_adan7406.yaml`) builds on all 14 spring series as of 2026-05-03: 54 configurations, 1,621,080 step rows, 30,020 fiber rows, 29,376 cadence rows, 578,448 lagcorr rows and 756 bundle rows, and exports a grid of 54 configurations × 14 series × 98 months (2018-01 to 2026-02), with 1,431 configuration pairs compared per series. WPU1197's four missing months (Oct 2016 – Jan 2017) are interpolated and flagged.
 
-Next: rdiag's Stage 2 transforms per configuration (stage 11), then Stage 3 co-occurrence (12); the graph (8) after.
+Next: the cross-series analyses (rdiag's Stages 2 and 3, per configuration), split into three sessions in `docs/WORK_PACKAGES.md`: wavelet coherence and adjacency, tail events and coincidence, common mode. Where the work stood at the split, what the archive shows so far and what is still to decide: `docs/REPORT_2026-11-13.md`.
 
 ## Run
 
