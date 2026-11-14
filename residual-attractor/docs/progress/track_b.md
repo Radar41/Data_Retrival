@@ -10,9 +10,27 @@ Branch `claude/ra-tails-coincidence-4bf46d` (worktree `ra-tails-coincidence-4bf4
 | B2 | `events` | built, tested, in the build (`ed90503`) |
 | B3 | `coincidence` | built, tested, in the build |
 
-Suite: 383 passed, 1 expected failure (268 baseline + 53 tails + 20 events + 42 coincidence). Spec 0 builds with `tails`, `events`, `coincidence` in `stages_passed`; 87 of the 88 earlier artifacts are byte-identical to build `171464ad5372997a` (the other is provenance, which holds the build id).
+Suite: 384 passed, 1 expected failure (268 baseline + 53 tails + 20 events + 43 coincidence). Spec 0 builds with `tails`, `events`, `coincidence` in `stages_passed` (build `85d595e8961b566c` from `da76690`); 87 of the 88 earlier artifacts are byte-identical to build `171464ad5372997a` (the other is provenance, which holds the build id), and the six new artifacts repeat byte for byte across two builds.
 
-Still to do: the second, independently written recomputation of a sample of spec 0; planted bugs against the tests; the views by method family and April 2020; the section 8 report.
+Checked so far:
+
+- **Planted bugs**, in a scratch copy (scripts in the notes folder, `track_b/`): 112 planted (88, then 24 subtler ones and weakened acceptance rules), 110 caught. With each stage's own acceptance check switched off inside `run()`, the tests alone still caught all 82 stage bugs of the first batch. The two not caught: an estimate exactly on an interval's upper end (a test case now covers it), and the branch of `gpd_fit` that looks for the interval's upper end past the search grid's last point, which no test reaches and which 80,000 simulated fits and six extreme ones never reached either. That branch is an untested safeguard.
+- **Degenerate and short inputs** run clean with warnings as errors: all-zero rows, heavy ties, values over 16 decades, P from 25 to 60.
+
+**Not done** (the session hit its usage limit twice):
+
+1. The second, independently written recomputation of a sample of spec 0. An agent was writing it from the module docstrings alone; its unfinished scripts are in the session scratchpad under `recompute/` (`tails_own.py`) and nothing from it has been compared yet.
+2. The baseline build time. Measured alone on spec 0: tails 1.9 to 2.1 s, events 0.02 s, coincidence 0.4 s; the whole build took about 12 s against the 9 s the brief states, not yet timed back to back with the base commit.
+3. The section 8 report. The views behind it are `view_spec0.py` and `view_april.py` in the notes folder; their numbers are below.
+
+Views on spec 0 (for a person, not artifacts):
+
+- Coincidence: 16,705 of 137,592 tests have p <= 0.05 (12.1%) and 11,965 sit on the floor 1/76 (8.7%; chance is at most 1.3%).
+- AR rows: the 29 AR configurations are 53.7% of the tests and hold 80.6% of those on the floor (13.0% of AR tests against 3.7% for Holt and 3.5% for SES), flat from lag 0 to lag 12: drift puts every AR row's events in the same years.
+- SES and Holt: the share on the floor falls with the lag, 9.2% at lag 0, 6.3%, 5.7%, 3.9% at lags 1 to 3, and about 1% (chance) from lag 8 on.
+- April 2020 is an event in 379 of 756 rows (72% of SES, 70% of Holt, 32% of AR rows). Without its events, 70% of the SES and Holt tests on the floor stay there (98.8% for AR); without March to June 2020, about half.
+- The floor: with 75 shifts no p is below 0.0132. Benjamini-Yekutieli at q = 0.10 finds nothing when the family is all tests, one configuration, or one configuration and window; it finds 8,678 tests when the family is one ordered pair's 14 windows inside one configuration. The family decides everything.
+- The four twin configurations (38, 42, 46, 50) repeat the rows of 1, 3, 5, 7 exactly.
 
 ## Shared files, as the three tracks agreed in the notes folder
 

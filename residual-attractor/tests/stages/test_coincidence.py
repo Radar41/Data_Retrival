@@ -12,7 +12,7 @@ from rattractor import CONFIG_DIR, ContractError, contracts
 from rattractor.common import surrogates
 from rattractor.config import validate_config
 from rattractor.stages import AcceptanceError, coincidence, events, tails
-from tests.stages.test_tails import fixture_build, grid_frames, three_series_grid
+from tests.stages.test_tails import changed, fixture_build, grid_frames, three_series_grid
 
 KEYS = ["k", "kind_a", "i_a", "kind_b", "i_b", "delta_min", "delta_max"]
 SINGLE_LAGS = [[lag, lag] for lag in range(13)]
@@ -162,6 +162,11 @@ def test_two_kinds_pair_across_kinds_and_never_with_themselves(cfg):
     assert_matches_loops(co, E, D, c["coincidence.windows"], lambda k, b: all_offsets(c, P), kinds)
     assert row(co, 0, 0, 0, 0, 0, "residual", "persistence") is not None    # one series, two kinds: a pair
     assert not ((co["kind_a"] == co["kind_b"]) & (co["i_a"] == co["i_b"])).any()
+    # drawn: a follower's draws are keyed by its series, whatever its kind (rdiag: one recipe per series and draw)
+    d = {**c, "surrogates.n_coincidence": 9}
+    co, info = run(E, d, D, kinds)
+    assert info["null"]["mode"] == "drawn" and info["null"]["n"] == 9
+    assert_matches_loops(co, E, D, d["coincidence.windows"], lambda k, b: surrogates.offsets(d, "coincidence", P, 9, k, b).tolist(), kinds)
 
 
 def test_drawn_surrogates_are_the_shared_recipes(cfg):
@@ -323,6 +328,17 @@ def test_tests_on_three_series(staged, cfg):
         want = by_loops(E[r.k, r.i_a], E[r.k, r.i_b], np.ones(P, bool), r.delta_min, r.delta_max, all_offsets(cfg, P))
         assert (r.n_eligible_a, r.rate, r.n_surrogates, r.p_value) == (want[0], float(want[1]), want[2], float(want[3]))
     assert months.size == P
+
+
+def test_changing_one_configurations_residuals_leaves_every_other_row_bit_identical(staged, cfg):
+    # The archive rule through all three stages: other residuals for configuration 7 give it other thresholds, other events
+    # and other tests, and leave every row of every other configuration as it was.
+    frames, _, built, _ = staged
+    other = changed(frames, 7, 1.7)
+    again, _ = coincidence.run(other, events.run(other, tails.run(other, cfg)[0], cfg)[0], cfg)
+    x, y = built["coincidence_precursor"], again["coincidence_precursor"]
+    pd.testing.assert_frame_equal(x[x["k"] != 7].reset_index(drop=True), y[y["k"] != 7].reset_index(drop=True), check_exact=True)
+    assert not x[x["k"] == 7].reset_index(drop=True).equals(y[y["k"] == 7].reset_index(drop=True))
 
 
 def _first(frame, **values):

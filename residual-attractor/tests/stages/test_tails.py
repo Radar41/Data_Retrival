@@ -237,6 +237,7 @@ def test_stable_thresholds_by_hand():
         [False, False, True, False, False],    # 0.3 is inside the top interval but outside [0.6, 1.2]: every higher one counts
         [True, True, False, False, False],     # an estimate on an interval's end is inside
     ]
+    assert tails.stable_thresholds(np.array([[0.4, 0.1]]), np.array([[0.0, -0.5]]), np.array([[0.9, 0.4]])).tolist() == [[True, True]]   # the upper end too
     assert not tails.stable_thresholds(np.full((1, 3), nan), np.full((1, 3), nan), np.full((1, 3), nan)).any()
 
 
