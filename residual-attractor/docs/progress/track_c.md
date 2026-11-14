@@ -37,7 +37,7 @@ Choices made:
 - **Top count** ceil(N × fraction) is computed on the decimal the config states, so 100 × 0.07 gives 7, not 8.
 - **Eigenvalues** come from `eigvalsh` for the configuration and for its surrogates alike, so a draw that reproduces the configuration's windows ties with it exactly; `eigh` gives the vector.
 - `common/linalg.py` has `corr`, `eigh_desc` (with the sign rule), `mp_edge` and `angle`. rdiag's `principal_angles` is not built: nothing reads it yet.
-- **Surrogates and p-values.** Each row has 75 offsets on spec 0, but the 14 rows are shifted independently, so the 1,000 draws of a configuration are all different arrangements and the smallest p is 1/1001. Cost grows with N³ per solve; for N above the window length the w × w product of the same windows has the same leading eigenvalue and would be cheaper (not built).
+- **Surrogates and p-values.** Each row has 75 offsets on spec 0, but the 14 rows are shifted independently, so a draw is one of 75^14 ≈ 2 × 10^26 arrangements, the 1,000 draws of a configuration are all different, and the smallest p, 1/1001, is honest. It weakens only where 75^N is not far above the number of draws: at two series (5,625 arrangements) a p at the floor would turn up about 9% more often than 1/1001 says. Cost grows with N³ per solve; for N above the window length the w × w product of the same windows has the same leading eigenvalue and would be cheaper (not built).
 
 ## C2: `signatures`
 
@@ -62,6 +62,8 @@ Choices made:
 
 - **Second implementations**, written apart from the stages. Common mode: pandas correlation, scipy's solver, `numpy.roll`, a hand-written quantile, on all 4,050 defined cells of spec 0: eigenvalues, loadings, absorption and the band agree to 3e-14, turnover to 1e-13, p-values exactly. Signatures: a plain loop over each configuration's months, all 5,292 rows: no mismatch.
 - **Planted bugs**: 47 in `common_mode` and `linalg`, 29 in `signatures`, the build wiring and the config rules, one at a time in a scratch copy. The tests caught all 76.
+- **A separate checker**, an agent that had not seen the code, recomputed every column on all 54 configurations from the written definitions: the same agreement (3e-14; p-values, counts and all 5,292 signature rows exact) and no invariant violation.
+- **Monte Carlo noise of the band.** Twins (Holt β = 0 and SES at the same α: identical rows, their own draws) get bands that differ by rms 0.03 to 0.08, and can disagree on the rule near the band. Under seeds 42, 43 and 44 the flagged rows number 68, 69 and 64; 62 of the 68 are flagged under every seed tried.
 - The scripts are in the shared notes folder of the session group, under `track_c/`.
 
 ## What spec 0 shows (views for a person, not artifacts)
