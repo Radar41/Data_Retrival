@@ -1,0 +1,14 @@
+artifact: coherence_cells
+description: "rdiag s3.coherence: one row per (k, pair i_a < i_b, scale j, month t), the smoothed wavelet coherence and relative phase of two rows of configuration k, with the level the pair's circular-shift surrogates set at that cell. Every cell is kept; cells near the ends are flagged by in_coi = false and are never significant."
+primary_key: [k, i_a, i_b, j, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i_a, dtype: int32, nullable: false, notes: "the lower-indexed row of the pair; never shifted"}
+  - {name: i_b, dtype: int32, nullable: false, notes: "the higher-indexed row; the one the surrogates shift"}
+  - {name: j, dtype: int16, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "month start"}
+  - {name: r2, dtype: float64, nullable: false, notes: "smoothed wavelet coherence, 0..1"}
+  - {name: phase, dtype: float64, nullable: false, notes: "arg of the smoothed cross-spectrum W_a conj(W_b), radians in (-pi, pi]; positive: i_a leads i_b"}
+  - {name: r2_q, dtype: float64, nullable: false, notes: "the r-th largest surrogate r2 at the cell, r = floor((1 - coherence.quantile)(n + 1)); 1 where r = 0"}
+  - {name: in_coi, dtype: bool, nullable: false, notes: "the wavelet stage's cone: true where the month is at least sqrt(2) x scale from both ends"}
+  - {name: significant, dtype: bool, nullable: false, notes: "in_coi and r2 > r2_q"}

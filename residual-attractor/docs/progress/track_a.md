@@ -8,10 +8,10 @@ Branch `claude/ra-wavelet-coherence-1ef86c` (worktree), cut from `3eb8984`. Brie
 |---|---|---|
 | A1 | `wavelet` | built, tested, committed |
 | A2 | `spectral` | built, tested, committed |
-| A3 | `coherence` | DRAFT, uncommitted work saved as a WIP commit: module written, never run; no schemas, no stage tests, not wired |
+| A3 | `coherence` | built, tested, committed |
 | A4 | `adjacency` | not started |
 
-Tests: 339 pass, 1 expected failure (268 + 34 wavelet + 37 spectral). Spec 0 builds in 10.5 s (9 s before) with `wavelet` and `spectral` in `stages_passed`.
+Tests: 391 pass, 1 expected failure (268 + 34 wavelet + 37 spectral + 52 coherence). Spec 0 builds in 70 s (10.5 s before coherence, 9 s before Track A) with `wavelet`, `spectral`, `coherence` in `stages_passed`.
 
 ## A1, `wavelet`
 
@@ -53,33 +53,41 @@ Choices:
 - `spectral_summary.dj0_decorrelation` (0.60, Torrence and Compo's δj0) is a new key: rdiag cites their eq. 26 for the band-power level and leaves the factor implicit.
 - On pure red noise about a third of rows get a band by chance (two adjacent scales at 5% each, and neighbouring scales are correlated). That is rdiag's rule; the false-discovery stage is what controls it.
 
-## A3, `coherence`: where it stopped (session hit its usage limit on 2026-11-13)
+## A3, `coherence`
 
-Done: `coherence.*` and `surrogates.n_coherence` config keys; the smoothing kernels in `common/wavelets.py` (`smoother`, `smooth`, `scale_weights`) with one test in `tests/stages/test_coherence.py`; a full draft of `src/rattractor/stages/coherence.py` that has **never been run**.
+Files: `src/rattractor/stages/coherence.py`, the smoothing kernels in `common/wavelets.py`, `schemas/coherence_{cells,scope}.yaml`, `tests/stages/test_coherence.py`, keys `coherence.*` and `surrogates.n_coherence`.
 
-Still to do, in order:
+| Artifact | Key | Rows on spec 0 |
+|---|---|---|
+| `coherence/cells.parquet` | k, i_a, i_b, j, t | 15,891,876 (397 MB): r2, phase, r2_q, in_coi, significant |
+| `coherence/scope.parquet` | k, i_a, i_b, band_a, band_b | 5,704: 4,914 all-scales rows and 790 band overlaps, each with its raw p-value and lag in months |
 
-1. Schemas `schemas/coherence_cells.yaml` (k, i_a, i_b int32; j int16; t; r2, phase, r2_q float64; in_coi, significant bool; key k, i_a, i_b, j, t) and `schemas/coherence_scope.yaml` (k, i_a, i_b int32; band_a, band_b, j_lo, j_hi int16, with -1/-1 = all scales; n_cells, n_significant, n_surrogates int32; r2_mean, p_value, phase, period, lag_months nullable float64; key k, i_a, i_b, band_a, band_b).
-2. Run the draft on a small grid, then on spec 0 (expected about a minute: 4,914 pairs x 76 fields; 15.9 M cell rows, roughly 400 MB).
-3. Wire into `build.py` (`coherence.run(frames, wav, spec_frames, cfg)`, files under `coherence/`), add to `track_a` and to the expected list in `test_build.py`.
-4. Tests: planted delay (sign, and the swap flips it), independent red noise (about 3.9% of in-cone cells at P = 98, never above 5%), cone, archive rule, count independence, every check rule, one-series fixture (empty tables), round trip, config validation.
+`coherence.run` takes 43 s on spec 0 (4,914 pairs x 76 fields), peak memory 4.3 GB.
 
-Design decisions already taken (all in the draft's docstring):
+Choices (each is in the module docstring):
 
-- Surrogates shift only the higher-indexed row. When `surrogates.n_coherence` >= the offsets that exist (75 on spec 0) every offset is used once; p-values then step by 1/76.
-- `r2_q` is the r-th largest surrogate value, r = floor((1 - quantile)(n + 1)), not an interpolated quantile, so a cell's null rate never exceeds 1 - quantile.
-- The (pair, band) test rdiag names without a statistic: mean r2 over the scope's in-cone cells against the same on every surrogate. Scopes: all scales, plus each overlap of the two rows' own bands.
-- Lag in months = phase x period / 2 pi, stored per scope (circular mean phase and geometric mean period of the significant cells). Positive: i_a leads.
-- A shared deterministic cycle is coherent under every shift, so it is not significant: test significance with a shared stochastic component.
+- Surrogates shift only the higher-indexed row. 1000 draws are asked for but only 75 offsets exist at P = 98, so each is used once; p-values step by 1/76.
+- `r2_q` is the r-th largest surrogate value, r = floor((1 - quantile)(n + 1)) = 3 of 75, not an interpolated quantile.
+- The (pair, band) test rdiag names without a statistic: mean r2 over the scope's in-cone cells against the same on every shift. Scopes: all scales (band_a = band_b = -1), plus each overlap of the two rows' own bands.
+- Lag in months = phase x period / 2 pi, per scope (circular mean phase and geometric mean period of the significant cells). Positive: i_a leads.
+- The cross-spectrum is formed so that taking a pair the other way round gives the same r2 and the negated phase, bit for bit.
+- A shared deterministic cycle is coherent under every shift, so it is not significant (tested as a property).
 
-## A4, `adjacency`: not started. Planned design
+Finding to report (measured, pinned by two tests): rdiag's minimum shift of 12 months makes the null too easy to beat on unrelated rows. On independent AR(1) rows (14 series, P = 98): 7.7% of in-cone cells are significant (5% at the shortest periods, 12 to 15% at the longest) against the rule's 3.9%, and the smallest p-value (1/76) turns up for 7% of pairs. With every nonzero shift in the null (min offset 1) the same code gives 4.2% against 4.1% and 1.1% against 1.0%, so the code is exact and the cause is the excluded neighbourhood. Nothing corrects for it. Question for Adrian; default used: rdiag's 12.
+
+Spec 0, first look: all-scales share of significant cells averages 0.157 (0.077 on unrelated rows); 33% of pairs sit at the smallest p-value (7% on unrelated rows). By method: AR 0.146, Holt 0.169, SES 0.171.
+
+## A4, `adjacency`: not started. Design, revised after measuring
 
 - Reads `coherence_scope` (+ `wavelet_scale`). weight = n_significant / n_cells; expected = 1 - coherence.quantile.
-- Effective n: (scales in scope / 4.8, at least 1) x mean over scales of (in-cone months / (sqrt(2 pi) x scale), at least 1). p = I_expected(x, n_eff - x + 1), x = weight x n_eff (the binomial tail for real n).
-- Benjamini-Yekutieli in `common/fdr.py`, within one configuration, two families (all-scales rows; band rows), named in a `family` column, with `family_size`, `q_value`, `edge` = q_value <= inference.q.
+- Effective n: the Kish count of smoothing footprints, n_eff = max(1, n_cells^2 / (sqrt(2 pi) x min(width x voices, scales in scope) x sum over scope scales of n_a(j) s_j)), n_a(j) the in-cone months at scale j. A cell at scale j stands for a block sqrt(2 pi) s_j months long (the Gaussian's equivalent width) and min(4.8, scales in scope) scales wide. One scale gives n_a / (sqrt(2 pi) s).
+- Do NOT use the earlier plan (scales / 4.8 x mean of per-scale counts): on unrelated rows it gave p <= 0.05 for 15% of pairs and at least one edge in 51% of pure-noise configurations. The Kish form gave 6.4% and 4.2% (target at most 10%), and is conservative for narrow scopes. Measured variance-matching n for all scales: 34.9; Kish: 23.6.
+- p = I_expected(x, n_eff - x + 1), x = weight x n_eff (scipy.special.betainc; the binomial upper tail for real n); p = 1 at weight 0.
+- Benjamini-Yekutieli in `common/fdr.py`, within one configuration, two families (all-scales rows; band rows), named in a `family` column, with `family_size`, `q_value`, `edge` = q_value <= inference.q. `adjacency.per_band: false` keeps only the all-scales rows.
 - Keys still to add: `adjacency.edge_weight`, `adjacency.edge_rule`, `adjacency.per_band`, `inference.cooccurrence_family_method`, `inference.q`.
+- Tests to write: BY known answers, the p-value against scipy's binomial at integer n, unrelated rows (share of pure-noise configurations with an edge), the planted delay gets its edge (`delayed_field` in `tests/stages/test_coherence.py`), check rules, archive rule, count independence (weight and p_value do not depend on counts; q_value and edge are family decisions inside one configuration), fixture.
 
-After A4: second independent implementation on a sample of spec 0, planted bugs, the AR-rows and April 2020 shares, then the section 8 report. None of that has been done.
+After A4: second independent implementation on a sample of spec 0, planted bugs, the AR-rows and April 2020 shares, then the section 8 report. None of that has been done. Track C left a mutation harness worth copying in the shared notes folder (`track_c/harness.py`).
 
 ## For the merge
 

@@ -6,7 +6,8 @@ With W_a, W_b the transforms of the two centred rows, s_j the scale and S the sm
 (Gaussian in time with sd s_j, boxcar of coherence.scale_smoothing_width octaves in scale):
 
     cross = S(W_a conj(W_b) / s)          r2 = |cross|^2 / (S(|W_a|^2 / s) x S(|W_b|^2 / s)),  in [0, 1]
-    phase = arg cross, in (-pi, pi]       positive: i_a leads i_b
+    phase = arg cross, in (-pi, pi]       positive: i_a leads i_b. Taking the two rows the other way round leaves
+                                          r2 as it is and negates the phase, bit for bit.
     lag in months = phase x period / (2 pi), positive: i_a leads i_b. A phase gives the lag only modulo the
                     period: a lag of L months at period p is reported inside (-p / 2, p / 2].
 
@@ -16,9 +17,10 @@ surrogates.n_coherence is at least the number of offsets that exist (P - 2 x min
 every offset is used once: the whole null distribution, exact, and cheaper than drawing. Otherwise
 n_coherence offsets are drawn by surrogates.offsets(cfg, "coherence", P, n, k, i_a, i_b). With n surrogates:
 
-    r2_q        the r-th largest surrogate r2 at the cell, r = floor((1 - coherence.quantile)(n + 1)): the level
-                an observed cell exceeds with probability at most 1 - quantile when the pair is unrelated
-                (3 / 76 = 3.9% at n = 75). With r = 0 no level is that strict; r2_q is 1 and no cell is significant.
+    r2_q        the r-th largest surrogate r2 at the cell, r = floor((1 - coherence.quantile)(n + 1)). Were the
+                n + 1 alignments (the observed one and the n shifts) exchangeable, an unrelated cell would exceed
+                it with probability r / (n + 1) <= 1 - quantile (3 / 76 = 3.9% at n = 75). With r = 0 no level is
+                that strict; r2_q is 1 and no cell is significant.
     significant in_coi and r2 > r2_q
 
     coherence_cells   (k, i_a, i_b, j, t): r2, phase, r2_q, in_coi, significant. Every cell is kept.
@@ -29,6 +31,13 @@ n_coherence offsets are drawn by surrogates.offsets(cfg, "coherence", P, n, k, i
                       raw p-value of the (k, pair, scope) test. Over its significant cells: phase (their circular
                       mean), period (their geometric mean period) and lag_months = phase x period / (2 pi).
 
+What the null does on unrelated rows (measured on independent AR(1) rows, 14 series, P = 98; tests pin both cases):
+the alignments are exchangeable only when every nonzero shift is a surrogate (min offset 1); then 4.2% of in-cone
+cells are significant against the rule's 4 / 98 = 4.1%, and the smallest p-value turns up for 1.1% of pairs against
+1 / 98. With rdiag's min offset of 12 the observed alignment has no neighbour in the null while the shifts
+neighbour each other, and the same rows give 5% at the shortest periods, 12 to 15% at the longest, 7.7% over all
+in-cone cells, and the smallest p-value (1 / 76) for 7% of pairs. Nothing here corrects for that.
+
 rdiag sources: s3_cooccurrence/coherence.py, common/surrogates.py, schemas/30_stage3.yaml (s3.coherence),
 params coherence and surrogates.n_coherence.
 Departures and choices where rdiag is silent:
@@ -36,8 +45,8 @@ Departures and choices where rdiag is silent:
   - rdiag registers a test per (pair, band) but names no statistic and does not let coherence read the bands.
     Here the stage reads spectral_bands, the statistic is the scope's mean coherence over its in-cone cells,
     and the p-value is stored with its keys. A band belongs to one row, so a pair's band scopes are overlaps.
-  - r2_q is an order statistic, not an interpolated quantile. With 75 surrogates numpy's 0.95 quantile is
-    exceeded 6.2% of the time by an unrelated cell, which would understate adjacency's expected share.
+  - r2_q is an order statistic, not an interpolated quantile: under exchangeability numpy's 0.95 quantile of
+    75 values is exceeded 6.2% of the time, the order statistic 3.9%.
   - all offsets are enumerated when the requested draws would cover them anyway (see above). p-values then
     move in steps of 1 / (n + 1): the smallest on spec 0 is 1 / 76 = 0.013.
   - in_coi is repeated per cell so adjacency needs this table alone; the phase is defined at every cell,
@@ -106,13 +115,23 @@ def pair_offsets(cfg: dict, P: int, k: int, i_a: int, i_b: int) -> np.ndarray:
 
 
 def scopes(bands_a: list, bands_b: list, J: int) -> list[tuple[int, int, int, int]]:
-    """(band_a, band_b, j_lo, j_hi): every scale first, then each overlap of a band (band, j_lo, j_hi) of the two rows."""
+    """(band_a, band_b, j_lo, j_hi): every scale first, then each overlap of a band (band, j_lo, j_hi) of the two rows. None without a scale."""
+    if not J:
+        return []
     out = [(ALL, ALL, 0, J - 1)]
     for ba, lo_a, hi_a in bands_a:
         for bb, lo_b, hi_b in bands_b:
             lo, hi = max(lo_a, lo_b), min(hi_a, hi_b)
             if lo <= hi:
                 out.append((ba, bb, lo, hi))
+    return out
+
+
+def cross_spectrum(wa: np.ndarray, wb: np.ndarray) -> np.ndarray:
+    """W_a conj(W_b). Each part comes from its own two products, so the pair taken the other way round gives the exact conjugate."""
+    out = np.empty(np.broadcast_shapes(wa.shape, wb.shape), dtype=np.complex128)
+    out.real = wa.real * wb.real + wa.imag * wb.imag
+    out.imag = wa.imag * wb.real - wa.real * wb.imag
     return out
 
 
@@ -163,8 +182,8 @@ def run(frames: dict[str, pd.DataFrame], wav: dict[str, pd.DataFrame], spec: dic
                         Ws = wavelets.transform(np.stack([surrogates.shift(xc[k, b], o) for o in uniq]), scales, cfg)
                         side = (Ws, wavelets.smooth((Ws.real ** 2 + Ws.imag ** 2) * inv_s, kernels))
                     Ws, auto_s = side
-                    cross = wavelets.smooth(W[k, a] * np.conj(W[k, b]) * inv_s, kernels)
-                    cross_s = wavelets.smooth(W[k, a][None] * np.conj(Ws) * inv_s, kernels)
+                    cross = wavelets.smooth(cross_spectrum(W[k, a], W[k, b]) * inv_s, kernels)
+                    cross_s = wavelets.smooth(cross_spectrum(W[k, a][None], Ws) * inv_s, kernels)
                     obs = _ratio(cross.real ** 2 + cross.imag ** 2, auto[a] * auto[b])
                     null = _ratio(cross_s.real ** 2 + cross_s.imag ** 2, auto[a][None] * auto_s)[inv]      # one field per draw
                     level = cell_level(null, q)
@@ -207,6 +226,7 @@ def run(frames: dict[str, pd.DataFrame], wav: dict[str, pd.DataFrame], spec: dic
             "min_offset": cfg["surrogates.circular_shift_min_offset"], **pl,
             "cell_rule": f"significant = in_coi and r2 > the {pl['rank']}-th largest of {pl['n']} surrogate values (level {pl['rank']}/{pl['n'] + 1})"},
         "quantile": q, "p_values": "coherence_scope.p_value, one per (k, i_a, i_b, scope), raw",
+        "cells": {"all": int(sig.size), "in_cone": int(K * NP * n_a.sum()), "significant": int(sig.sum())},
         "scopes": "all scales (band_a = band_b = -1) and every overlap of the two rows' own bands",
     }
     return built, info
@@ -249,6 +269,7 @@ def check(b: dict[str, pd.DataFrame], frames: dict[str, pd.DataFrame], wav: dict
     ov = ov[ov["j_lo"] <= ov["j_hi"]][["k", "i_a", "i_b", "band_a", "band_b", "j_lo", "j_hi"]]
     ia, ib = np.triu_indices(N, 1)
     every = pd.DataFrame({"k": np.repeat(np.arange(K), NP), "i_a": np.tile(ia, K), "i_b": np.tile(ib, K), "band_a": ALL, "band_b": ALL, "j_lo": 0, "j_hi": J - 1})
+    every = every if J else every.iloc[:0]
     want = pd.concat([every, ov], ignore_index=True).astype(np.int64)
     m = sp[["k", "i_a", "i_b", "band_a", "band_b", "j_lo", "j_hi"]].astype(np.int64).merge(want, how="outer", indicator=True)
     wrong = m[m["_merge"] != "both"]

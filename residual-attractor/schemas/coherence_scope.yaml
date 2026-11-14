@@ -1,0 +1,19 @@
+artifact: coherence_scope
+description: "One row per (k, pair i_a < i_b, scope): the scope 'all' (band_a = band_b = -1, every scale) and each overlap of a band of row (k, i_a) with a band of row (k, i_b). It holds the raw p-value of the (k, pair, scope) test rdiag registers, and the lead or lag the phase implies. Nothing here is computed from two configurations."
+primary_key: [k, i_a, i_b, band_a, band_b]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: i_a, dtype: int32, nullable: false}
+  - {name: i_b, dtype: int32, nullable: false}
+  - {name: band_a, dtype: int16, nullable: false, notes: "spectral_bands.band of row (k, i_a); -1 for the scope over every scale"}
+  - {name: band_b, dtype: int16, nullable: false, notes: "spectral_bands.band of row (k, i_b); -1 for the scope over every scale"}
+  - {name: j_lo, dtype: int16, nullable: false, notes: "first scale of the scope"}
+  - {name: j_hi, dtype: int16, nullable: false, notes: "last scale of the scope"}
+  - {name: n_cells, dtype: int32, nullable: false, notes: "in-cone cells in the scope"}
+  - {name: n_significant, dtype: int32, nullable: false, notes: "significant cells in the scope"}
+  - {name: r2_mean, dtype: float64, nullable: true, notes: "mean r2 over the scope's in-cone cells: the test statistic; NaN where the scope has no in-cone cell"}
+  - {name: n_surrogates, dtype: int32, nullable: false, notes: "circular shifts of row i_b the pair was judged against"}
+  - {name: p_value, dtype: float64, nullable: true, notes: "(1 + surrogates whose r2_mean >= the observed) / (1 + n_surrogates), raw; NaN where the scope has no in-cone cell"}
+  - {name: phase, dtype: float64, nullable: true, notes: "circular mean of the phase over the scope's significant cells, radians in (-pi, pi]; NaN where it has none"}
+  - {name: period, dtype: float64, nullable: true, notes: "geometric mean period of the scope's significant cells, months; NaN where it has none"}
+  - {name: lag_months, dtype: float64, nullable: true, notes: "phase x period / (2 pi); positive: i_a leads i_b; defined modulo the period; NaN where the scope has no significant cell"}

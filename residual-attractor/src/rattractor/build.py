@@ -146,7 +146,7 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         for name, frame in compared.items():
             write(frame, name, f"compare/{name.removeprefix('compare_')}.parquet")
         # Track A, who leads by phase: each stage runs on every configuration's own rows of the grid.
-        from .stages import spectral, wavelet
+        from .stages import coherence, spectral, wavelet
 
         stage = "wavelet"
         wav, wavelet_info = wavelet.run(frames, cfg)
@@ -156,7 +156,11 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         spec_frames, spectral_info = spectral.run(frames, wav, cfg)
         for name, frame in spec_frames.items():
             write(frame, name, f"spectral/{name.removeprefix('spectral_')}.parquet")
-        track_a = {"wavelet": wavelet_info, "spectral": spectral_info}
+        stage = "coherence"
+        coh, coherence_info = coherence.run(frames, wav, spec_frames, cfg)
+        for name, frame in coh.items():
+            write(frame, name, f"coherence/{name.removeprefix('coherence_')}.parquet")
+        track_a = {"wavelet": wavelet_info, "spectral": spectral_info, "coherence": coherence_info}
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
