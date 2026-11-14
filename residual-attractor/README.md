@@ -29,6 +29,8 @@ Built and tested (268 tests, plus one expected failure that records a spec known
 
 Run spec 0 (`runs/spec0_spring_adan7406.yaml`) builds on all 14 spring series as of 2026-05-03: 54 configurations, 1,621,080 step rows, 30,020 fiber rows, 29,376 cadence rows, 578,448 lagcorr rows and 756 bundle rows, and exports a grid of 54 configurations × 14 series × 98 months (2018-01 to 2026-02), with 1,431 configuration pairs compared per series. WPU1197's four missing months (Oct 2016 – Jan 2017) are interpolated and flagged.
 
+Run spec 1 (`runs/spec1_spring_adan7406_diff.yaml`) is spec 0 in first differences, with nothing else changed; both panels are kept. Same row counts and grid. There the configurations calibrate alike (beyond 2σ: AR 8.2%, SES and Holt 8.7%), no pair differs at p < 0.05 (0 of 19,978; smallest p 0.055), every model stays in every confidence set, and the worst month of a configuration-series row is April 2020 on 190 of 756.
+
 Next: the cross-series analyses (rdiag's Stages 2 and 3, per configuration), split into three sessions in `docs/WORK_PACKAGES.md`: wavelet coherence and adjacency, tail events and coincidence, common mode. Where the work stood at the split, what the archive shows so far and what is still to decide: `docs/REPORT_2026-11-13.md`.
 
 ## Run
@@ -38,6 +40,7 @@ uv venv .venv && uv pip install --python .venv/bin/python -e ".[dev,catalog]"
 .venv/bin/python -m pytest
 .venv/bin/rattractor build fixture_six_regime.yaml
 .venv/bin/rattractor build spec0_spring_adan7406.yaml
+.venv/bin/rattractor build spec1_spring_adan7406_diff.yaml
 ```
 
 ## Choices made here that the spec leaves open

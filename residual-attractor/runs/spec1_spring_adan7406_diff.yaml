@@ -1,0 +1,19 @@
+# Run spec 1: run spec 0 in first differences. Same 14 series, vintage, alignment,
+# gap policy and split; only the transform changes (y_t - y_{t-1}).
+#   Why: on levels the 29 AR configurations forecast back toward a running mean
+#   the series has left, so their residuals measure drift rather than shocks
+#   (docs/REPORT_2026-11-13.md, section 5). Both panels are kept; neither
+#   replaces the other.
+name: spec1_spring_adan7406_diff
+source: catalog
+catalog:
+  dsn: "dbname=fred"
+  series: [PALUMUSDM, PCOPPUSDM, PNICKUSDM, IPG3361T3S, IPG3344S, PCU333611333611, WPU1197,
+           BSCICP02USM460S, NEWORDER, DGORDER, IMPMANUS, EXPMANUS, TSIFRGHT, STLFSI4]
+  as_of: "2026-05-03"
+  frequency: M
+  aggregate: mean
+  max_interpolate: 4     # WPU1197 has no values Oct 2016 - Jan 2017 in this vintage; filled and flagged
+  missing: longest_run
+  transform: diff
+  test_start: "2018-01-01"

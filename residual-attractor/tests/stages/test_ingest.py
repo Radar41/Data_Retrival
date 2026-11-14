@@ -113,6 +113,11 @@ def test_run_specs_in_repo_validate():
     assert load_run_spec("fixture_six_regime.yaml")["source"] == "fixture"
     spec = load_run_spec("spec0_spring_adan7406.yaml")
     assert spec["catalog"]["frequency"] == "M"
+    # Spec 1 is spec 0 in first differences and nothing else.
+    diff = load_run_spec("spec1_spring_adan7406_diff.yaml")
+    assert diff["catalog"]["transform"] == "diff" and spec["catalog"]["transform"] == "level"
+    assert {k: v for k, v in diff["catalog"].items() if k != "transform"} == \
+           {k: v for k, v in spec["catalog"].items() if k != "transform"}
 
 
 @pytest.mark.parametrize("bad", [
