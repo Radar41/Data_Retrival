@@ -25,7 +25,7 @@ from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
 from .runspec import run_spec_sha256
 from .stages import AcceptanceError, bundle, cadence, compare, fibers, fit, forecast, grid, ingest, lagcorr, register
-from .stages import tails
+from .stages import events, tails
 
 
 def _safe(name: str) -> str:
@@ -170,6 +170,10 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         tailed, tails_info = tails.run(frames, cfg)
         for name, frame in tailed.items():
             write(frame, name, f"tails/{name.removeprefix('tails_')}.parquet")
+        stage = "events"
+        evented, events_info = events.run(frames, tailed, cfg)
+        for name, frame in evented.items():
+            write(frame, name, f"events/{name.removeprefix('events_')}.parquet")
     except AcceptanceError as err:
         if err.rows is not None:
             reports.mkdir(parents=True, exist_ok=True)
@@ -197,7 +201,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "compare": compare_info,
         **track_a,
         "tails": tails_info,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, "tails"],
+        "events": events_info,
+        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, "tails", "events"],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

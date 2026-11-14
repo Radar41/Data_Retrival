@@ -76,3 +76,5 @@ tails.min_exceed:         {type: int, min: 3}          # exceedances a threshold
 tails.gpd_shape_min:      {type: float, min: -0.5}     # lower bound of the shape estimate and its interval; below 0
 tails.gpd_ci:             {type: str, values: [profile_likelihood]}         # the interval the stability rule reads
 tails.gpd_ci_level:       {type: float, min: 0.5, max: 0.999}
+events.kinds:             {type: list}                 # which of rdiag's event kinds are built; only residual can be named for now
+events.residual:          {type: str, values: [tails_threshold]}            # rdiag events.residual

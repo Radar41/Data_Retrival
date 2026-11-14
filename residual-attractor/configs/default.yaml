@@ -46,6 +46,8 @@ tails.min_exceed: 3                        # rdiag's postcondition n_exceed >= 3
 tails.gpd_shape_min: -0.5                  # the shape is estimated over shape >= this; below -1/2 the likelihood has no regular optimum
 tails.gpd_ci: profile_likelihood           # rdiag says "confidence intervals"; estimate +/- z se covers 29-76% at 5-30 exceedances, this one 91-99%
 tails.gpd_ci_level: 0.95
+events.kinds: [residual]                   # rdiag has three; band_power and persistence wait for their sources (s2b, s2c)
+events.residual: tails_threshold           # rdiag: |resid| above the row's own u_star from stage tails
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60

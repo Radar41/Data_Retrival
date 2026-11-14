@@ -78,6 +78,13 @@ def validate_config(cfg: dict) -> dict:
         raise ContractError(f"config tails.rolling_n_tail: {cfg['tails.rolling_n_tail']} must be below tails.rolling_window {cfg['tails.rolling_window']}")
     if not cfg["tails.gpd_shape_min"] < 0:
         raise ContractError(f"config tails.gpd_shape_min: {cfg['tails.gpd_shape_min']} must lie in [-0.5, 0)")
+    from .stages.events import KINDS, RULES, WAITS_FOR
+
+    kinds = cfg["events.kinds"]
+    if not kinds or len(set(kinds)) != len(kinds) or not set(kinds) <= set(KINDS):
+        raise ContractError(f"config events.kinds: {kinds} must name at least one of {list(KINDS)}, each once")
+    if set(kinds) - set(RULES):
+        raise ContractError("config events.kinds: " + "; ".join(f"{k} is not built yet, it waits for {WAITS_FOR[k]}" for k in kinds if k not in RULES))
     return cfg
 
 

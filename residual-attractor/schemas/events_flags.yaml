@@ -1,0 +1,11 @@
+artifact: events_flags
+description: "rdiag s3.events under v2: one row per (configuration k, event kind, series i, month t). A residual event is a month where |resid[k, i, t]| exceeds the row's own threshold from stage tails. Nothing is tested here."
+primary_key: [k, kind, i, t]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: kind, dtype: category, values: [residual, band_power, persistence], nullable: false, notes: "rdiag's event feature f; only the kinds in events.kinds are present, and only residual is built"}
+  - {name: i, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "month start"}
+  - {name: event, dtype: bool, nullable: false, notes: "residual: |resid| > tails_thresholds.u_star of the same (k, i)"}
+  - {name: sign, dtype: int8, nullable: false, notes: "residual: the sign of resid at every month (-1, 0, 1)"}
+  - {name: defined, dtype: bool, nullable: false, notes: "false where the source is null (residual: the row has no threshold); an event implies defined"}
