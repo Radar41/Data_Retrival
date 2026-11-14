@@ -9,9 +9,9 @@ Branch `claude/ra-wavelet-coherence-1ef86c` (worktree), cut from `3eb8984`. Brie
 | A1 | `wavelet` | built, tested, committed |
 | A2 | `spectral` | built, tested, committed |
 | A3 | `coherence` | built, tested, committed |
-| A4 | `adjacency` | not started |
+| A4 | `adjacency` | built, tested, committed |
 
-Tests: 391 pass, 1 expected failure (268 + 34 wavelet + 37 spectral + 52 coherence). Spec 0 builds in 70 s (10.5 s before coherence, 9 s before Track A) with `wavelet`, `spectral`, `coherence` in `stages_passed`.
+All four stages and the track-level checks are done; the report is the last section of this file. Tests: 427 passed, 1 expected failure. Spec 0 builds in 63 s with all four stages in `stages_passed`.
 
 ## A1, `wavelet`
 
@@ -77,17 +77,11 @@ Finding to report (measured, pinned by two tests): rdiag's minimum shift of 12 m
 
 Spec 0, first look: all-scales share of significant cells averages 0.157 (0.077 on unrelated rows); 33% of pairs sit at the smallest p-value (7% on unrelated rows). By method: AR 0.146, Holt 0.169, SES 0.171.
 
-## A4, `adjacency`: not started. Design, revised after measuring
+## A4, `adjacency`
 
-- Reads `coherence_scope` (+ `wavelet_scale`). weight = n_significant / n_cells; expected = 1 - coherence.quantile.
-- Effective n: the Kish count of smoothing footprints, n_eff = max(1, n_cells^2 / (sqrt(2 pi) x min(width x voices, scales in scope) x sum over scope scales of n_a(j) s_j)), n_a(j) the in-cone months at scale j. A cell at scale j stands for a block sqrt(2 pi) s_j months long (the Gaussian's equivalent width) and min(4.8, scales in scope) scales wide. One scale gives n_a / (sqrt(2 pi) s).
-- Do NOT use the earlier plan (scales / 4.8 x mean of per-scale counts): on unrelated rows it gave p <= 0.05 for 15% of pairs and at least one edge in 51% of pure-noise configurations. The Kish form gave 6.4% and 4.2% (target at most 10%), and is conservative for narrow scopes. Measured variance-matching n for all scales: 34.9; Kish: 23.6.
-- p = I_expected(x, n_eff - x + 1), x = weight x n_eff (scipy.special.betainc; the binomial upper tail for real n); p = 1 at weight 0.
-- Benjamini-Yekutieli in `common/fdr.py`, within one configuration, two families (all-scales rows; band rows), named in a `family` column, with `family_size`, `q_value`, `edge` = q_value <= inference.q. `adjacency.per_band: false` keeps only the all-scales rows.
-- Keys still to add: `adjacency.edge_weight`, `adjacency.edge_rule`, `adjacency.per_band`, `inference.cooccurrence_family_method`, `inference.q`.
-- Tests to write: BY known answers, the p-value against scipy's binomial at integer n, unrelated rows (share of pure-noise configurations with an edge), the planted delay gets its edge (`delayed_field` in `tests/stages/test_coherence.py`), check rules, archive rule, count independence (weight and p_value do not depend on counts; q_value and edge are family decisions inside one configuration), fixture.
+Files: `src/rattractor/stages/adjacency.py`, `src/rattractor/common/fdr.py`, `schemas/adjacency_edges.yaml`, `tests/stages/test_adjacency.py`, keys `adjacency.*`, `inference.cooccurrence_family_method`, `inference.q`.
 
-After A4: second independent implementation on a sample of spec 0, planted bugs, the AR-rows and April 2020 shares, then the section 8 report. None of that has been done. Track C left a mutation harness worth copying in the shared notes folder (`track_c/harness.py`).
+`adjacency/edges.parquet` (k, i_a, i_b, band_a, band_b): 5,704 rows on spec 0, one per coherence scope: weight, expected, n_eff, p_value, family, family_size, q_value, edge. 1,273 of 4,914 all-scales pairs and 76 of 790 band overlaps are edges. Formulas and choices are in the module docstring (Kish effective n of smoothing footprints; binomial tail for real n; Benjamini-Yekutieli within one configuration and family).
 
 ## For the merge
 
@@ -100,3 +94,71 @@ After A4: second independent implementation on a sample of spec 0, planted bugs,
 ## How to continue
 
 Environment: `docs/WORK_PACKAGES.md` section 4. The test helpers every Track A test module shares are at the top of `tests/stages/test_wavelet.py` (`make_grid`, `subgrid`, `ar1_rows`, `assert_other_configurations_identical`, `assert_frames_equal_under_reindexing`, `fixture_build`, `three_series_grid`).
+
+## Report (WORK_PACKAGES section 8)
+
+### Commits (branch `claude/ra-wavelet-coherence-1ef86c`, not pushed, not merged)
+
+- `3f9ae96` A1 wavelet: the Morlet transform of every configuration's own row
+- `8698746` A2 spectral: global spectrum, data-driven bands, band power, dominant period
+- `d3bf738` A3 coherence: work in progress (superseded by the next)
+- `71bed2b` A3 coherence: coherence, phase and circular-shift significance for every pair inside one configuration
+- `5ef9829` A4 adjacency: edge weight, binomial p-value, edge decision within one configuration
+- `9ea7428` A3 coherence: a surrogate equal to the observed field up to rounding is a tie (found by a planted bug)
+
+No bug was found in stages 1 to 10. The one change outside Track A's files is `tests/stages/test_grid.py` line 167 (`[-2:]` to `[8:10]`), needed by every track because stages now follow compare.
+
+### Artifacts on spec 0 (K 54, N 14, P 98, J 33)
+
+| Stage | Artifact | Rows |
+|---|---|---|
+| wavelet | scale / series / red_noise / cwt | 33 / 756 / 24,948 / 2,444,904 |
+| spectral | global / bands / band_count / band_power / dominant | 24,948 / 488 / 756 / 47,824 / 74,088 |
+| coherence | cells / scope | 15,891,876 / 5,704 |
+| adjacency | edges | 5,704 (1,273 all-scales edges of 4,914 pairs; 76 band edges of 790) |
+
+Build time: 9 s before Track A, 63 s after (wavelet 0.5 s, spectral 0.3 s, coherence 43 s, adjacency under 1 s, the rest writing). The build directory grows by about 480 MB, 397 MB of it the coherence cell table. The cell table is dense (rdiag's design) and grows as N squared: about 860 M rows at 100 series.
+
+### Tests and checks
+
+- 427 passed, 1 expected failure (baseline 268). Track A: 34 wavelet, 37 spectral, 54 coherence, 34 adjacency. Each stage has the archive-rule test (changing one configuration leaves every other row bit-identical), count independence, one test per acceptance rule, the one-series fixture build (empty or null output) and known answers. Planted lags of 2, -3 and 0 months come back as 1.96, -2.85 and -0.06; swapping the series gives the same r2 and the negated phase, bit for bit.
+- Second implementation (`recompute_track_a.py` in the session scratchpad; explicit DFT matrix instead of the FFT, its own daughter normalization, Gaussian and boxcar matrices, loops for bands, scopes, the order statistic and Benjamini-Yekutieli): 8 spec 0 configurations across all three methods, 112 rows, 96 pairs, every column of the four stages. Worst difference 1e-12 relative, no cell with a different significance flag, q-values to 2e-16.
+- Planted bugs: 22, one at a time, in a scratch copy (Track C's harness). 21 caught at once. The miss, `>` for `>=` in the scope p-value, led to `9ea7428`. After it, both p-value mutants are caught. The one survivor (`> stat - 1e-12`) is equivalent to the original.
+
+### Departures from rdiag, and why
+
+- `k` in every key, every stage on each configuration's own rows, the false-discovery decision inside one configuration: the archive rule.
+- `s2a.complex` (rdiag's holonomy cell complex, which needs adjacency edges) is not built. The complex coefficients `w_re`, `w_im` are stored, with amplitude and phase.
+- Unit energy is exact on the discrete grid, so white noise has mean power 1 at every scale. Torrence and Compo's continuous factor gives 0.55 at period 2.
+- Rows are centred on their own mean; the variance divisor is P; padding is to a power of two at least P + 6 e-folding times. rdiag is silent on all three.
+- `wavelet_scale` has no `k`: it follows from P and the config.
+- `spectral_summary.dj0_decorrelation` (0.60) is a new key; rdiag leaves Torrence and Compo's factor implicit.
+- Bands are per row; `spectral_band_count` is added so a row with no band has a row.
+- Coherence reads the bands. rdiag registers a (pair, band) test without a statistic; here it is the mean r2 over the scope's in-cone cells, and the scopes are all scales plus each overlap of the two rows' bands.
+- `r2_q` is an order statistic, not an interpolated quantile. Every one of the 75 offsets that exist is used once, instead of 1,000 draws from them; p-values step by 1/76.
+- Values within 1e-12 are ties. rdiag's recipe table `s3.surrogate_index` is not written.
+- The lag in months is stored per scope, not per cell.
+- Adjacency's effective n is the Kish count of smoothing footprints (rdiag names the correction, not the formula). Its families are two per configuration, all-scales and band. No registry is written; raw p-values and q-values are stored with their keys.
+
+### How much rests on the AR rows and on April 2020
+
+- AR rows: 29 of 54 configurations and 54% of pairs, but 46% of all-scales edges. Their edge rate is 22%, against 30% for Holt and SES, and their mean weight is 0.146 against 0.169 and 0.171. The AR drift does not inflate coherence here.
+- April 2020: 59% of significant cells lie within two smoothing widths of April 2020, a region that holds 36% of in-cone cells; significance there is 24 to 29%, against 9.5 to 10.6% elsewhere.
+- Rerunning the four stages on the grid with April 2020 replaced by each row's mean (a measurement; the build is unchanged): all-scales edges fall from 1,273 to 955, with 558 lost, 240 gained and 715 kept; band edges fall from 76 to 62, with 45 lost. The share of edges lost is 37% for AR, 44% for Holt and 59% for SES.
+
+### What the null does (measured)
+
+- With rdiag's minimum shift of 12 months, unrelated rows have 7.7% of in-cone cells significant against the rule's 3.9% (5% at short periods, 12 to 15% at long), and 7% of unrelated pairs sit at the smallest p-value. With every nonzero shift in the null the same code gives 4.2% against 4.1%.
+- Adjacency on pure noise (300 configurations of 14 independent AR(1) rows): 6.7% of configurations get an all-scales edge, 5.7% a band edge (q = 0.10 bounds each by 10%).
+- The floor arithmetic Track B raised holds: with every p >= 1/76, Benjamini-Yekutieli at q = 0.10 needs 2 of 4, 6 of 14 and 61 of 91 tests at the floor (pinned by a test). On spec 0 every configuration has 22 to 34 of its 91 pairs at the coherence floor, so BY on coherence's surrogate p-values would discover nothing. Adjacency's binomial p-values have no such floor.
+
+### Questions for Adrian (default used)
+
+1. The minimum shift of 12 months makes coherence's null too easy to beat (7.7% against 3.9%). Default: rdiag's 12. A minimum of 1 is calibrated.
+2. `s2a.complex`: read as rdiag's holonomy complex, a wave-2 stage. Default: not built.
+3. Adjacency's effective n. Default: the Kish count (6.7% of noise configurations with an edge); the first formula tried gave 51%.
+4. False-discovery families. Default: two per configuration (all scales, bands).
+5. The dense cell table: 397 MB at 14 series, growing as N squared. Default: kept, as rdiag has it.
+6. A deterministic cycle shared by two rows is coherent under every shift, so it is never significant. Default: accepted; the null keeps each row's spectrum.
+7. Chance bands: about a third of pure red-noise rows get a band under rdiag's two-scale rule. Default: rdiag's rule.
+8. White noise normalization at the Nyquist scales. Default: exact discrete unit energy.
