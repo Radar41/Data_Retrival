@@ -389,7 +389,8 @@ def test_artifact_round_trip(tmp_path, staged):
 
 def test_one_series_fixture_build(cfg):
     out, m = fixture_build(cfg)
-    assert m["stages_passed"][-3:] == ["tails", "events", "coincidence"]
+    start = m["stages_passed"].index("tails")  # other tracks' stages may follow
+    assert m["stages_passed"][start:start + 3] == ["tails", "events", "coincidence"]
     a = m["artifacts"]["coincidence/precursor.parquet"]
     co = contracts.read(out / "coincidence/precursor.parquet", a["artifact"])
     assert a["rows"] == len(co) == 0 and m["coincidence"]["tests"] == 0 and m["coincidence"]["event_series_per_configuration"] == 1

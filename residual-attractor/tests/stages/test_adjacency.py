@@ -276,7 +276,8 @@ def test_three_series_grid(cfg):
 
 def test_one_series_fixture_build_writes_an_empty_table(cfg):
     out, m = fixture_build()
-    assert m["stages_passed"][-4:] == ["wavelet", "spectral", "coherence", "adjacency"]
+    start = m["stages_passed"].index("wavelet")  # other tracks' stages may follow
+    assert m["stages_passed"][start:start + 4] == ["wavelet", "spectral", "coherence", "adjacency"]
     assert m["artifacts"]["adjacency/edges.parquet"]["rows"] == 0
     assert m["adjacency"]["families"] == {"all": {"tests": 0, "edges": 0}, "band": {"tests": 0, "edges": 0}}
     assert len(contracts.read(out / "adjacency/edges.parquet", "adjacency_edges")) == 0
