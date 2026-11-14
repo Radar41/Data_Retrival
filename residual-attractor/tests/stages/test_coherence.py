@@ -99,6 +99,13 @@ def test_the_level_is_an_order_statistic(rng):
     assert (x[0] > coherence.cell_level(x[1:], 0.95)).mean() == pytest.approx(3 / 76, abs=0.005)
 
 
+def test_the_p_value_counts_ties_as_at_least_as_extreme():
+    assert coherence.exceedance_p(0.5, np.array([0.5, 0.4, 0.6])) == 3 / 4          # the tie counts
+    assert coherence.exceedance_p(0.5, np.array([0.5 - 1e-15, 0.4])) == 2 / 3        # so does a tie up to rounding
+    assert coherence.exceedance_p(0.5, np.array([0.5 - 1e-9, 0.4])) == 1 / 3         # a real difference does not
+    assert coherence.exceedance_p(0.9, np.zeros(75)) == 1 / 76 and coherence.exceedance_p(0.0, np.zeros(75)) == 1.0
+
+
 def test_every_offset_is_used_once_when_the_draws_would_cover_them(cfg):
     assert coherence.plan(cfg, 98) == {"mode": "enumerated", "n": 75, "requested": 1000, "distinct_offsets": 75, "rank": 3, "smallest_p_value": 1 / 76}
     offs = coherence.pair_offsets(cfg, 98, 5, 2, 9)
@@ -157,7 +164,7 @@ def reference(xa, xb, bands_a, bands_b, offsets, cfg):
     r = int(np.floor((1 - q) * (n + 1) + 1e-9))
     level = np.sort(null, axis=0)[n - r] if r else np.ones_like(r2)
     cone = np.array([[min(u, P - 1 - u) >= np.sqrt(2) * sj for u in t] for sj in s])
-    sig = cone & (r2 > level)
+    sig = cone & (r2 > level + 1e-12)
     overlaps = [(x[0], y[0], max(x[1], y[1]), min(x[2], y[2])) for x in bands_a for y in bands_b if max(x[1], y[1]) <= min(x[2], y[2])]
     rows = []
     for band_a, band_b, lo, hi in [(-1, -1, 0, J - 1)] + overlaps:
@@ -514,3 +521,15 @@ def test_one_series_fixture_build_writes_empty_tables(cfg):
     assert m["coherence"]["pairs_per_configuration"] == 0 and m["coherence"]["surrogates"] is None
     for name in ("cells", "scope"):
         assert len(contracts.read(out / f"coherence/{name}.parquet", f"coherence_{name}")) == 0
+
+
+def test_a_shift_that_maps_a_row_onto_itself_counts_as_at_least_as_coherent(cfg, rng):
+    # a row that repeats every 12 months exactly is its own shift by 12, 24, ... 84: seven surrogates tie the observed alignment
+    base = np.sin(2 * np.pi * np.arange(12) / 12)
+    R = np.stack([[0.5 * rng.standard_normal(96) + np.tile(base, 8), np.tile(base, 8)]])
+    *_, b, info = staged(R, cfg)
+    n = info["surrogates"]["n"]
+    assert n == 73 and sum(o % 12 == 0 for o in range(12, 85)) == 7
+    sp = b["coherence_scope"]
+    assert (sp["p_value"] >= 8 / 74).all(), sp["p_value"].tolist()      # (1 + the 7 ties + any larger) / (1 + n)
+    assert not b["coherence_cells"]["significant"].any()                 # 7 copies of the observed field: no cell clears the 3rd largest

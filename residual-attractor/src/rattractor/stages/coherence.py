@@ -21,7 +21,8 @@ n_coherence offsets are drawn by surrogates.offsets(cfg, "coherence", P, n, k, i
                 n + 1 alignments (the observed one and the n shifts) exchangeable, an unrelated cell would exceed
                 it with probability r / (n + 1) <= 1 - quantile (3 / 76 = 3.9% at n = 75). With r = 0 no level is
                 that strict; r2_q is 1 and no cell is significant.
-    significant in_coi and r2 > r2_q
+    significant in_coi and r2 > r2_q, where values within TIE = 1e-12 are ties: a shift that maps a row onto itself
+                is a surrogate as coherent as the observed alignment, even when rounding makes it a hair smaller
 
     coherence_cells   (k, i_a, i_b, j, t): r2, phase, r2_q, in_coi, significant. Every cell is kept.
     coherence_scope   (k, i_a, i_b, band_a, band_b): one row for the scope "all" (band_a = band_b = -1, every
@@ -68,6 +69,7 @@ from .wavelet import dense, field, keys, moments, polar
 
 R2_SLACK = 1e-9   # r2 is in [0, 1] by Cauchy-Schwarz; a larger excess than this is not rounding and stops the build
 ALL = -1          # band_a = band_b = -1 marks the scope over every scale
+TIE = 1e-12       # values of r2 this close are ties: a surrogate the same as the observed field up to rounding is not beaten
 
 
 def pairs(N: int) -> tuple[np.ndarray, np.ndarray]:
@@ -125,6 +127,11 @@ def scopes(bands_a: list, bands_b: list, J: int) -> list[tuple[int, int, int, in
             if lo <= hi:
                 out.append((ba, bb, lo, hi))
     return out
+
+
+def exceedance_p(stat: float, null: np.ndarray) -> float:
+    """(1 + #{null values >= stat, ties within TIE included}) / (1 + n): the surrogate p-value of one statistic."""
+    return (1 + int((np.asarray(null) >= stat - TIE).sum())) / (1 + np.asarray(null).size)
 
 
 def cross_spectrum(wa: np.ndarray, wb: np.ndarray) -> np.ndarray:
@@ -188,7 +195,7 @@ def run(frames: dict[str, pd.DataFrame], wav: dict[str, pd.DataFrame], spec: dic
                     null = _ratio(cross_s.real ** 2 + cross_s.imag ** 2, auto[a][None] * auto_s)[inv]      # one field per draw
                     level = cell_level(null, q)
                     ph = polar(cross.real, cross.imag)
-                    sg = coi & (obs > level)
+                    sg = coi & (obs > level + TIE)
                     p = int(pair_position(a, b, N))
                     r2[k, p], phase[k, p], r2_q[k, p], sig[k, p] = obs, ph, level, sg
                     in_obs, in_null = (obs * coi).sum(axis=1), (null * coi).sum(axis=2)                     # per scale, in-cone months only
@@ -198,7 +205,7 @@ def run(frames: dict[str, pd.DataFrame], wav: dict[str, pd.DataFrame], spec: dic
                         stat = pv = mean_phase = period = lag = np.nan
                         if nc:
                             stat = in_obs[lo : hi + 1].sum() / nc
-                            pv = (1 + int((in_null[:, lo : hi + 1].sum(axis=1) / nc >= stat).sum())) / (1 + n)
+                            pv = exceedance_p(stat, in_null[:, lo : hi + 1].sum(axis=1) / nc)
                         if ns:
                             z = z_j[lo : hi + 1].sum()
                             mean_phase = float(polar(z.real, z.imag))
@@ -259,7 +266,7 @@ def check(b: dict[str, pd.DataFrame], frames: dict[str, pd.DataFrame], wav: dict
         ("coherence_cells", ce, ~(a < bb), "pairs have i_a < i_b"),
         ("coherence_cells", ce, ~((r2 >= 0) & (r2 <= 1) & (r2q >= 0) & (r2q <= 1) & (ph > -np.pi) & (ph <= np.pi)), "r2 and r2_q lie in [0, 1] and phase in (-pi, pi]"),
         ("coherence_cells", ce, inc != coi[j, np.minimum(tidx, P - 1)], "in_coi is the wavelet stage's cone"),
-        ("coherence_cells", ce, sg != (inc & (r2 > r2q)), "significant equals in_coi and r2 > r2_q"),
+        ("coherence_cells", ce, sg != (inc & (r2 > r2q + TIE)), "significant equals in_coi and r2 > r2_q"),
     ]
     # the scopes every pair must have: all scales, and each overlap of the two rows' bands
     bd = spec["spectral_bands"][["k", "i", "band", "j_lo", "j_hi"]].astype(np.int64)
