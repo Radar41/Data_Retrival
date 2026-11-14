@@ -86,3 +86,6 @@ common_mode.window:       {type: int, min: 2}                      # rdiag commo
 common_mode.absorption_top_fraction: {type: float, min: 0.0, max: 1.0}  # rdiag common_mode.absorption_top_fraction; in (0, 1]
 common_mode.quantile:     {type: float, min: 0.0, max: 1.0}        # rdiag common_mode.quantile; strictly between 0 and 1
 surrogates.n_common_mode: {type: int, min: 1}                      # rdiag surrogates.n_common_mode
+signatures.kinds:         {type: list}                             # the signature rules a build runs, from [consolidation]; may be empty
+signatures.consolidation_requires: {type: list}                    # rdiag signatures.consolidation_requires, from [lambda1_above_band, absorption_rising]
+signatures.persistence_months: {type: int, min: 1}                 # rdiag signatures.persistence_months

@@ -1,0 +1,12 @@
+artifact: signatures_flag
+description: "rdiag s3.signatures, inside one configuration: one row per (configuration k, month t, mode, series i) for each kind in signatures.kinds. A signature is a rule over named metrics of configuration k's own rows; the flag is reported only after the rule has held signatures.persistence_months months in a row. Nothing is computed from two configurations."
+primary_key: [k, t, mode, i]
+columns:
+  - {name: k, dtype: int32, nullable: false}
+  - {name: t, dtype: "datetime64[ns]", nullable: false, notes: "month"}
+  - {name: mode, dtype: category, values: [consolidation], nullable: false, notes: "the signature rule; rdiag's collapse and collusion are not built"}
+  - {name: i, dtype: int32, nullable: false, notes: "series index, or -1 when the mode is about all series together (consolidation)"}
+  - {name: components, dtype: string, nullable: false, notes: "JSON object: every metric the rule read at this row, by name and value; null where the metric is undefined"}
+  - {name: available, dtype: bool, nullable: false, notes: "true where every metric the rule reads is defined"}
+  - {name: held_months, dtype: int32, nullable: false, notes: "months in a row, up to and including t, on which the rule held; 0 where it does not hold at t"}
+  - {name: flagged, dtype: bool, nullable: false, notes: "held_months >= signatures.persistence_months; never true where available is false"}

@@ -6,10 +6,10 @@ Branch `claude/ra-common-mode-9bf224`, cut from `3eb8984`. Brief: `docs/WORK_PAC
 
 | Package | Stage | State |
 |---|---|---|
-| C1 | `common_mode` | built, tested, committed |
-| C2 | `signatures` (consolidation only) | not built: a draft module exists outside the repository (see Next), untested and not wired |
+| C1 | `common_mode` | built, tested, committed (`de95c25`) |
+| C2 | `signatures` (consolidation only) | built, tested, committed (the commit after it) |
 
-Tests: 322 pass, 1 expected failure (baseline 268 + 1). Spec 0 builds in 28 s (baseline 10 s); `common_mode` adds 17 s, nearly all of it 4.05 million 14 × 14 eigenvalue solves for the surrogates.
+Both packages of the track are done. Tests: 351 pass, 1 expected failure (baseline 268 + 1), in 29 s (baseline 21 s). Spec 0 builds in 29 s (baseline 10 s) with both stages in `stages_passed`; `common_mode` adds 18 s, nearly all of it 4.05 million 14 × 14 eigenvalue solves for the surrogates, and `signatures` adds under a second.
 
 ## C1: `common_mode`
 
@@ -37,8 +37,32 @@ Choices made:
 - **Top count** ceil(N × fraction) is computed on the decimal the config states, so 100 × 0.07 gives 7, not 8.
 - **Eigenvalues** come from `eigvalsh` for the configuration and for its surrogates alike, so a draw that reproduces the configuration's windows ties with it exactly; `eigh` gives the vector.
 - `common/linalg.py` has `corr`, `eigh_desc` (with the sign rule), `mp_edge` and `angle`. rdiag's `principal_angles` is not built: nothing reads it yet.
+- **Surrogates and p-values.** Each row has 75 offsets on spec 0, but the 14 rows are shifted independently, so the 1,000 draws of a configuration are all different arrangements and the smallest p is 1/1001. Cost grows with N³ per solve; for N above the window length the w × w product of the same windows has the same leading eigenvalue and would be cheaper (not built).
 
-Checked: a second implementation (pandas correlation, scipy's solver, `numpy.roll`, a hand-written quantile) recomputed all 4,050 defined cells of spec 0; 43 planted bugs were all caught by the tests.
+## C2: `signatures`
+
+Code: `src/rattractor/stages/signatures.py`. Tests: `tests/stages/test_signatures.py`. Reads `common_mode_month` only.
+
+| Artifact | Key | Columns | Rows on spec 0 |
+|---|---|---|---|
+| `signatures/flag.parquet` | k, t, mode, i | components, available, held_months, flagged | 5,292 |
+
+Config keys: `signatures.kinds` [consolidation], `signatures.consolidation_requires` [lambda1_above_band, absorption_rising], `signatures.persistence_months` 6.
+
+Choices made:
+
+- **Consolidation only.** `signatures.kinds` may hold `consolidation` or nothing; the config refuses `collapse` and `collusion`, which are Adrian's to decide (report decisions 6 and 7).
+- **Rising** means higher than the month before. With the persistence rule a flag needs λ1 above its band and the absorption ratio up, six months in a row. rdiag's "rising over persistence_months" could also be read as higher than six months before. Under that reading one shock month that lifts the ratio once keeps the rule true for six months by itself, which the persistence rule exists to prevent; on spec 0 it would flag 245 rows in 41 configurations, against 68 in 26.
+- **One table**, rdiag's shape plus k. `components` is a JSON object in a string column (rdiag: a map), with null for an undefined metric. `held_months` is added so the persistence rule can be read and checked from the table. `i` is -1 (all series together).
+- **Not available** where a metric the rule reads is undefined: before the first full window, the first defined month (no month before to rise from), one series, a flat row. Such a month ends a run.
+- The requirement rdiag names `lambda1_above_q95` is `lambda1_above_band` here, because the band's level is `common_mode.quantile`.
+- No registry: a flagged span is a run of flagged months in the table.
+
+## Checked
+
+- **Second implementations**, written apart from the stages. Common mode: pandas correlation, scipy's solver, `numpy.roll`, a hand-written quantile, on all 4,050 defined cells of spec 0: eigenvalues, loadings, absorption and the band agree to 3e-14, turnover to 1e-13, p-values exactly. Signatures: a plain loop over each configuration's months, all 5,292 rows: no mismatch.
+- **Planted bugs**: 47 in `common_mode` and `linalg`, 29 in `signatures`, the build wiring and the config rules, one at a time in a scratch copy. The tests caught all 76.
+- The scripts are in the shared notes folder of the session group, under `track_c/`.
 
 ## Shared files touched (for the merge)
 
@@ -46,20 +70,12 @@ Checked: a second implementation (pandas correlation, scipy's solver, `numpy.rol
 - `src/rattractor/config.py`: one block before `return cfg` in `validate_config`.
 - `configs/default.yaml`: one block after `surrogates.scope`. `schemas/config.yaml`: one block at the end.
 - `tests/stages/test_build.py`: the `stages_passed` list in `test_fixture_build_and_manifest` and the lines right after it.
-- `tests/stages/test_grid.py`: one assertion that read the last two entries of `stages_passed` now reads entries 8 and 9. Every track that adds a stage breaks the old form.
+- `tests/stages/test_grid.py`: one assertion that read the last two entries of `stages_passed` now reads entries 8 and 9 (the same wording as Track A).
 - Not touched: `README.md`, the plan, `cli.py`, the docstring at the top of `build.py`.
 
 ## Next
 
-C2 `signatures`: the consolidation flag from `common_mode_month` (λ1 above its band and absorption rising, held `signatures.persistence_months`), behind `signatures.kinds`. Collapse and collusion are not to be built.
-
-The session that built C1 stopped here (usage limit). Left for C2:
-
-- A draft of `src/rattractor/stages/signatures.py` is in the shared notes folder, `track_c/signatures_draft.py`. It has never been run. Its design: one table `signatures_flag` keyed (k, t, mode, i) with `components` as a JSON string, `available`, `held_months`, `flagged`; "rising" read as higher than the month before; requirement names `lambda1_above_band`, `absorption_rising`.
-- Still to write: `schemas/signatures_flag.yaml`, the config keys (`signatures.kinds`, `signatures.consolidation_requires`, `signatures.persistence_months`) with their rules in `config.py`, `tests/stages/test_signatures.py`, the build wiring (add to the Track C block and to `track_c`), the expected stage list in `test_build.py`.
-- Still to do for the whole track: an independent recomputation of the signatures output, planted bugs for signatures, and the section 8 report (how much rests on the AR rows and on April 2020; the questions for Adrian).
-- Open questions noted so far, each with the default used: turnover as the angle between sign-fixed vectors (0 to π) or between axes (0 to π/2); null rows for one series; linear-interpolated quantile for the band.
-- The same notes folder holds the second implementation (`recompute_common_mode.py`), the planted-bug harness and list (`harness.py`, `c1.py`) and the spec 0 view script (`view_spec0.py`).
+Nothing in this track. Waiting on Adrian (wave 2): collapse and collusion, the Bai-Ng split, the false-discovery stage that reads `common_mode_month.p_value`, replay.
 
 ## Run
 

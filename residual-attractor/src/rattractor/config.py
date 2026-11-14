@@ -93,6 +93,12 @@ def validate_config(cfg: dict) -> dict:
         raise ContractError(f"config common_mode.absorption_top_fraction: {cfg['common_mode.absorption_top_fraction']} must lie in (0, 1]")
     if not 0 < cfg["common_mode.quantile"] < 1:
         raise ContractError(f"config common_mode.quantile: {cfg['common_mode.quantile']} must lie strictly between 0 and 1")
+    from .stages.signatures import KINDS, REQUIREMENTS  # the rule names live with the rules
+
+    for key, allowed, at_least_one in (("signatures.kinds", KINDS, False), ("signatures.consolidation_requires", tuple(REQUIREMENTS), True)):
+        names = cfg[key]
+        if not all(isinstance(x, str) for x in names) or len(set(names)) != len(names) or not set(names) <= set(allowed) or (at_least_one and not names):
+            raise ContractError(f"config {key}: {names} must be distinct names from {list(allowed)}" + (", at least one" if at_least_one else ""))
     return cfg
 
 

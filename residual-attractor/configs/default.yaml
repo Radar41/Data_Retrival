@@ -56,6 +56,9 @@ common_mode.window: 24                    # rdiag common_mode: months in the tra
 common_mode.absorption_top_fraction: 0.2  # absorption ratio: the top ceil(N / 5) eigenvalues over N
 common_mode.quantile: 0.95                # the surrogate band of the leading eigenvalue
 surrogates.n_common_mode: 1000            # rdiag surrogates: draws per configuration, every row shifted by its own offset
+signatures.kinds: [consolidation]         # rdiag signatures: the rules this build runs; collapse and collusion are not built
+signatures.consolidation_requires: [lambda1_above_band, absorption_rising]   # rdiag: lambda1_above_q95 (the band is common_mode.quantile), absorption_rising
+signatures.persistence_months: 6          # a flag is reported only after the rule has held this many months in a row
 graph.mode: analysis
 seed: 41
 fixture.regime_length: 60
