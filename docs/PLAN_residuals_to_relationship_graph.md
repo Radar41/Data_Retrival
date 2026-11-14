@@ -120,6 +120,8 @@ Choices still open: whether surrogate draws are shared across configurations; wh
 
 **Split into sessions (2026-11-13).** Steps 2 to 4 below run as three parallel sessions, each on its own branch: wavelet coherence and adjacency; tail events and coincidence; common mode and the consolidation signature. Their briefs, the rules they share and the order they merge in are in `residual-attractor/docs/WORK_PACKAGES.md`. The state at the split, what the archive shows so far and the decisions still open (with the defaults the sessions use) are in `residual-attractor/docs/REPORT_2026-11-13.md`. The open choices above have these defaults until decided: every configuration has its own surrogate draws (`surrogates.scope`), raw p-values are stored and decisions are made within one configuration, and co-occurrence scans the lags 0 to 12 months.
 
+**Merged (2026-11-14).** All three tracks are on `fred-catalog-adit2200`: wavelet, spectral, coherence, adjacency, tails, events, coincidence, common_mode and signatures run on every build, inside each configuration. What each found and the questions it raised: `residual-attractor/docs/progress/track_{a,b,c}.md`. Track B's independent recomputation of coincidence is still to run.
+
 1. `loss`, `pairwise` (Diebold-Mariano with small-sample correction / Clark-West), `mcs`, `fluctuation`: does conditioning on a set improve forecasts, and when?
 2. `cwt`, `coherence` (relative phase = who leads), `adjacency`.
 3. `tails`, `events`, `coincidence` (events in one series followed by events in another within a lag window).
