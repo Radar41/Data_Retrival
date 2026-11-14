@@ -7,7 +7,7 @@ Branch `claude/ra-common-mode-9bf224`, cut from `3eb8984`. Brief: `docs/WORK_PAC
 | Package | Stage | State |
 |---|---|---|
 | C1 | `common_mode` | built, tested, committed (`de95c25`) |
-| C2 | `signatures` (consolidation only) | built, tested, committed (the commit after it) |
+| C2 | `signatures` (consolidation only) | built, tested, committed (`eca8e9e`) |
 
 Both packages of the track are done. Tests: 351 pass, 1 expected failure (baseline 268 + 1), in 29 s (baseline 21 s). Spec 0 builds in 29 s (baseline 10 s) with both stages in `stages_passed`; `common_mode` adds 18 s, nearly all of it 4.05 million 14 × 14 eigenvalue solves for the surrogates, and `signatures` adds under a second.
 
@@ -63,6 +63,17 @@ Choices made:
 - **Second implementations**, written apart from the stages. Common mode: pandas correlation, scipy's solver, `numpy.roll`, a hand-written quantile, on all 4,050 defined cells of spec 0: eigenvalues, loadings, absorption and the band agree to 3e-14, turnover to 1e-13, p-values exactly. Signatures: a plain loop over each configuration's months, all 5,292 rows: no mismatch.
 - **Planted bugs**: 47 in `common_mode` and `linalg`, 29 in `signatures`, the build wiring and the config rules, one at a time in a scratch copy. The tests caught all 76.
 - The scripts are in the shared notes folder of the session group, under `track_c/`.
+
+## What spec 0 shows (views for a person, not artifacts)
+
+Build `5c3be362e7eaa4e6` at `eca8e9e`; 4,050 defined (k, t) cells.
+
+- **Overall.** λ1 is above its band on 1,966 cells (48.5%); 942 of them sit at the smallest p there is, 1/1001.
+- **AR rows** (29 of 54 configurations, 2,175 cells). Their λ1 is the largest (median 7.3 of 14), but their band is higher still (median 8.3), because drifting rows correlate at any alignment: they are above the band on 34.9% of cells, against 70.2% for SES and 61.2% for Holt. The Marchenko-Pastur edge (3.11) would call 99.3% of AR cells a common mode. AR rows hold 38.6% of the above-band cells and 13 of the 68 flagged rows.
+- **Windows that contain April 2020** (24 of the 75 months, 2020-04 to 2022-03). SES and Holt are above the band on 596 of 600 cells there (median λ1 6.5 against a band of 3.4) and on 612 of 1,275 elsewhere (48.0%). AR shows no difference (34.2% and 35.2%). 42.4% of all above-band cells are in those windows.
+- **The one month.** With each row's April 2020 residual replaced by that row's median (a scratch rerun), above-band cells in those 24 months go from 834 to 642 (AR 238 to 84, SES and Holt 596 to 558), and flagged rows from 68 to 27.
+- **Consolidation.** 68 flagged rows in 26 configurations (Holt 14, SES 7, AR 5), in 28 runs. 65 of the 68 are in windows that contain April 2020: 18 runs begin in February or April 2020 and are flagged from July or September to October 2020. Three runs are flagged in February 2025.
+- **The leading vector** is a contrast far more often than a pull in one direction: every loading has one sign on 4.5% of cells. 136 of 3,996 turnover values exceed π/2, each a sign flip.
 
 ## Shared files touched (for the merge)
 

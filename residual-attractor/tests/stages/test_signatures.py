@@ -156,6 +156,7 @@ def test_a_common_factor_switched_on_is_flagged_after_persistence_months_and_not
     mo = common["common_mode_month"].sort_values(["k", "t"])
     lam, band, A = (mo[x].to_numpy().reshape(K, P) for x in ("lambda1", "lambda1_q", "absorption_ratio"))
     for k in range(K):
+        assert lam[k, T0 + w - 1 :].mean() == pytest.approx(1 + (N - 1) * rho, rel=0.10)   # every series planted: 1 + (N - 1) rho
         first = int(np.argmax(c["flagged"][k]))
         assert c["flagged"][k].any() and T0 + n - 1 <= first < T0 + w                 # while the window fills with the factor
         assert c["held_months"][k, first - n + 1 : first + 1].tolist() == list(range(1, n + 1))
