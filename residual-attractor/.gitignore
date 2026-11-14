@@ -5,3 +5,4 @@ __pycache__/
 builds/
 reports/
 data/raw/
+external/

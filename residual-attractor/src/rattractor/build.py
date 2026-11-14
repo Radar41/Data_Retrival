@@ -20,9 +20,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import PKG_ROOT, contracts, fixtures
+from . import PKG_ROOT, contracts, fixtures, gdss
 from .config import config_sha256
 from .manifest import build_id as make_build_id, code_version, file_sha256
+from .methods import precomputed
 from .runspec import run_spec_sha256
 from .stages import AcceptanceError, bundle, cadence, compare, fibers, fit, forecast, grid, ingest, lagcorr, register
 
@@ -97,6 +98,21 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         write(calendar, "calendar", "calendar.parquet")
         stage = "register"
         reg = register.run(cfg)
+        est = gdss.estimated(reg)
+        gdss_info = None
+        if len(est):  # families estimated at the origin: their forecasts come from the GDSS adapters
+            stage = "gdss"
+            rdir, rid = gdss.request(root, series, est, cfg)
+            if not (rdir / "done.json").exists():
+                raise AcceptanceError("gdss", gdss.missing(rdir))
+            store, drop, cubes, fit_status, gdss_info = gdss.load(rdir, rid, series, est, cfg)
+            reg.loc[reg["config_id"].isin(list(drop)), "admissible"] = False
+            precomputed.attach(store)
+            for sid, cube in cubes.items():
+                write(cube, "gdss_cube", f"gdss/cube/{_safe(sid)}.parquet")
+            write(fit_status, "gdss_fit_status", "gdss/fit_status.parquet")
+            stage = "register"
+            register.check(reg, cfg)
         write(reg, "registry", "registry.parquet")
         stage = "fit"
         states, cache = fit.run(series, reg, cfg)
@@ -198,6 +214,8 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
             reports.mkdir(parents=True, exist_ok=True)
             err.rows.to_parquet(reports / f"{stage}.parquet")
         raise
+    finally:
+        precomputed.detach()
 
     manifest = {
         "build_id": bid,
@@ -212,7 +230,9 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         "provenance": prov,
         "split_boundary": ingest.split_boundary(series),
         "origins_per_series": n_origins,
-        "configurations": {"registered": len(reg), "admissible": int(reg["admissible"].sum())},
+        "configurations": {"registered": len(reg), "admissible": int(reg["admissible"].sum()),
+                           "fixed": int((reg["theta_spec"] == "fixed").sum()), "estimated": int((reg["theta_spec"] == "estimated").sum())},
+        **({"gdss": gdss_info} if gdss_info else {}),
         "fiber": {"coordinates": len(index)},
         "cadence": {"scale": cadence.SCALE_COLUMN[cfg["sigma.failure_scale"]], "labels": cfg["cadence.labels"]},
         "bundle_summary": {"alignment_A_t": "not built: it averages across configurations (archive rule)", "base_closed": cfg["base.closed"]},
@@ -221,7 +241,7 @@ def build(spec: dict, cfg: dict, root: Path | None = None) -> Path:
         **track_a,
         **track_b,
         **track_c,
-        "stages_passed": ["ingest", "register", "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, *track_b, *track_c],
+        "stages_passed": ["ingest", "register", *(["gdss"] if gdss_info else []), "fit", "forecast", "fibers", "cadence", "lagcorr", "bundle_summary", "grid", "compare", *track_a, *track_b, *track_c],
         "artifacts": artifacts,
         "libraries": _versions(),
     }

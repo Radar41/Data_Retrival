@@ -56,6 +56,8 @@ def check(sid: str, y: np.ndarray, registry: pd.DataFrame, cfg: dict, fs: dict[s
     y2[cut + 1 :] += rng.normal(0.0, 10.0 * (np.std(y) + 1.0), y.size - cut - 1)
     bad = []
     for cid, m, theta in configs(registry):
+        if get_method(m, cfg).precomputed:
+            continue  # leakage of the GDSS cube: fit_through <= issuance on read (gdss.load) and MATLAB's own cut test
         a, b = fs[cid], get_method(m, cfg).fit(y2, theta)
         for name in ("s1", "s2", "yhat1"):
             if not np.array_equal(getattr(a, name)[: cut + 1], getattr(b, name)[: cut + 1], equal_nan=True):

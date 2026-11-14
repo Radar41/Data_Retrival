@@ -1,0 +1,6 @@
+# The default config plus the families the GDSS adapters estimate at the origin (MATLAB, src/+gdss).
+# rattractor build <spec> --config configs/gdss.yaml writes the request, stops until the cube is in
+# external/<request_id>/ (sbatch src/gdss_bridge.sbatch ...), then builds every stage on all configurations.
+base: default.yaml
+registry.files: [ses.yaml, ar.yaml, holt.yaml, gdss_naive.yaml, gdss_local_level.yaml, gdss_llt.yaml, gdss_damped.yaml,
+                 gdss_arima.yaml, gdss_ets.yaml, gdss_lsboost.yaml]

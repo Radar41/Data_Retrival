@@ -6,7 +6,9 @@ For every admissible configuration c and base origin o in the test split:
 Every scale belongs to one configuration and one series; nothing pools residuals across
 configurations. Each row is scaled at its issuance, so it uses data at or before issuance only:
   sigma(c, iss)  sd of the configuration's one-step residuals e1 over the W_sigma steps ending at iss, floored
-  sigma_h        sigma x sqrt(sum psi_j^2, j < h): model-implied h-step sd (stored beside)
+  sigma_h        sigma x sqrt(sum psi_j^2, j < h): model-implied h-step sd (stored beside); for a family estimated
+                 at the origin, sigma x sd_m(iss, h) / sd_m(iss, 1) from the model's own forecast sd, or sigma x g_c(h)
+                 where the adapter gives none
   sigma_g        sigma x g_c(h): the configuration's own training-span growth of error spread with h
                  (decision 1, decided 2026-11-12; the scale cadence reads, sigma.failure_scale)
   g_c(h)         sd of its h-step errors over training issuances W..ts-1-H divided by the sd of its one-step
@@ -62,7 +64,7 @@ def rolling_sigma(e1: np.ndarray, cfg: dict, floor: float) -> np.ndarray:
 def growth_factor(sid: str, cid: str, meth, f: Fitted, ts: int, cfg: dict, floor: float) -> np.ndarray:
     """g_c(h) for h = 1..H from the configuration's own errors at training issuances W..ts-1-H."""
     H, W, ddof = cfg["horizon.H"], cfg["sigma.window"], cfg["sigma.ddof"]
-    issues = np.arange(W, ts - H)  # the last target, issues[-1] + H, is ts - 1
+    issues = np.arange(max(W, meth.first_issuance(f)), ts - H)  # the last target, issues[-1] + H, is ts - 1
     if issues.size < W:
         raise AcceptanceError("forecast", f"{sid}: the training span gives {issues.size} issuances for the growth factor; it needs at least W_sigma = {W}")
     E = np.empty((issues.size, H))
@@ -133,9 +135,15 @@ def run_series(sid: str, g: pd.DataFrame, registry: pd.DataFrame, states: pd.Dat
         Y = meth.forecast_from_state(S1, S2)
         yhat, s1, s2 = Y[pos, hh - 1], S1[pos, hh - 1], S2[pos, hh - 1]
         sig = rolling_sigma(f.e1, cfg, floor)[issuance]
-        sig_h = sig * meth.sigma_h_factor(theta, H)[hh - 1]
-        sig_g = np.maximum(sig * growth_factor(sid, cid, meth, f, ts, cfg, floor)[hh - 1], floor)
-        sigma2 = max(float(np.sqrt(np.mean(f.s2[:ts] ** 2))), floor)
+        g = growth_factor(sid, cid, meth, f, ts, cfg, floor)
+        fac = meth.sigma_h_factor_at(f, issuance, hh, theta, H)
+        if not np.isfinite(fac).all():  # an estimated family without its own forecast sd: its training-span growth
+            fac = np.where(np.isfinite(fac) & (fac > 0), fac, g[hh - 1])
+        sig_h = sig * fac
+        sig_g = np.maximum(sig * g[hh - 1], floor)
+        s2tr = f.s2[:ts]
+        ms2 = np.mean(s2tr ** 2) if np.isfinite(s2tr).all() else np.nanmean(s2tr ** 2)  # NaN before an estimated family's first issuance
+        sigma2 = max(float(np.sqrt(ms2)), floor)
         e = yt - yhat
         out["config_id"].append(np.full(rows_per, cid, dtype=object))
         for k, v in (("yhat", yhat), ("e", e), ("sigma", sig), ("sigma_h", sig_h), ("sigma_g", sig_g), ("u_f", -e / sig),

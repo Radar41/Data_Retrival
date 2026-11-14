@@ -1,0 +1,11 @@
+# GDSS exponential smoothing (analytical.ets, innovations state space, maximum likelihood), additive
+# error. Multiplicative error or season needs a positive series and is left out of the default sweep.
+method: gdss.ets
+theta_spec: estimated
+grid_axes: [ets_trend, ets_season]
+params:
+  ets_error: [A]
+  ets_trend: [N, A, Ad]
+  ets_season: [N, A]
+  season_period: [12]
+policy: {refit_every: 12, window: expanding, min_train: 24}

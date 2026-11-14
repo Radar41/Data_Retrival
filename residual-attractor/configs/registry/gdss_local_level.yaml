@@ -1,0 +1,7 @@
+# GDSS local level (Econometrics Toolbox ssm, maximum likelihood): ETS(A,N,N) / ARIMA(0,1,1) in
+# state-space form, variances estimated at every refit.
+method: gdss.local_level
+theta_spec: estimated
+grid_axes: []
+params: {}
+policy: {refit_every: 12, window: expanding, min_train: 24}

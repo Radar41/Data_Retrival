@@ -28,7 +28,13 @@ switch adapterId
 
     case "matlab.arima"
         adapter = gdss.MatlabArimaAdapter(modelConfig);
-        
+
+    case "analytical.ets"
+        adapter = gdss.AnalyticalEtsAdapter(modelConfig);
+
+    case "matlab.ml.lsboost"
+        adapter = gdss.MatlabLsboostAdapter(modelConfig);
+
     otherwise
         error( ...
             "gdss:create_model_adapter:UnsupportedAdapterId", ...

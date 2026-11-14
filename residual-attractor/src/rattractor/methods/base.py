@@ -34,6 +34,8 @@ class Method(ABC):
     param_names: tuple[str, ...]
     state_names: tuple[str, str]
     forecast_is: str  # "s1" or "s1_plus_s2": how forecast relates to state_forward
+    theta_spec = "fixed"   # "estimated": parameters re-estimated at the origin (methods.precomputed)
+    precomputed = False    # True: forecasts come from the GDSS cube, not from fit() on y
 
     def __init__(self, cfg: dict):
         self.cfg = cfg
@@ -77,9 +79,17 @@ class Method(ABC):
             raise ValueError(f"{self.name}: psi must have shape ({H},) with psi_0 = 1")
         return np.sqrt(np.cumsum(p * p))
 
+    def sigma_h_factor_at(self, fitted: "Fitted", issuance: np.ndarray, hh: np.ndarray, theta: dict, H: int) -> np.ndarray:
+        """sigma_h / sigma for each (issuance, h) row; the fixed families' factor does not depend on the issuance."""
+        return self.sigma_h_factor(theta, H)[hh - 1]
+
     # ---- recursion ---------------------------------------------------------
     @abstractmethod
     def fit(self, y: np.ndarray, theta: dict) -> Fitted: ...
+
+    def first_issuance(self, fitted: Fitted) -> int:
+        """First t with a forecast; 0 for the recursions, which run from the first observation."""
+        return 0
 
     def state(self, fitted: Fitted, t: int) -> tuple[float, float]:
         return float(fitted.s1[t]), float(fitted.s2[t])

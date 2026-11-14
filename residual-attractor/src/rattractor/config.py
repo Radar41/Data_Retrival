@@ -120,10 +120,20 @@ def _validate_cadence(cfg: dict) -> None:
 
 
 def load_config(path: Path | None = None) -> dict:
+    """A config file, or `base: <file>` plus the keys it overrides (resolved next to it; no other defaults)."""
     path = Path(path) if path else CONFIG_DIR / "default.yaml"
     cfg = yaml.safe_load(path.read_text())
     if not isinstance(cfg, dict):
         raise ContractError(f"{path}: not a mapping")
+    if "base" in cfg:
+        base_path = path.parent / cfg.pop("base")
+        base = yaml.safe_load(base_path.read_text())
+        if not isinstance(base, dict) or "base" in base:
+            raise ContractError(f"{base_path}: a base must be a plain mapping without its own base")
+        unknown = sorted(set(cfg) - set(base))
+        if unknown:
+            raise ContractError(f"{path}: overrides keys its base does not have: {unknown}")
+        cfg = {**base, **cfg}
     return validate_config(cfg)
 
 
@@ -143,5 +153,13 @@ def load_registry_grids(cfg: dict) -> list[dict]:
                 raise ContractError(f"{path}: missing {key}")
         if not set(grid["grid_axes"]) <= set(grid["params"]):
             raise ContractError(f"{path}: grid_axes not all in params")
+        if grid.get("theta_spec", "fixed") not in ("fixed", "estimated"):
+            raise ContractError(f"{path}: theta_spec must be fixed or estimated")
+        if grid.get("theta_spec") == "estimated":
+            pol = grid.get("policy", {})
+            if set(pol) != {"refit_every", "window", "min_train"} or pol.get("window") != "expanding":
+                raise ContractError(f"{path}: an estimated family needs policy {{refit_every, window: expanding, min_train}}")
+            if set(pol) & set(grid["params"]):
+                raise ContractError(f"{path}: policy keys repeat params")
         grids.append(grid)
     return grids

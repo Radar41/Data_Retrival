@@ -1,0 +1,13 @@
+# GDSS gradient-boosted trees (matlab.ml.lsboost, fitrensemble LSBoost) on lags of the target, recursive
+# multi-step; hyperparameters fixed per configuration, the ensemble refit every refit_every issuances.
+method: gdss.lsboost
+theta_spec: estimated
+grid_axes: [boost_lags, boost_target]
+params:
+  boost_lags: [6, 12]
+  boost_target: [level, difference]
+  num_learning_cycles: [200]
+  learn_rate: [0.1]
+  max_num_splits: [4]
+  min_leaf_size: [5]
+policy: {refit_every: 12, window: expanding, min_train: 24}

@@ -36,11 +36,52 @@ def config_id(method: str, theta_spec: str, params: dict, exog_set_id: str = "")
     return _hash({"method": method, "theta_spec": theta_spec, "params": params, "exog_set_id": exog_set_id})
 
 
+def _estimated_rows(grid: dict, method) -> list[dict]:
+    """One row per grid point of a family estimated at the origin (methods.precomputed).
+
+    theta = the grid point (adapter fields, e.g. arima_p) plus the estimation policy (refit_every, window,
+    min_train), so the policy is part of config_id; values keep their YAML types. Points matching an
+    `exclude` entry are not registered. ell is not defined (the parameters move with the origin).
+    """
+    names = list(grid["params"])
+    axes = grid["grid_axes"]
+    policy = dict(grid["policy"])
+    excludes = grid.get("exclude", [])
+    rows = []
+    for combo in itertools.product(*(grid["params"][n] for n in names)):
+        point = dict(zip(names, combo))
+        if any(all(point.get(k) == v for k, v in ex.items()) for ex in excludes):
+            continue
+        theta = {**point, **policy}
+        gi = grid["params"][axes[0]].index(point[axes[0]]) if axes else 0
+        gj = grid["params"][axes[1]].index(point[axes[1]]) if len(axes) > 1 else 0
+        rows.append({
+            "config_id": config_id(method.name, "estimated", theta),
+            "core_spec_id": core_spec_id(method.name, "estimated", theta),
+            "exog_set_id": "",
+            "method": method.name,
+            "theta_spec": "estimated",
+            "params": _canonical(theta),
+            "ell": np.nan,
+            "ell_status": "estimated",
+            "s1_name": method.state_names[0],
+            "s2_name": method.state_names[1],
+            "grid_axes": _canonical(axes),
+            "grid_i": gi,
+            "grid_j": gj,
+            "admissible": True,
+        })
+    return rows
+
+
 def build_registry(grids: list[dict], cfg: dict) -> pd.DataFrame:
     """Parameter grids in file order; one row per grid point."""
     rows = []
     for grid in grids:
         method = get_method(grid["method"], cfg)
+        if method.theta_spec == "estimated":
+            rows.extend(_estimated_rows(grid, method))
+            continue
         names = list(grid["params"])
         if set(names) != set(method.param_names):
             raise ValueError(f"grid for {method.name}: params {names} != {list(method.param_names)}")
@@ -103,7 +144,9 @@ def twin_groups(registry: pd.DataFrame, cfg: dict) -> list[list[str]]:
             c = parent[c]
         return c
 
-    for cid, m, p in zip(adm["config_id"], adm["method"], adm["params"]):
+    for cid, m, p, ts in zip(adm["config_id"], adm["method"], adm["params"], adm["theta_spec"]):
+        if ts != "fixed":
+            continue  # estimated families have no closed-form twins
         eq = get_method(str(m), cfg).equivalent(json.loads(p))
         if eq is not None:
             other = config_id(eq[0], "fixed", eq[1])

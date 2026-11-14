@@ -1,0 +1,7 @@
+# GDSS naive random walk (analytical.naive_random_walk): forecast y_i at every h. No parameters, so
+# "refitting" only resets its state; its adapter gives no forecast sd (sigma_h falls back to g_c(h)).
+method: gdss.naive
+theta_spec: estimated
+grid_axes: []
+params: {}
+policy: {refit_every: 12, window: expanding, min_train: 24}

@@ -13,6 +13,7 @@ THETAS = {
     "ar": {"phi1": 0.6, "phi2": -0.3},
     "holt": {"alpha": 0.4, "beta": 0.2},
 }
+FIXED = sorted(n for n, c in FAMILIES.items() if c.theta_spec == "fixed")  # estimated families: tests/unit/test_gdss.py
 
 
 @pytest.fixture(scope="module")
@@ -21,7 +22,7 @@ def y(cfg):
     return df["y"].to_numpy()
 
 
-@pytest.mark.parametrize("name", sorted(FAMILIES))
+@pytest.mark.parametrize("name", FIXED)
 def test_conformance(cfg, y, name):
     m = get_method(name, cfg)
     assert len(m.state_names) == 2 and all(m.state_names)
@@ -40,7 +41,7 @@ def test_conformance(cfg, y, name):
     assert fc[0] == pytest.approx(f.yhat1[o + 1], abs=1e-12)
 
 
-@pytest.mark.parametrize("name", sorted(FAMILIES))
+@pytest.mark.parametrize("name", FIXED)
 def test_no_leakage(cfg, y, name):
     m = get_method(name, cfg)
     o, H = 180, 20

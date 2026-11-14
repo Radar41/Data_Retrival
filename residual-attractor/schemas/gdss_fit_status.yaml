@@ -1,0 +1,15 @@
+artifact: gdss_fit_status
+description: "one row per estimation attempt of a GDSS adapter (and per failed forecast): what happened, from caught errors and captured warnings"
+primary_key: [series_id, config_id, issuance, status]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: issuance, dtype: int32, nullable: false, unit: step}
+  - {name: fit_through, dtype: int32, nullable: false, unit: step, notes: "-1 when the attempt failed"}
+  - {name: status, dtype: string, nullable: false, notes: "the adapter's fit status (COMPLETE, ...), FIT_FAILED, FORECAST_FAILED or INVALID"}
+  - {name: reason, dtype: string, nullable: false}
+  - {name: warnings, dtype: string, nullable: false, notes: "last warning raised during the fit, empty if none"}
+  - {name: convergence_status, dtype: string, nullable: false}
+  - {name: log_likelihood, dtype: float64, nullable: true}
+  - {name: params_json, dtype: string, nullable: false, notes: "estimated parameters by name"}
+  - {name: seconds, dtype: float64, nullable: false}

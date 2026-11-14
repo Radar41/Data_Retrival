@@ -1,0 +1,13 @@
+# GDSS nonseasonal ARIMA(p, d, q) (Econometrics Toolbox arima, maximum likelihood, constant estimated),
+# on the series as ingest gives it (levels in spec 0, differences in spec 1). Every order is its own
+# configuration; nothing selects one.
+method: gdss.arima
+theta_spec: estimated
+grid_axes: [arima_p, arima_q]
+params:
+  arima_p: [0, 1, 2]
+  arima_d: [0, 1]
+  arima_q: [0, 1, 2]
+exclude:
+  - {arima_p: 0, arima_d: 0, arima_q: 0}
+policy: {refit_every: 12, window: expanding, min_train: 24}

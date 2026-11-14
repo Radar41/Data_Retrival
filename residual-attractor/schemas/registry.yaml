@@ -9,7 +9,7 @@ columns:
   - {name: theta_spec, dtype: category, values: [fixed, estimated], nullable: false}
   - {name: params, dtype: string, nullable: false, notes: canonical JSON of the parameter vector}
   - {name: ell, dtype: float64, nullable: true, notes: "standardized Fisher coordinate in [0, 1]; NaN where ell_status says why"}
-  - {name: ell_status, dtype: category, values: [closed_form, numerical, not_defined_multiparameter, not_admissible], nullable: false}
+  - {name: ell_status, dtype: category, values: [closed_form, numerical, not_defined_multiparameter, not_admissible, estimated], nullable: false}
   - {name: s1_name, dtype: string, nullable: false}
   - {name: s2_name, dtype: string, nullable: false}
   - {name: grid_axes, dtype: string, nullable: false, notes: JSON list of the axis parameter names}

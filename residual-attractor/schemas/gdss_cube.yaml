@@ -1,0 +1,10 @@
+artifact: gdss_cube
+description: "one row per (series, estimated configuration, issuance): how the GDSS adapter's forecast from that issuance was made, and the model's own forecast sd. The forecasts themselves are in steps (yhat)."
+primary_key: [series_id, config_id, issuance]
+columns:
+  - {name: series_id, dtype: string, nullable: false}
+  - {name: config_id, dtype: string, nullable: false}
+  - {name: issuance, dtype: int32, nullable: false, unit: step, notes: "last observed index the forecast uses"}
+  - {name: fit_through, dtype: int32, nullable: false, unit: step, notes: "last index of the estimation sample of the parameters used; -1 = no fit yet; always <= issuance"}
+  - {name: status, dtype: string, nullable: false, notes: "REFIT, FILTERED (last parameters, data through the issuance), REFIT_FAILED (previous parameters kept), NO_FIT, FORECAST_FAILED"}
+  - {name: sd_m, dtype: "list[float32]", nullable: true, notes: "the model's own forecast sd at h = 1..H+1 (sqrt forecast MSE); NaN where the adapter gives none. Never mixed into sigma"}

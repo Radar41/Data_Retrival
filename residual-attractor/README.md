@@ -8,12 +8,13 @@ The build derives every configuration's residuals for every series and archives 
 
 ## State (2026-11-14)
 
-Built and tested (626 tests, plus one expected failure that records a spec known answer its own rules cannot meet):
+Built and tested (630 tests, plus one expected failure that records a spec known answer its own rules cannot meet):
 
 - **Contracts** (`schemas/`, `contracts.py`): exact columns, exact dtypes, no casting, primary keys; Parquet round trip, zero-row frames included. `list[float32]` columns (one float32 array per row, Arrow `list<float32>`) share one length per artifact.
 - **Config** (`configs/default.yaml`, `schemas/config.yaml`): every key required, no defaults in code. Decisions 1 (training-span growth), 3 (plain 40-step window) and 4 (the spec's nine cadence labels) are decided.
 - **Run specs** (`runs/`, `schemas/run_spec.yaml`): which series a build runs on and how they are read. The machinery never depends on the list.
 - **Methods** behind one interface (`fit`, `forecast`, `state`, `state_forward`, `state_names`, `fisher`, `psi`): SES, AR(2) (AR(1) is the φ₂ = 0 face), Holt (SES is the β = 0 face; those twins stay in the registry).
+- **Families estimated at the origin (the GDSS adapters)**: `configs/gdss.yaml` adds the MATLAB adapters in `src/+gdss` (naive, local level, local linear trend, damped trend, ARIMA(p,d,q), ETS, LSBoost; 31 configurations in the default sweep, `configs/registry/gdss_*.yaml`) beside the fixed grids. The build writes `external/<request_id>/` and stops; `sbatch src/gdss_bridge.sbatch` runs every adapter at every issuance on an expanding window (refit every 12, filtered forward between refits); the rerun reads the cube through `methods/precomputed.py`, checks fit_through ≤ issuance on every row, and standardizes these configurations exactly as the fixed ones. The model's own forecast sd is kept apart in `gdss/cube`. Design: `docs/DESIGN_gdss_bridge.md`.
 - **Stage 1, ingest**: one query against the FRED catalog for the vintage current on `as_of` (realtime_start ≤ as_of ≤ realtime_end), then frequency alignment, declared interpolation of short gaps (flagged in `calendar.imputed`), gap policy, transform, split. Writes `series` and `calendar`.
 - **Stage 2, register**: `config_id = hash(method, theta_spec, params, exog_set_id)`, `core_spec_id` without the exog set; ℓ closed form on one-parameter strata, flagged elsewhere (decision 12).
 - **Stage 3, fit**: `states` for every admissible configuration; acceptance re-checks leakage and SES = ARIMA(0,1,1) on every build.
@@ -46,6 +47,9 @@ uv venv .venv && uv pip install --python .venv/bin/python -e ".[dev,catalog]"
 .venv/bin/rattractor build fixture_six_regime.yaml
 .venv/bin/rattractor build spec0_spring_adan7406.yaml
 .venv/bin/rattractor build spec1_spring_adan7406_diff.yaml
+.venv/bin/rattractor build spec0_spring_adan7406.yaml --config configs/gdss.yaml   # writes the GDSS request and stops
+(cd .. && sbatch src/gdss_bridge.sbatch residual-attractor/external/<request_id>)    # MATLAB, on head
+.venv/bin/rattractor build spec0_spring_adan7406.yaml --config configs/gdss.yaml   # reads the cube, builds every stage
 ```
 
 ## Choices made here that the spec leaves open
