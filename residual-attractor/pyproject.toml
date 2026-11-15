@@ -17,6 +17,7 @@ rattractor = "rattractor.cli:main"
 [project.optional-dependencies]
 catalog = ["psycopg[binary]>=3.1"]
 dev = ["pytest>=8"]
+topology = ["ripser>=0.6.15", "persim>=0.4.1"]
 
 [build-system]
 requires = ["hatchling"]

@@ -35,7 +35,7 @@ Paths are relative to `residual-attractor/` unless they start with `/` or `docs/
 **Scope.**
 
 - Do not change stages 1–10 or their artifacts. If you find a bug there, fix it in its own commit with a test that fails without the fix, and say so in your report.
-- No new dependencies. Installed: numpy, scipy, pandas, pyarrow, pyyaml, psycopg. Not installed: pywt, statsmodels, sklearn, torch, duckdb, networkx, ripser, gudhi.
+- No new dependencies. Installed: numpy, scipy, pandas, pyarrow, pyyaml, psycopg. Installed since (the `topology` extra, 2026-11-15): ripser, persim, which bring scikit-learn and matplotlib. Not installed: pywt, statsmodels, torch, duckdb, networkx, gudhi.
 - Touch only `residual-attractor/`. Do not edit `README.md`'s State section or the plan: write `docs/progress/track_<letter>.md` instead and the merge folds it in.
 - Commit on your own branch after each package. Never push, never merge, never run `git add -A`.
 - rdiag is a downloaded archive: read it as text, never import or run it.
