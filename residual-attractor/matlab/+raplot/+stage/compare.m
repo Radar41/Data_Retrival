@@ -13,7 +13,7 @@ c = ctx.man.compare;
 cnt = zeros(L.N, 4);
 for i = 0:L.N-1
     cnt(i+1, :) = [sum(PW.p_value(PW.i == i) < 0.05), sum(CP.p_value(CP.i == i) < 0.05), ...
-                   sum(FS.reject(FS.i == i)), sum(MC.in_set(MC.i == i))];
+                   sum(double(FS.reject(FS.i == i)), 'omitnan'), sum(MC.in_set(MC.i == i))];
 end
 [f, tl] = raplot.util.newfig(1500, 750, 1, 1, sprintf('compare: %d pairs per series, MCS over %d models (alpha %.2g)', ...
     c.pairs_per_series, c.mcs.models_per_series, c.mcs.alpha), ctx);
